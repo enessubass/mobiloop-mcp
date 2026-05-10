@@ -31,7 +31,8 @@ export function flowTools(): McpTool[] {
   return [
     {
       name: "flow.analyze_from_code",
-      description: "Infer mobile screens, routes, transitions, and visible text candidates from source code.",
+      description:
+        "Infer mobile screens, routes, transitions, and visible text candidates from source code.",
       inputSchema: objectSchema(
         {
           maxFiles: numberSchema,
@@ -51,7 +52,8 @@ export function flowTools(): McpTool[] {
     },
     {
       name: "flow.generate_test_scenarios",
-      description: "Generate candidate mobile E2E scenarios from static source-flow analysis for an AI agent to execute/refine.",
+      description:
+        "Generate candidate mobile E2E scenarios from static source-flow analysis for an AI agent to execute/refine.",
       inputSchema: objectSchema(
         {
           goal: stringSchema,
@@ -78,7 +80,16 @@ export function flowTools(): McpTool[] {
           "flow",
           "generated-test-scenarios",
           "json",
-          JSON.stringify({ generatedAt: new Date().toISOString(), goal: optionalString(args, "goal"), analysis, scenarios }, null, 2)
+          JSON.stringify(
+            {
+              generatedAt: new Date().toISOString(),
+              goal: optionalString(args, "goal"),
+              analysis,
+              scenarios
+            },
+            null,
+            2
+          )
         );
         return jsonResponse({
           generatedAt: new Date().toISOString(),
@@ -95,7 +106,8 @@ export function flowTools(): McpTool[] {
     },
     {
       name: "flow.run_script",
-      description: "Run a high-level JSON flow DSL over an Appium session: waitText, tapText, type, assertText, observe, collectEvidence, back, swipe, checkpoint.",
+      description:
+        "Run a high-level JSON flow DSL over an Appium session: waitText, tapText, type, assertText, observe, collectEvidence, back, swipe, checkpoint.",
       inputSchema: objectSchema(
         {
           sessionId: stringSchema,
@@ -132,7 +144,13 @@ export function flowTools(): McpTool[] {
               testName,
               serverUrl
             });
-            executed.push({ index, startedAt, passed: true, step: step as never, result: result as never });
+            executed.push({
+              index,
+              startedAt,
+              passed: true,
+              step: step as never,
+              result: result as never
+            });
             if (result && typeof result === "object" && "evidence" in result) {
               evidence.push((result as { evidence: Record<string, unknown> }).evidence);
             }
@@ -140,18 +158,31 @@ export function flowTools(): McpTool[] {
             const failure = error instanceof Error ? error.message : String(error);
             executed.push({ index, startedAt, passed: false, step: step as never, failure });
             if (stopOnFailure) {
-              return jsonResponse({ passed: false, serverUrl, sessionId, executed: executed as never, evidence: evidence as never });
+              return jsonResponse({
+                passed: false,
+                serverUrl,
+                sessionId,
+                executed: executed as never,
+                evidence: evidence as never
+              });
             }
           }
           if (delayMs > 0) await sleep(delayMs);
         }
 
-        return jsonResponse({ passed: executed.every((entry) => entry.passed), serverUrl, sessionId, executed: executed as never, evidence: evidence as never });
+        return jsonResponse({
+          passed: executed.every((entry) => entry.passed),
+          serverUrl,
+          sessionId,
+          executed: executed as never,
+          evidence: evidence as never
+        });
       }
     },
     {
       name: "flow.record_checkpoint",
-      description: "Record a runtime screen checkpoint from Appium source/session and optional action needed to reach the next checkpoint.",
+      description:
+        "Record a runtime screen checkpoint from Appium source/session and optional action needed to reach the next checkpoint.",
       inputSchema: objectSchema(
         {
           testName: stringSchema,
@@ -183,7 +214,8 @@ export function flowTools(): McpTool[] {
           const client = new AppiumClient({ serverUrl });
           source = await client.pageSource(sessionId);
           sourcePath = await client.savePageSource(config, sessionId, prefix);
-          screenshotPath = screenshotPath ?? (await client.saveScreenshot(config, sessionId, prefix));
+          screenshotPath =
+            screenshotPath ?? (await client.saveScreenshot(config, sessionId, prefix));
         } else {
           source = await readScreenSource(config, { source, sourcePath });
           if (!sourcePath) {
@@ -218,7 +250,8 @@ export function flowTools(): McpTool[] {
     },
     {
       name: "flow.record_test_run",
-      description: "Record the ordered checkpoint ids for a test run. The latest passed run becomes the default replay path.",
+      description:
+        "Record the ordered checkpoint ids for a test run. The latest passed run becomes the default replay path.",
       inputSchema: objectSchema(
         {
           runId: stringSchema,
@@ -234,7 +267,8 @@ export function flowTools(): McpTool[] {
       async handler(input, { config }) {
         const args = asObject(input);
         const checkpointIds = optionalStringArray(args, "checkpointIds") ?? [];
-        if (checkpointIds.length === 0) throw new Error("checkpointIds must contain at least one checkpoint id");
+        if (checkpointIds.length === 0)
+          throw new Error("checkpointIds must contain at least one checkpoint id");
         const result = await recordFlowRun(config, {
           id: optionalString(args, "runId"),
           testName: requireString(args, "testName"),
@@ -249,7 +283,8 @@ export function flowTools(): McpTool[] {
     },
     {
       name: "flow.plan_replay",
-      description: "Match the current screen against recorded checkpoints and return Appium actions needed to reach a target checkpoint.",
+      description:
+        "Match the current screen against recorded checkpoints and return Appium actions needed to reach a target checkpoint.",
       inputSchema: objectSchema(
         {
           testName: stringSchema,
@@ -281,7 +316,8 @@ export function flowTools(): McpTool[] {
     },
     {
       name: "flow.replay_to_checkpoint",
-      description: "Auto-advance an Appium session from a previously seen screen to the latest or requested checkpoint.",
+      description:
+        "Auto-advance an Appium session from a previously seen screen to the latest or requested checkpoint.",
       inputSchema: objectSchema(
         {
           sessionId: stringSchema,
@@ -334,7 +370,10 @@ export function flowTools(): McpTool[] {
       inputSchema: objectSchema({}),
       async handler(_input, { config }) {
         const memory = await readFlowMemory(config);
-        return jsonResponse({ memoryPath: `${config.artifactsDir}/flow/memory.json`, memory: memory as never });
+        return jsonResponse({
+          memoryPath: `${config.artifactsDir}/flow/memory.json`,
+          memory: memory as never
+        });
       }
     },
     {
@@ -353,7 +392,10 @@ export function flowTools(): McpTool[] {
   ];
 }
 
-async function sourceFromInput(config: Parameters<typeof readFlowMemory>[0], args: Record<string, unknown>): Promise<string> {
+async function sourceFromInput(
+  config: Parameters<typeof readFlowMemory>[0],
+  args: Record<string, unknown>
+): Promise<string> {
   const sessionId = optionalString(args, "sessionId");
   if (sessionId) {
     const serverUrl = optionalString(args, "serverUrl") ?? config.appiumServerUrl;
@@ -376,9 +418,18 @@ async function executeReplayAction(
     case "appium.tap_by_text": {
       const text = requireString(args, "text");
       const timeoutMs = optionalNumber(args, "timeoutMs") ?? 5_000;
-      const visible = await client.waitForVisible(sessionId, { strategy: "text", value: text }, timeoutMs);
+      const visible = await client.waitForVisible(
+        sessionId,
+        { strategy: "text", value: text },
+        timeoutMs
+      );
       if (!visible.found) throw new Error(`Replay text not visible: ${text}`);
-      const matchMode = stringEnum(args, "matchMode", ["auto", "exact", "contains"] as const, "auto");
+      const matchMode = stringEnum(
+        args,
+        "matchMode",
+        ["auto", "exact", "contains"] as const,
+        "auto"
+      );
       const target = await client.findTextTapTarget(sessionId, text, matchMode);
       await client.clickElement(sessionId, target.elementId);
       return;
@@ -392,7 +443,10 @@ async function executeReplayAction(
       return;
     }
     case "appium.tap_by_resource_id": {
-      const element = await client.findElement(sessionId, { strategy: "id", value: requireString(args, "resourceId") });
+      const element = await client.findElement(sessionId, {
+        strategy: "id",
+        value: requireString(args, "resourceId")
+      });
       await client.clickElement(sessionId, element);
       return;
     }
@@ -407,7 +461,12 @@ async function executeReplayAction(
       const locator = locatorFromActionArgs(args);
       const text = requireString(args, "text");
       const clearFirst = optionalBoolean(args, "clearFirst") ?? true;
-      const mode = stringEnum(args, "mode", ["sendKeys", "setValue", "adbKeyboard"] as const, "sendKeys");
+      const mode = stringEnum(
+        args,
+        "mode",
+        ["sendKeys", "setValue", "adbKeyboard"] as const,
+        "sendKeys"
+      );
       const element = await client.findElement(sessionId, locator);
       if (clearFirst) await client.clearElement(sessionId, element);
       if (mode === "setValue") {
@@ -427,7 +486,14 @@ async function executeReplayAction(
       if ([startX, startY, endX, endY].some((value) => value === undefined)) {
         throw new Error("swipe requires startX, startY, endX, and endY");
       }
-      await client.swipe(sessionId, startX!, startY!, endX!, endY!, optionalNumber(args, "durationMs") ?? 500);
+      await client.swipe(
+        sessionId,
+        startX!,
+        startY!,
+        endX!,
+        endY!,
+        optionalNumber(args, "durationMs") ?? 500
+      );
       return;
     }
     case "appium.go_back":
@@ -436,8 +502,13 @@ async function executeReplayAction(
     case "appium.wait_for_visible":
     case "appium.assert_visible": {
       const locator = locatorFromActionArgs(args);
-      const result = await client.waitForVisible(sessionId, locator, optionalNumber(args, "timeoutMs") ?? 5_000);
-      if (!result.found) throw new Error(`Replay locator not visible: ${locator.strategy}:${locator.value}`);
+      const result = await client.waitForVisible(
+        sessionId,
+        locator,
+        optionalNumber(args, "timeoutMs") ?? 5_000
+      );
+      if (!result.found)
+        throw new Error(`Replay locator not visible: ${locator.strategy}:${locator.value}`);
       return;
     }
     default:
@@ -489,21 +560,35 @@ async function executeScriptStep(
     serverUrl: string;
   }
 ): Promise<Record<string, unknown>> {
-  const action = optionalString(step, "action") ?? optionalString(step, "type") ?? optionalString(step, "tool");
+  const action =
+    optionalString(step, "action") ?? optionalString(step, "type") ?? optionalString(step, "tool");
   if (!action) throw new Error("flow script step requires action/type/tool");
   switch (normalizeScriptAction(action)) {
     case "waitText": {
       const text = requireString(step, "text");
       const timeoutMs = optionalNumber(step, "timeoutMs") ?? 10_000;
-      const result = await client.waitForVisible(sessionId, { strategy: "text", value: text }, timeoutMs);
+      const result = await client.waitForVisible(
+        sessionId,
+        { strategy: "text", value: text },
+        timeoutMs
+      );
       if (!result.found) throw new Error(`Text not visible: ${text}`);
       return { action: "waitText", text, timeoutMs, ...result };
     }
     case "tapText": {
       const text = requireString(step, "text");
-      const matchMode = stringEnum(step, "matchMode", ["auto", "exact", "contains"] as const, "auto");
+      const matchMode = stringEnum(
+        step,
+        "matchMode",
+        ["auto", "exact", "contains"] as const,
+        "auto"
+      );
       const timeoutMs = optionalNumber(step, "timeoutMs") ?? 10_000;
-      const visible = await client.waitForVisible(sessionId, { strategy: "text", value: text }, timeoutMs);
+      const visible = await client.waitForVisible(
+        sessionId,
+        { strategy: "text", value: text },
+        timeoutMs
+      );
       if (!visible.found) throw new Error(`Text not visible: ${text}`);
       const target = await client.findTextTapTarget(sessionId, text, matchMode);
       await client.clickElement(sessionId, target.elementId);
@@ -513,7 +598,12 @@ async function executeScriptStep(
       const locator = locatorFromActionArgs(step);
       const text = requireString(step, "text");
       const clearFirst = optionalBoolean(step, "clearFirst") ?? true;
-      const mode = stringEnum(step, "mode", ["sendKeys", "setValue", "adbKeyboard"] as const, "sendKeys");
+      const mode = stringEnum(
+        step,
+        "mode",
+        ["sendKeys", "setValue", "adbKeyboard"] as const,
+        "sendKeys"
+      );
       const element = await client.findElement(sessionId, locator);
       if (clearFirst) await client.clearElement(sessionId, element);
       if (mode === "setValue") {
@@ -533,14 +623,23 @@ async function executeScriptStep(
     }
     case "observe":
     case "collectEvidence": {
-      const label = optionalString(step, "label") ?? `${options.prefix}-${String(options.index + 1).padStart(2, "0")}`;
+      const label =
+        optionalString(step, "label") ??
+        `${options.prefix}-${String(options.index + 1).padStart(2, "0")}`;
       const minWaitMs = Math.max(0, Math.min(optionalNumber(step, "minWaitMs") ?? 0, 30_000));
       if (minWaitMs > 0) await sleep(minWaitMs);
-      const timeoutMs = Math.max(500, Math.min(optionalNumber(step, "timeoutMs") ?? 10_000, 120_000));
+      const timeoutMs = Math.max(
+        500,
+        Math.min(optionalNumber(step, "timeoutMs") ?? 10_000, 120_000)
+      );
       const waitForAnyText = optionalStringArray(step, "waitForAnyText") ?? [];
       const readiness: Record<string, unknown> = {};
       if (waitForAnyText.length > 0) {
-        readiness.waitForAnyText = await client.waitForAnyText(sessionId, waitForAnyText, timeoutMs);
+        readiness.waitForAnyText = await client.waitForAnyText(
+          sessionId,
+          waitForAnyText,
+          timeoutMs
+        );
       }
       if (optionalBoolean(step, "waitForPackageIdle") ?? false) {
         readiness.waitForPackageIdle = await client.waitForStableSource(sessionId, {
@@ -554,8 +653,16 @@ async function executeScriptStep(
     case "checkpoint": {
       const name = optionalString(step, "name") ?? `checkpoint-${options.index + 1}`;
       const source = await client.pageSource(sessionId);
-      const sourcePath = await client.savePageSource(options.config, sessionId, `${options.prefix}-${name}`);
-      const screenshotPath = await client.saveScreenshot(options.config, sessionId, `${options.prefix}-${name}`);
+      const sourcePath = await client.savePageSource(
+        options.config,
+        sessionId,
+        `${options.prefix}-${name}`
+      );
+      const screenshotPath = await client.saveScreenshot(
+        options.config,
+        sessionId,
+        `${options.prefix}-${name}`
+      );
       const signature = createScreenSignature(source);
       const result = await upsertCheckpoint(options.config, {
         testName: options.testName,
@@ -614,8 +721,14 @@ function generateScenariosFromAnalysis(
 ): Array<Record<string, unknown>> {
   const scenarios: Array<Record<string, unknown>> = [];
   const visibleTexts = uniqueStrings(analysis.visibleTexts.map((entry) => entry.text));
-  const clickableTexts = visibleTexts.filter((text) => /giriş|login|sign in|register|kayıt|devam|continue|next|başla|start|save|kaydet|submit/i.test(text));
-  const formHints = visibleTexts.filter((text) => /email|e-posta|password|şifre|phone|telefon|name|ad|soyad/i.test(text));
+  const clickableTexts = visibleTexts.filter((text) =>
+    /giriş|login|sign in|register|kayıt|devam|continue|next|başla|start|save|kaydet|submit/i.test(
+      text
+    )
+  );
+  const formHints = visibleTexts.filter((text) =>
+    /email|e-posta|password|şifre|phone|telefon|name|ad|soyad/i.test(text)
+  );
 
   scenarios.push({
     id: "launch-smoke",
@@ -651,10 +764,15 @@ function generateScenariosFromAnalysis(
       title: "Form validation rejects empty submit",
       priority: "P1",
       steps: [
-        ...clickableTexts.slice(0, 1).map((text) => ({ action: "tapText", text, matchMode: "auto" })),
+        ...clickableTexts
+          .slice(0, 1)
+          .map((text) => ({ action: "tapText", text, matchMode: "auto" })),
         { action: "collectEvidence", label: "empty-submit-validation" }
       ],
-      assertions: ["Validation message is visible", "No remote mutation should be required for invalid input"],
+      assertions: [
+        "Validation message is visible",
+        "No remote mutation should be required for invalid input"
+      ],
       candidates: { formHints: formHints.slice(0, 10) }
     });
   }
@@ -680,7 +798,9 @@ function generateScenariosFromAnalysis(
 
 function objectArray(value: unknown): Record<string, unknown>[] {
   if (!Array.isArray(value)) return [];
-  return value.filter((entry): entry is Record<string, unknown> => Boolean(entry && typeof entry === "object" && !Array.isArray(entry)));
+  return value.filter((entry): entry is Record<string, unknown> =>
+    Boolean(entry && typeof entry === "object" && !Array.isArray(entry))
+  );
 }
 
 function uniqueStrings(values: string[]): string[] {
@@ -696,7 +816,9 @@ function uniqueStrings(values: string[]): string[] {
   return output;
 }
 
-function signatureSummary(signature: ReturnType<typeof createScreenSignature>): Record<string, unknown> {
+function signatureSummary(
+  signature: ReturnType<typeof createScreenSignature>
+): Record<string, unknown> {
   return {
     hash: signature.hash,
     texts: signature.texts.slice(0, 20),
@@ -708,11 +830,13 @@ function signatureSummary(signature: ReturnType<typeof createScreenSignature>): 
 }
 
 function slug(value: string): string {
-  return value
-    .toLocaleLowerCase("en-US")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 60) || "scenario";
+  return (
+    value
+      .toLocaleLowerCase("en-US")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 60) || "scenario"
+  );
 }
 
 function sleep(ms: number): Promise<void> {

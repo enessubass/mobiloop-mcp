@@ -1,6 +1,13 @@
 import { AppiumClient, TextMatchMode, locatorFromInput } from "../utils/appium-client.js";
 import { McpTool, jsonResponse } from "../types.js";
-import { arraySchema, booleanSchema, locatorSchema, numberSchema, objectSchema, stringSchema } from "../schema.js";
+import {
+  arraySchema,
+  booleanSchema,
+  locatorSchema,
+  numberSchema,
+  objectSchema,
+  stringSchema
+} from "../schema.js";
 import {
   asObject,
   optionalBoolean,
@@ -29,13 +36,19 @@ export function appiumTools(): McpTool[] {
         const serverUrl = optionalString(args, "serverUrl") ?? config.appiumServerUrl;
         const capabilities = unknownJsonObject(args, "capabilities");
         const result = await new AppiumClient({ serverUrl }).createSession(capabilities);
-        return jsonResponse({ serverUrl, sessionId: result.sessionId, value: result.value as never });
+        return jsonResponse({
+          serverUrl,
+          sessionId: result.sessionId,
+          value: result.value as never
+        });
       }
     },
     {
       name: "appium.delete_session",
       description: "Delete an Appium session.",
-      inputSchema: objectSchema({ sessionId: stringSchema, serverUrl: stringSchema }, ["sessionId"]),
+      inputSchema: objectSchema({ sessionId: stringSchema, serverUrl: stringSchema }, [
+        "sessionId"
+      ]),
       async handler(input, { config }) {
         const args = asObject(input);
         const serverUrl = optionalString(args, "serverUrl") ?? config.appiumServerUrl;
@@ -46,7 +59,8 @@ export function appiumTools(): McpTool[] {
     },
     {
       name: "appium.observe_screen",
-      description: "Capture screenshot and page source for the current Appium session, optionally waiting for app UI readiness.",
+      description:
+        "Capture screenshot and page source for the current Appium session, optionally waiting for app UI readiness.",
       inputSchema: objectSchema(
         {
           sessionId: stringSchema,
@@ -68,11 +82,18 @@ export function appiumTools(): McpTool[] {
         const client = new AppiumClient({ serverUrl });
         const minWaitMs = Math.max(0, Math.min(optionalNumber(args, "minWaitMs") ?? 0, 30_000));
         if (minWaitMs > 0) await sleep(minWaitMs);
-        const timeoutMs = Math.max(500, Math.min(optionalNumber(args, "timeoutMs") ?? 10_000, 120_000));
+        const timeoutMs = Math.max(
+          500,
+          Math.min(optionalNumber(args, "timeoutMs") ?? 10_000, 120_000)
+        );
         const waitForAnyText = optionalStringArray(args, "waitForAnyText") ?? [];
         const readiness: Record<string, unknown> = {};
         if (waitForAnyText.length > 0) {
-          readiness.waitForAnyText = await client.waitForAnyText(sessionId, waitForAnyText, timeoutMs);
+          readiness.waitForAnyText = await client.waitForAnyText(
+            sessionId,
+            waitForAnyText,
+            timeoutMs
+          );
         }
         if (optionalBoolean(args, "waitForPackageIdle") ?? false) {
           readiness.waitForPackageIdle = await client.waitForStableSource(sessionId, {
@@ -94,7 +115,9 @@ export function appiumTools(): McpTool[] {
     {
       name: "appium.get_page_source",
       description: "Return raw Appium page source XML.",
-      inputSchema: objectSchema({ sessionId: stringSchema, serverUrl: stringSchema }, ["sessionId"]),
+      inputSchema: objectSchema({ sessionId: stringSchema, serverUrl: stringSchema }, [
+        "sessionId"
+      ]),
       async handler(input, { config }) {
         const args = asObject(input);
         const serverUrl = optionalString(args, "serverUrl") ?? config.appiumServerUrl;
@@ -106,7 +129,9 @@ export function appiumTools(): McpTool[] {
     {
       name: "appium.get_accessibility_tree",
       description: "Return a compact accessibility summary parsed from page source.",
-      inputSchema: objectSchema({ sessionId: stringSchema, serverUrl: stringSchema }, ["sessionId"]),
+      inputSchema: objectSchema({ sessionId: stringSchema, serverUrl: stringSchema }, [
+        "sessionId"
+      ]),
       async handler(input, { config }) {
         const args = asObject(input);
         const serverUrl = optionalString(args, "serverUrl") ?? config.appiumServerUrl;
@@ -117,7 +142,8 @@ export function appiumTools(): McpTool[] {
     },
     {
       name: "appium.tap_by_text",
-      description: "Tap a visible element by text with exact-first matching before contains fallback.",
+      description:
+        "Tap a visible element by text with exact-first matching before contains fallback.",
       inputSchema: objectSchema(
         {
           sessionId: stringSchema,
@@ -134,26 +160,52 @@ export function appiumTools(): McpTool[] {
         const sessionId = requireString(args, "sessionId");
         const text = requireString(args, "text");
         const timeoutMs = optionalNumber(args, "timeoutMs") ?? 10_000;
-        const matchMode = stringEnum(args, "matchMode", ["auto", "exact", "contains"] as const, "auto");
+        const matchMode = stringEnum(
+          args,
+          "matchMode",
+          ["auto", "exact", "contains"] as const,
+          "auto"
+        );
         const client = new AppiumClient({ serverUrl });
-        const wait = await client.waitForVisible(sessionId, { strategy: "text", value: text }, timeoutMs);
+        const wait = await client.waitForVisible(
+          sessionId,
+          { strategy: "text", value: text },
+          timeoutMs
+        );
         if (!wait.found) throw new Error(`Text not visible: ${text}`);
-        const tapTarget = await client.findTextTapTarget(sessionId, text, matchMode as TextMatchMode);
+        const tapTarget = await client.findTextTapTarget(
+          sessionId,
+          text,
+          matchMode as TextMatchMode
+        );
         await client.clickElement(sessionId, tapTarget.elementId);
-        return jsonResponse({ serverUrl, sessionId, tapped: true, text, matchMode, target: tapTarget as never });
+        return jsonResponse({
+          serverUrl,
+          sessionId,
+          tapped: true,
+          text,
+          matchMode,
+          target: tapTarget as never
+        });
       }
     },
     {
       name: "appium.tap_by_accessibility_id",
       description: "Tap by accessibility id.",
-      inputSchema: objectSchema({ sessionId: stringSchema, serverUrl: stringSchema, accessibilityId: stringSchema }, ["sessionId", "accessibilityId"]),
+      inputSchema: objectSchema(
+        { sessionId: stringSchema, serverUrl: stringSchema, accessibilityId: stringSchema },
+        ["sessionId", "accessibilityId"]
+      ),
       async handler(input, { config }) {
         const args = asObject(input);
         const serverUrl = optionalString(args, "serverUrl") ?? config.appiumServerUrl;
         const sessionId = requireString(args, "sessionId");
         const accessibilityId = requireString(args, "accessibilityId");
         const client = new AppiumClient({ serverUrl });
-        const element = await client.findElement(sessionId, { strategy: "accessibility id", value: accessibilityId });
+        const element = await client.findElement(sessionId, {
+          strategy: "accessibility id",
+          value: accessibilityId
+        });
         await client.clickElement(sessionId, element);
         return jsonResponse({ serverUrl, sessionId, tapped: true, accessibilityId });
       }
@@ -161,7 +213,10 @@ export function appiumTools(): McpTool[] {
     {
       name: "appium.tap_by_resource_id",
       description: "Tap by Android resource id or Appium id locator.",
-      inputSchema: objectSchema({ sessionId: stringSchema, serverUrl: stringSchema, resourceId: stringSchema }, ["sessionId", "resourceId"]),
+      inputSchema: objectSchema(
+        { sessionId: stringSchema, serverUrl: stringSchema, resourceId: stringSchema },
+        ["sessionId", "resourceId"]
+      ),
       async handler(input, { config }) {
         const args = asObject(input);
         const serverUrl = optionalString(args, "serverUrl") ?? config.appiumServerUrl;
@@ -198,7 +253,8 @@ export function appiumTools(): McpTool[] {
     },
     {
       name: "appium.type_text",
-      description: "Type text into an element located by accessibility id, id, xpath, text, or native selector.",
+      description:
+        "Type text into an element located by accessibility id, id, xpath, text, or native selector.",
       inputSchema: objectSchema(
         {
           sessionId: stringSchema,
@@ -216,7 +272,12 @@ export function appiumTools(): McpTool[] {
         const sessionId = requireString(args, "sessionId");
         const text = requireString(args, "text");
         const clearFirst = optionalBoolean(args, "clearFirst") ?? true;
-        const mode = stringEnum(args, "mode", ["sendKeys", "setValue", "adbKeyboard"] as const, "sendKeys");
+        const mode = stringEnum(
+          args,
+          "mode",
+          ["sendKeys", "setValue", "adbKeyboard"] as const,
+          "sendKeys"
+        );
         const locator = locatorFromInput(args);
         const client = new AppiumClient({ serverUrl });
         const element = await client.findElement(sessionId, locator);
@@ -228,7 +289,14 @@ export function appiumTools(): McpTool[] {
         } else {
           await client.typeText(sessionId, element, text);
         }
-        return jsonResponse({ serverUrl, sessionId, typed: true, locator: locator as never, clearFirst, mode });
+        return jsonResponse({
+          serverUrl,
+          sessionId,
+          typed: true,
+          locator: locator as never,
+          clearFirst,
+          mode
+        });
       }
     },
     {
@@ -258,14 +326,32 @@ export function appiumTools(): McpTool[] {
         if ([startX, startY, endX, endY].some((value) => value === undefined)) {
           throw new Error("startX, startY, endX, endY are required");
         }
-        await new AppiumClient({ serverUrl }).swipe(sessionId, startX!, startY!, endX!, endY!, durationMs);
-        return jsonResponse({ serverUrl, sessionId, swiped: true, startX, startY, endX, endY, durationMs });
+        await new AppiumClient({ serverUrl }).swipe(
+          sessionId,
+          startX!,
+          startY!,
+          endX!,
+          endY!,
+          durationMs
+        );
+        return jsonResponse({
+          serverUrl,
+          sessionId,
+          swiped: true,
+          startX,
+          startY,
+          endX,
+          endY,
+          durationMs
+        });
       }
     },
     {
       name: "appium.go_back",
       description: "Send Android/iOS back navigation to the Appium session.",
-      inputSchema: objectSchema({ sessionId: stringSchema, serverUrl: stringSchema }, ["sessionId"]),
+      inputSchema: objectSchema({ sessionId: stringSchema, serverUrl: stringSchema }, [
+        "sessionId"
+      ]),
       async handler(input, { config }) {
         const args = asObject(input);
         const serverUrl = optionalString(args, "serverUrl") ?? config.appiumServerUrl;
@@ -292,13 +378,24 @@ export function appiumTools(): McpTool[] {
         const sessionId = requireString(args, "sessionId");
         const timeoutMs = optionalNumber(args, "timeoutMs") ?? 10_000;
         const locator = locatorFromInput(args);
-        const result = await new AppiumClient({ serverUrl }).waitForVisible(sessionId, locator, timeoutMs);
-        return jsonResponse({ serverUrl, sessionId, locator: locator as never, timeoutMs, ...result });
+        const result = await new AppiumClient({ serverUrl }).waitForVisible(
+          sessionId,
+          locator,
+          timeoutMs
+        );
+        return jsonResponse({
+          serverUrl,
+          sessionId,
+          locator: locator as never,
+          timeoutMs,
+          ...result
+        });
       }
     },
     {
       name: "appium.assert_visible",
-      description: "Assert that a locator is visible. Returns passed false instead of throwing when not visible.",
+      description:
+        "Assert that a locator is visible. Returns passed false instead of throwing when not visible.",
       inputSchema: objectSchema(
         {
           sessionId: stringSchema,
@@ -314,8 +411,18 @@ export function appiumTools(): McpTool[] {
         const sessionId = requireString(args, "sessionId");
         const timeoutMs = optionalNumber(args, "timeoutMs") ?? 5_000;
         const locator = locatorFromInput(args);
-        const result = await new AppiumClient({ serverUrl }).waitForVisible(sessionId, locator, timeoutMs);
-        return jsonResponse({ passed: result.found, serverUrl, sessionId, locator: locator as never, timeoutMs });
+        const result = await new AppiumClient({ serverUrl }).waitForVisible(
+          sessionId,
+          locator,
+          timeoutMs
+        );
+        return jsonResponse({
+          passed: result.found,
+          serverUrl,
+          sessionId,
+          locator: locator as never,
+          timeoutMs
+        });
       }
     },
     {
@@ -336,8 +443,18 @@ export function appiumTools(): McpTool[] {
         const sessionId = requireString(args, "sessionId");
         const timeoutMs = optionalNumber(args, "timeoutMs") ?? 2_000;
         const locator = locatorFromInput(args);
-        const result = await new AppiumClient({ serverUrl }).waitForVisible(sessionId, locator, timeoutMs);
-        return jsonResponse({ passed: !result.found, serverUrl, sessionId, locator: locator as never, timeoutMs });
+        const result = await new AppiumClient({ serverUrl }).waitForVisible(
+          sessionId,
+          locator,
+          timeoutMs
+        );
+        return jsonResponse({
+          passed: !result.found,
+          serverUrl,
+          sessionId,
+          locator: locator as never,
+          timeoutMs
+        });
       }
     }
   ];

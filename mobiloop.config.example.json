@@ -1,4 +1,5 @@
 {
+  "$schema": "schema/mobiloop.config.schema.json",
   "workspaceRoot": ".",
   "artifactsDir": ".mobiloop",
   "maxCommandMs": 120000,
@@ -13,11 +14,7 @@
   "xcrunPath": "xcrun",
   "xcodebuildPath": "xcodebuild",
   "sqlitePath": "sqlite3",
-  "apiAllowlist": [
-    "http://127.0.0.1:*",
-    "http://localhost:*",
-    "https://staging.example.com"
-  ],
+  "apiAllowlist": ["http://127.0.0.1:*", "http://localhost:*", "https://staging.example.com"],
   "forbiddenPathGlobs": [
     ".env",
     ".env.*",
@@ -31,5 +28,19 @@
     "**/google-services.json",
     "**/*secret*",
     "**/*credential*"
-  ]
+  ],
+  "toolPolicies": {
+    "code.apply_patch": {
+      "requiresApproval": true,
+      "riskLevel": "write"
+    },
+    "device.clear_app_data": {
+      "requiresApproval": true,
+      "riskLevel": "dangerous"
+    },
+    "build.install_dependencies": {
+      "requiresApproval": true,
+      "riskLevel": "network"
+    }
+  }
 }

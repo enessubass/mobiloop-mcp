@@ -33,9 +33,15 @@ test("screen signatures are stable and comparable across small runtime changes",
 });
 
 test("replay plan starts from the matched historical checkpoint and stops at target", () => {
-  const onboarding = createScreenSignature(`<hierarchy><node text="Binayı Kolayca Yönet" /><node text="İleri" clickable="true" /></hierarchy>`);
-  const dues = createScreenSignature(`<hierarchy><node text="Şeffaf Aidat Takibi" /><node text="İleri" clickable="true" /></hierarchy>`);
-  const login = createScreenSignature(`<hierarchy><node text="Giriş Yap" /><node text="Email" /></hierarchy>`);
+  const onboarding = createScreenSignature(
+    `<hierarchy><node text="Binayı Kolayca Yönet" /><node text="İleri" clickable="true" /></hierarchy>`
+  );
+  const dues = createScreenSignature(
+    `<hierarchy><node text="Şeffaf Aidat Takibi" /><node text="İleri" clickable="true" /></hierarchy>`
+  );
+  const login = createScreenSignature(
+    `<hierarchy><node text="Giriş Yap" /><node text="Email" /></hierarchy>`
+  );
   const memory: FlowMemory = {
     ...emptyFlowMemory(),
     checkpoints: [
@@ -56,7 +62,10 @@ test("replay plan starts from the matched historical checkpoint and stops at tar
     ]
   };
 
-  const plan = buildReplayPlan(memory, onboarding, { testName: "smoke", targetCheckpointId: "login" });
+  const plan = buildReplayPlan(memory, onboarding, {
+    testName: "smoke",
+    targetCheckpointId: "login"
+  });
 
   assert.equal(plan.matched.checkpointId, "onboarding-1");
   assert.equal(plan.target.checkpointId, "login");
@@ -90,7 +99,9 @@ test("code-flow analysis detects common Flutter screens, routes, and visible tex
 
   assert.equal(analysis.framework, "flutter");
   assert.ok(analysis.screens.some((screen) => screen.name === "LoginScreen"));
-  assert.ok(analysis.routes.some((route) => route.route === "/login" && route.target === "LoginScreen"));
+  assert.ok(
+    analysis.routes.some((route) => route.route === "/login" && route.target === "LoginScreen")
+  );
   assert.ok(analysis.transitions.some((transition) => transition.to === "/login"));
   assert.ok(analysis.visibleTexts.some((entry) => entry.text === "Giriş Yap"));
 });
@@ -132,6 +143,7 @@ function config(root: string): ServerConfig {
     xcodebuildPath: "xcodebuild",
     sqlitePath: "sqlite3",
     apiAllowlist: ["http://127.0.0.1:*", "http://localhost:*"],
-    forbiddenPathGlobs: [".env", ".env.*"]
+    forbiddenPathGlobs: [".env", ".env.*"],
+    toolPolicies: {}
   };
 }

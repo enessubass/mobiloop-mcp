@@ -30,7 +30,10 @@ export function assertNotForbidden(config: ServerConfig, resolvedPath: string): 
   const relative = toPosix(path.relative(config.workspaceRoot, resolvedPath));
   const basename = path.basename(resolvedPath);
   for (const pattern of config.forbiddenPathGlobs) {
-    if (matchesGlob(relative, pattern) || (!pattern.includes("/") && matchesGlob(basename, pattern))) {
+    if (
+      matchesGlob(relative, pattern) ||
+      (!pattern.includes("/") && matchesGlob(basename, pattern))
+    ) {
       throw new Error(`Path is blocked by forbiddenPathGlobs (${pattern}): ${relative}`);
     }
   }

@@ -24,3 +24,28 @@ test("all tool names are unique and include core release groups", () => {
     assert.ok(names.includes(required), `${required} should be registered`);
   }
 });
+
+test("all tools expose policy metadata and high-impact tools require approval", () => {
+  const tools = allTools();
+  for (const tool of tools) {
+    assert.ok(tool.policy, `${tool.name} should expose policy metadata`);
+  }
+
+  const byName = new Map(tools.map((tool) => [tool.name, tool]));
+  for (const requiredApproval of [
+    "code.apply_patch",
+    "device.clear_app_data",
+    "appium.tap_coordinates",
+    "flow.run_script",
+    "orchestrator.run_android_validation_loop"
+  ]) {
+    assert.equal(
+      byName.get(requiredApproval)?.policy?.requiresApproval,
+      true,
+      `${requiredApproval} should require approval`
+    );
+  }
+
+  assert.equal(byName.get("code.read_file")?.policy?.requiresApproval, false);
+  assert.equal(byName.get("flow.generate_test_scenarios")?.policy?.requiresApproval, false);
+});

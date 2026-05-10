@@ -2,9 +2,20 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { McpTool, jsonResponse } from "../types.js";
 import { arraySchema, booleanSchema, numberSchema, objectSchema, stringSchema } from "../schema.js";
-import { asObject, optionalBoolean, optionalNumber, optionalStringArray, requireString } from "../utils/validation.js";
+import {
+  asObject,
+  optionalBoolean,
+  optionalNumber,
+  optionalStringArray,
+  requireString
+} from "../utils/validation.js";
 import { matchesGlob, resolveWorkspacePath, toWorkspaceRelative } from "../utils/path-guard.js";
-import { extractPatchPaths, requireAllowedBranch, requireGitRepo, validateNewBranchName } from "../utils/git.js";
+import {
+  extractPatchPaths,
+  requireAllowedBranch,
+  requireGitRepo,
+  validateNewBranchName
+} from "../utils/git.js";
 import { runCommand } from "../utils/shell.js";
 
 export function codeTools(): McpTool[] {
@@ -37,7 +48,8 @@ export function codeTools(): McpTool[] {
     },
     {
       name: "code.search_code",
-      description: "Search workspaceRoot. Uses ripgrep when available and falls back to a built-in scanner.",
+      description:
+        "Search workspaceRoot. Uses ripgrep when available and falls back to a built-in scanner.",
       inputSchema: objectSchema(
         {
           query: stringSchema,
@@ -86,7 +98,8 @@ export function codeTools(): McpTool[] {
     },
     {
       name: "code.apply_patch",
-      description: "Apply a unified diff after validating all touched paths stay inside workspaceRoot and are not forbidden.",
+      description:
+        "Apply a unified diff after validating all touched paths stay inside workspaceRoot and are not forbidden.",
       inputSchema: objectSchema({ patch: stringSchema }, ["patch"]),
       async handler(input, { config }) {
         await requireAllowedBranch(config);
@@ -129,16 +142,21 @@ export function codeTools(): McpTool[] {
         await requireGitRepo(config);
         const args = asObject(input ?? {});
         const staged = optionalBoolean(args, "staged") ?? false;
-        const result = await runCommand("git", ["diff", "--no-ext-diff", ...(staged ? ["--staged"] : [])], {
-          cwd: config.workspaceRoot,
-          config
-        });
+        const result = await runCommand(
+          "git",
+          ["diff", "--no-ext-diff", ...(staged ? ["--staged"] : [])],
+          {
+            cwd: config.workspaceRoot,
+            config
+          }
+        );
         return jsonResponse({ staged, diff: result.stdout });
       }
     },
     {
       name: "code.create_branch",
-      description: "Create and checkout a guarded feature branch. Branch must match allowedBranchPattern.",
+      description:
+        "Create and checkout a guarded feature branch. Branch must match allowedBranchPattern.",
       inputSchema: objectSchema({ branchName: stringSchema }, ["branchName"]),
       async handler(input, { config }) {
         await requireGitRepo(config);
@@ -149,12 +167,17 @@ export function codeTools(): McpTool[] {
           cwd: config.workspaceRoot,
           config
         });
-        return jsonResponse({ branchName, stdout: result.stdout.trim(), stderr: result.stderr.trim() });
+        return jsonResponse({
+          branchName,
+          stdout: result.stdout.trim(),
+          stderr: result.stderr.trim()
+        });
       }
     },
     {
       name: "code.commit_changes",
-      description: "Commit changes only while on an allowed feature/ai branch. Optionally stage specific non-secret paths.",
+      description:
+        "Commit changes only while on an allowed feature/ai branch. Optionally stage specific non-secret paths.",
       inputSchema: objectSchema(
         {
           message: stringSchema,
@@ -203,7 +226,18 @@ export function codeTools(): McpTool[] {
         const body = requireString(args, "body");
         const base = typeof args.base === "string" && args.base.length > 0 ? args.base : "main";
         const draft = optionalBoolean(args, "draft") ?? false;
-        const ghArgs = ["pr", "create", "--title", title, "--body", body, "--base", base, "--head", branch];
+        const ghArgs = [
+          "pr",
+          "create",
+          "--title",
+          title,
+          "--body",
+          body,
+          "--base",
+          base,
+          "--head",
+          branch
+        ];
         if (draft) ghArgs.push("--draft");
         const result = await runCommand("gh", ghArgs, {
           cwd: config.workspaceRoot,
@@ -236,7 +270,9 @@ function ripgrepSecretExcludes(patterns: string[]): string[] {
   return [...excludes];
 }
 
-async function assertStagedPathsAllowed(config: Parameters<typeof requireAllowedBranch>[0]): Promise<void> {
+async function assertStagedPathsAllowed(
+  config: Parameters<typeof requireAllowedBranch>[0]
+): Promise<void> {
   const staged = await runCommand("git", ["diff", "--cached", "--name-only", "-z"], {
     cwd: config.workspaceRoot,
     config
@@ -292,5 +328,7 @@ async function nodeSearch(
 }
 
 function isForbidden(patterns: string[], relative: string): boolean {
-  return patterns.some((pattern) => matchesGlob(relative, pattern) || matchesGlob(path.basename(relative), pattern));
+  return patterns.some(
+    (pattern) => matchesGlob(relative, pattern) || matchesGlob(path.basename(relative), pattern)
+  );
 }

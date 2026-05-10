@@ -43,7 +43,9 @@ export interface AppiumRequestOptions {
 export class AppiumClient {
   constructor(private readonly options: AppiumRequestOptions) {}
 
-  async createSession(capabilities: Record<string, unknown>): Promise<{ sessionId: string; value: unknown }> {
+  async createSession(
+    capabilities: Record<string, unknown>
+  ): Promise<{ sessionId: string; value: unknown }> {
     const body = capabilities.capabilities
       ? capabilities
       : { capabilities: { alwaysMatch: capabilities, firstMatch: [{}] } };
@@ -82,7 +84,11 @@ export class AppiumClient {
     return writeArtifactText(config, "sources", prefix, "xml", source);
   }
 
-  async saveObservation(config: ServerConfig, sessionId: string, prefix: string): Promise<EvidenceArtifact> {
+  async saveObservation(
+    config: ServerConfig,
+    sessionId: string,
+    prefix: string
+  ): Promise<EvidenceArtifact> {
     const timestamp = new Date().toISOString();
     const [screenshotPath, sourcePath] = await Promise.all([
       this.saveScreenshot(config, sessionId, prefix),
@@ -110,7 +116,11 @@ export class AppiumClient {
     return value.map(elementId);
   }
 
-  async findTextTapTarget(sessionId: string, text: string, matchMode: TextMatchMode = "auto"): Promise<TextTapTarget> {
+  async findTextTapTarget(
+    sessionId: string,
+    text: string,
+    matchMode: TextMatchMode = "auto"
+  ): Promise<TextTapTarget> {
     const literal = xpathLiteral(text);
     const exactAttrs = ["content-desc", "text", "label", "name"];
     const containsAttrs = ["content-desc", "text", "label", "name"];
@@ -169,7 +179,10 @@ export class AppiumClient {
 
     for (const candidate of candidates) {
       try {
-        const elementId = await this.findElement(sessionId, { strategy: "xpath", value: candidate.selector });
+        const elementId = await this.findElement(sessionId, {
+          strategy: "xpath",
+          value: candidate.selector
+        });
         return { ...candidate, elementId };
       } catch {
         // Try the next, more permissive candidate.
@@ -249,7 +262,11 @@ export class AppiumClient {
     ]);
   }
 
-  async waitForVisible(sessionId: string, locator: Locator, timeoutMs: number): Promise<{ found: boolean; elementId?: string }> {
+  async waitForVisible(
+    sessionId: string,
+    locator: Locator,
+    timeoutMs: number
+  ): Promise<{ found: boolean; elementId?: string }> {
     const started = Date.now();
     let lastError: unknown;
     while (Date.now() - started < timeoutMs) {
@@ -325,7 +342,10 @@ export class AppiumClient {
     return summarizeXml(parsed);
   }
 
-  private async pointerAction(sessionId: string, actions: Array<Record<string, unknown>>): Promise<unknown> {
+  private async pointerAction(
+    sessionId: string,
+    actions: Array<Record<string, unknown>>
+  ): Promise<unknown> {
     return this.request("POST", `/session/${sessionId}/actions`, {
       actions: [
         {
@@ -338,7 +358,11 @@ export class AppiumClient {
     });
   }
 
-  private async executeScript(sessionId: string, script: string, args: unknown[]): Promise<unknown> {
+  private async executeScript(
+    sessionId: string,
+    script: string,
+    args: unknown[]
+  ): Promise<unknown> {
     return this.request("POST", `/session/${sessionId}/execute/sync`, { script, args });
   }
 
@@ -393,7 +417,12 @@ function readSessionId(response: unknown): string {
     const sessionId = (response as { sessionId: unknown }).sessionId;
     if (typeof sessionId === "string") return sessionId;
   }
-  if (response && typeof response === "object" && "capabilities" in response && "sessionId" in response) {
+  if (
+    response &&
+    typeof response === "object" &&
+    "capabilities" in response &&
+    "sessionId" in response
+  ) {
     const sessionId = (response as { sessionId: unknown }).sessionId;
     if (typeof sessionId === "string") return sessionId;
   }
@@ -426,11 +455,17 @@ function locatorUsing(locator: Locator): { using: string; value: string } {
 function xpathLiteral(value: string): string {
   if (!value.includes("'")) return `'${value}'`;
   if (!value.includes('"')) return `"${value}"`;
-  return `concat(${value.split("'").map((part) => `'${part}'`).join(', "\"\'\"", ')})`;
+  return `concat(${value
+    .split("'")
+    .map((part) => `'${part}'`)
+    .join(`, "'", `)})`;
 }
 
 function escapeAdbInputText(value: string): string {
-  return value.replace(/\\/g, "\\\\").replace(/\s/g, "%s").replace(/[&<>|;$'"`]/g, "\\$&");
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/\s/g, "%s")
+    .replace(/[&<>|;$'"`]/g, "\\$&");
 }
 
 function sleep(ms: number): Promise<void> {
@@ -440,9 +475,9 @@ function sleep(ms: number): Promise<void> {
 function isWebDriverError(value: unknown): value is { error: string; message: string } {
   return Boolean(
     value &&
-      typeof value === "object" &&
-      typeof (value as { error?: unknown }).error === "string" &&
-      typeof (value as { message?: unknown }).message === "string"
+    typeof value === "object" &&
+    typeof (value as { error?: unknown }).error === "string" &&
+    typeof (value as { message?: unknown }).message === "string"
   );
 }
 
@@ -454,12 +489,24 @@ function summarizeXml(node: unknown, depth = 0): unknown {
   if (!node || typeof node !== "object") return node;
   const record = node as Record<string, unknown>;
   const summary: Record<string, unknown> = {};
-  for (const key of ["class", "resource-id", "content-desc", "text", "label", "name", "enabled", "visible", "clickable"]) {
+  for (const key of [
+    "class",
+    "resource-id",
+    "content-desc",
+    "text",
+    "label",
+    "name",
+    "enabled",
+    "visible",
+    "clickable"
+  ]) {
     if (record[key] !== undefined && record[key] !== "") summary[key] = record[key];
   }
   const childEntries = Object.entries(record)
     .filter(([key]) => !key.startsWith("@") && !["#text"].includes(key))
-    .flatMap(([key, value]) => (typeof value === "object" ? [{ [key]: summarizeXml(value, depth + 1) }] : []));
+    .flatMap(([key, value]) =>
+      typeof value === "object" ? [{ [key]: summarizeXml(value, depth + 1) }] : []
+    );
   if (childEntries.length > 0) summary.children = childEntries.slice(0, 50);
   return summary;
 }

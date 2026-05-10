@@ -2,7 +2,12 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { McpTool, jsonResponse } from "../types.js";
 import { arraySchema, objectSchema, stringSchema } from "../schema.js";
-import { asObject, optionalString, optionalStringArray, requireString } from "../utils/validation.js";
+import {
+  asObject,
+  optionalString,
+  optionalStringArray,
+  requireString
+} from "../utils/validation.js";
 import { resolveWorkspacePathAllowArtifacts } from "../utils/path-guard.js";
 import { runCommand } from "../utils/shell.js";
 import { ensureArtifactsDir, writeArtifactText } from "../utils/artifacts.js";
@@ -20,7 +25,13 @@ export function ciTools(): McpTool[] {
           artifactsDir: config.artifactsDir,
           files
         };
-        const manifestPath = await writeArtifactText(config, "reports", "artifact-manifest", "json", JSON.stringify(manifest, null, 2));
+        const manifestPath = await writeArtifactText(
+          config,
+          "reports",
+          "artifact-manifest",
+          "json",
+          JSON.stringify(manifest, null, 2)
+        );
         return jsonResponse({ manifestPath, files: files.length });
       }
     },
@@ -49,7 +60,8 @@ export function ciTools(): McpTool[] {
     },
     {
       name: "ci.comment_pr",
-      description: "Create a GitHub PR comment through gh. Uses current PR when prNumber is omitted.",
+      description:
+        "Create a GitHub PR comment through gh. Uses current PR when prNumber is omitted.",
       inputSchema: objectSchema(
         {
           body: stringSchema,
@@ -71,7 +83,11 @@ export function ciTools(): McpTool[] {
           config,
           timeoutMs: 120_000
         });
-        return jsonResponse({ prNumber, stdout: result.stdout.trim(), stderr: result.stderr.trim() });
+        return jsonResponse({
+          prNumber,
+          stdout: result.stdout.trim(),
+          stderr: result.stderr.trim()
+        });
       }
     },
     {
@@ -93,7 +109,9 @@ export function ciTools(): McpTool[] {
         }
         const title = optionalString(args, "title") ?? "MobiLoop MCP";
         const findings = optionalStringArray(args, "findings") ?? [];
-        const lines = findings.map((finding) => `::${level} title=${escapeAnnotation(title)}::${escapeAnnotation(finding)}`);
+        const lines = findings.map(
+          (finding) => `::${level} title=${escapeAnnotation(title)}::${escapeAnnotation(finding)}`
+        );
         return jsonResponse({ emitted: lines });
       }
     }
@@ -120,5 +138,10 @@ async function listFiles(root: string): Promise<Array<{ path: string; bytes: num
 }
 
 function escapeAnnotation(value: string): string {
-  return value.replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A").replace(/:/g, "%3A").replace(/,/g, "%2C");
+  return value
+    .replace(/%/g, "%25")
+    .replace(/\r/g, "%0D")
+    .replace(/\n/g, "%0A")
+    .replace(/:/g, "%3A")
+    .replace(/,/g, "%2C");
 }

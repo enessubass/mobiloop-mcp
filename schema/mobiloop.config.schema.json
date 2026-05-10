@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/enessubass/mobiloop-mcp/main/schema/mobiloop.config.schema.json",
+  "title": "MobiLoop MCP configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "workspaceRoot": {
+      "type": "string",
+      "description": "Project root that every file operation must stay inside."
+    },
+    "artifactsDir": {
+      "type": "string",
+      "description": "Artifact directory relative to workspaceRoot, or an absolute path inside workspaceRoot."
+    },
+    "maxCommandMs": {
+      "type": "integer",
+      "minimum": 1000
+    },
+    "maxOutputBytes": {
+      "type": "integer",
+      "minimum": 1024
+    },
+    "maxFixAttempts": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "maxTestIterations": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "maxRuntimeMinutes": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "allowedBranchPattern": {
+      "type": "string"
+    },
+    "appiumServerUrl": {
+      "type": "string",
+      "format": "uri"
+    },
+    "adbPath": {
+      "type": "string"
+    },
+    "emulatorPath": {
+      "type": "string"
+    },
+    "xcrunPath": {
+      "type": "string"
+    },
+    "xcodebuildPath": {
+      "type": "string"
+    },
+    "sqlitePath": {
+      "type": "string"
+    },
+    "apiAllowlist": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Allowed API origins. Keep this narrow in production and prefer localhost or staging hosts."
+    },
+    "forbiddenPathGlobs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "toolPolicies": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/toolPolicyOverride"
+      }
+    }
+  },
+  "$defs": {
+    "riskLevel": {
+      "enum": ["read", "write", "device", "network", "git", "dangerous"]
+    },
+    "toolPolicyOverride": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "riskLevel": {
+          "$ref": "#/$defs/riskLevel"
+        },
+        "requiresApproval": {
+          "type": "boolean"
+        },
+        "allowedInCi": {
+          "type": "boolean"
+        },
+        "allowedInInteractive": {
+          "type": "boolean"
+        },
+        "writesWorkspace": {
+          "type": "boolean"
+        },
+        "writesDevice": {
+          "type": "boolean"
+        },
+        "networkAccess": {
+          "type": "boolean"
+        },
+        "producesArtifacts": {
+          "type": "boolean"
+        },
+        "approvalReason": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

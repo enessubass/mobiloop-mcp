@@ -50,7 +50,14 @@ export interface CodeFlowAnalysis {
   scannedFiles: number;
   screens: Array<{ name: string; file: string; line: number; confidence: number }>;
   routes: Array<{ route: string; target?: string; file: string; line: number; confidence: number }>;
-  transitions: Array<{ from?: string; to: string; trigger: string; file: string; line: number; confidence: number }>;
+  transitions: Array<{
+    from?: string;
+    to: string;
+    trigger: string;
+    file: string;
+    line: number;
+    confidence: number;
+  }>;
   visibleTexts: Array<{ text: string; file: string; line: number }>;
   limitations: string[];
 }
@@ -181,7 +188,10 @@ export function screenSimilarity(left: ScreenSignature, right: ScreenSignature):
   return union === 0 ? 0 : intersection / union;
 }
 
-export async function readScreenSource(config: ServerConfig, input: { source?: string; sourcePath?: string }): Promise<string> {
+export async function readScreenSource(
+  config: ServerConfig,
+  input: { source?: string; sourcePath?: string }
+): Promise<string> {
   if (input.source) return input.source;
   if (!input.sourcePath) throw new Error("source or sourcePath is required");
   const filePath = resolveReadableWorkspacePath(config, input.sourcePath);
@@ -206,7 +216,13 @@ export async function upsertCheckpoint(
 ): Promise<{ memoryPath: string; checkpoint: FlowCheckpoint }> {
   const memory = await readFlowMemory(config);
   const now = new Date().toISOString();
-  const id = input.id ?? stableCheckpointId(input.testName, input.name, input.order ?? nextOrder(memory, input.testName));
+  const id =
+    input.id ??
+    stableCheckpointId(
+      input.testName,
+      input.name,
+      input.order ?? nextOrder(memory, input.testName)
+    );
   const existing = memory.checkpoints.find((checkpoint) => checkpoint.id === id);
   const checkpoint: FlowCheckpoint = {
     id,
@@ -286,7 +302,8 @@ export function buildReplayPlan(
   const target = memory.checkpoints.find((checkpoint) => checkpoint.id === targetId);
   if (!target) throw new Error(`Target checkpoint was not found: ${targetId}`);
   const targetIndex = pathIds.indexOf(target.id);
-  if (targetIndex < 0) throw new Error(`Target checkpoint ${target.id} is not in the selected replay path`);
+  if (targetIndex < 0)
+    throw new Error(`Target checkpoint ${target.id} is not in the selected replay path`);
 
   const actionCheckpoints = pathIds
     .slice(matchedIndex, Math.max(matchedIndex, targetIndex))
@@ -321,7 +338,10 @@ export function buildReplayPlan(
   };
 }
 
-export async function analyzeCodeFlow(config: ServerConfig, input: { maxFiles?: number; includeTests?: boolean } = {}): Promise<CodeFlowAnalysis> {
+export async function analyzeCodeFlow(
+  config: ServerConfig,
+  input: { maxFiles?: number; includeTests?: boolean } = {}
+): Promise<CodeFlowAnalysis> {
   const framework = await detectFramework(config.workspaceRoot);
   const maxFiles = Math.max(1, Math.min(input.maxFiles ?? 500, 5000));
   const includeTests = input.includeTests ?? false;
@@ -355,10 +375,22 @@ export async function analyzeCodeFlow(config: ServerConfig, input: { maxFiles?: 
     }
   }
 
-  analysis.screens = uniqueBy(analysis.screens, (entry) => `${entry.file}:${entry.line}:${entry.name}`).slice(0, 300);
-  analysis.routes = uniqueBy(analysis.routes, (entry) => `${entry.file}:${entry.line}:${entry.route}:${entry.target ?? ""}`).slice(0, 300);
-  analysis.transitions = uniqueBy(analysis.transitions, (entry) => `${entry.file}:${entry.line}:${entry.to}:${entry.trigger}`).slice(0, 500);
-  analysis.visibleTexts = uniqueBy(analysis.visibleTexts, (entry) => `${entry.file}:${entry.line}:${entry.text}`).slice(0, 500);
+  analysis.screens = uniqueBy(
+    analysis.screens,
+    (entry) => `${entry.file}:${entry.line}:${entry.name}`
+  ).slice(0, 300);
+  analysis.routes = uniqueBy(
+    analysis.routes,
+    (entry) => `${entry.file}:${entry.line}:${entry.route}:${entry.target ?? ""}`
+  ).slice(0, 300);
+  analysis.transitions = uniqueBy(
+    analysis.transitions,
+    (entry) => `${entry.file}:${entry.line}:${entry.to}:${entry.trigger}`
+  ).slice(0, 500);
+  analysis.visibleTexts = uniqueBy(
+    analysis.visibleTexts,
+    (entry) => `${entry.file}:${entry.line}:${entry.text}`
+  ).slice(0, 500);
   return analysis;
 }
 
@@ -366,8 +398,20 @@ export async function persistCodeFlowAnalysis(
   config: ServerConfig,
   analysis: CodeFlowAnalysis
 ): Promise<{ jsonPath: string; markdownPath: string; memoryPath: string }> {
-  const jsonPath = await writeArtifactText(config, "flow", "code-flow-analysis", "json", JSON.stringify(analysis, null, 2));
-  const markdownPath = await writeArtifactText(config, "flow", "code-flow-analysis", "md", renderCodeFlowAnalysis(analysis));
+  const jsonPath = await writeArtifactText(
+    config,
+    "flow",
+    "code-flow-analysis",
+    "json",
+    JSON.stringify(analysis, null, 2)
+  );
+  const markdownPath = await writeArtifactText(
+    config,
+    "flow",
+    "code-flow-analysis",
+    "md",
+    renderCodeFlowAnalysis(analysis)
+  );
   const memory = await readFlowMemory(config);
   memory.analyses.push(analysis);
   memory.analyses = memory.analyses.slice(-20);
@@ -391,11 +435,15 @@ export function renderCodeFlowAnalysis(analysis: CodeFlowAnalysis): string {
   }
   lines.push("", "## Routes", "");
   for (const route of analysis.routes.slice(0, 100)) {
-    lines.push(`- ${route.route}${route.target ? ` -> ${route.target}` : ""} (${route.file}:${route.line})`);
+    lines.push(
+      `- ${route.route}${route.target ? ` -> ${route.target}` : ""} (${route.file}:${route.line})`
+    );
   }
   lines.push("", "## Transitions", "");
   for (const transition of analysis.transitions.slice(0, 150)) {
-    lines.push(`- ${transition.trigger} -> ${transition.to} (${transition.file}:${transition.line})`);
+    lines.push(
+      `- ${transition.trigger} -> ${transition.to} (${transition.file}:${transition.line})`
+    );
   }
   lines.push("", "## Visible Text Candidates", "");
   for (const visibleText of analysis.visibleTexts.slice(0, 150)) {
@@ -409,15 +457,31 @@ export function renderCodeFlowAnalysis(analysis: CodeFlowAnalysis): string {
   return lines.join("\n");
 }
 
-function resolveReplayPath(memory: FlowMemory, testName: string, targetCheckpointId?: string): string[] {
+function resolveReplayPath(
+  memory: FlowMemory,
+  testName: string,
+  targetCheckpointId?: string
+): string[] {
   const successfulRuns = memory.runs
-    .filter((run) => run.testName === testName && run.checkpointIds.length > 0 && ["passed", "success"].includes(run.status))
+    .filter(
+      (run) =>
+        run.testName === testName &&
+        run.checkpointIds.length > 0 &&
+        ["passed", "success"].includes(run.status)
+    )
     .slice()
     .reverse();
-  const latestRun = successfulRuns[0] ?? memory.runs.filter((run) => run.testName === testName && run.checkpointIds.length > 0).slice().reverse()[0];
+  const latestRun =
+    successfulRuns[0] ??
+    memory.runs
+      .filter((run) => run.testName === testName && run.checkpointIds.length > 0)
+      .slice()
+      .reverse()[0];
   if (latestRun) {
     if (targetCheckpointId && !latestRun.checkpointIds.includes(targetCheckpointId)) {
-      throw new Error(`Target checkpoint ${targetCheckpointId} is not in latest run ${latestRun.id}`);
+      throw new Error(
+        `Target checkpoint ${targetCheckpointId} is not in latest run ${latestRun.id}`
+      );
     }
     return latestRun.checkpointIds;
   }
@@ -449,14 +513,13 @@ function firstString(...values: unknown[]): string | undefined {
 }
 
 function normalizeValue(value: string): string {
-  return value
-    .toLocaleLowerCase("en-US")
-    .replace(/\s+/g, " ")
-    .trim();
+  return value.toLocaleLowerCase("en-US").replace(/\s+/g, " ").trim();
 }
 
 function nextOrder(memory: FlowMemory, testName: string): number {
-  const orders = memory.checkpoints.filter((checkpoint) => checkpoint.testName === testName).map((checkpoint) => checkpoint.order);
+  const orders = memory.checkpoints
+    .filter((checkpoint) => checkpoint.testName === testName)
+    .map((checkpoint) => checkpoint.order);
   return orders.length === 0 ? 1 : Math.max(...orders) + 1;
 }
 
@@ -465,15 +528,19 @@ function stableCheckpointId(testName: string, name: string, order: number): stri
 }
 
 function slug(value: string): string {
-  return value
-    .toLocaleLowerCase("en-US")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 80) || "flow";
+  return (
+    value
+      .toLocaleLowerCase("en-US")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 80) || "flow"
+  );
 }
 
 function resolveReadableWorkspacePath(config: ServerConfig, candidate: string): string {
-  const filePath = path.isAbsolute(candidate) ? candidate : path.resolve(config.workspaceRoot, candidate);
+  const filePath = path.isAbsolute(candidate)
+    ? candidate
+    : path.resolve(config.workspaceRoot, candidate);
   const relative = path.relative(config.workspaceRoot, filePath);
   if (relative.startsWith("..") || path.isAbsolute(relative)) {
     throw new Error(`Path must stay inside workspaceRoot: ${candidate}`);
@@ -492,7 +559,10 @@ async function detectFramework(root: string): Promise<string> {
 }
 
 async function exists(filePath: string): Promise<boolean> {
-  return fs.access(filePath).then(() => true, () => false);
+  return fs.access(filePath).then(
+    () => true,
+    () => false
+  );
 }
 
 async function collectSourceFiles(
@@ -507,7 +577,12 @@ async function collectSourceFiles(
     if (entry.name.startsWith(".") && ![".storybook"].includes(entry.name)) continue;
     const filePath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
-      if (["node_modules", "dist", "build", ".dart_tool", ".gradle", "Pods", ".mobiloop"].includes(entry.name)) continue;
+      if (
+        ["node_modules", "dist", "build", ".dart_tool", ".gradle", "Pods", ".mobiloop"].includes(
+          entry.name
+        )
+      )
+        continue;
       if (!options.includeTests && ["test", "tests", "__tests__"].includes(entry.name)) continue;
       await collectSourceFiles(filePath, output, options);
     } else if (entry.isFile() && /\.(dart|kt|java|swift|m|mm|js|jsx|ts|tsx)$/.test(entry.name)) {
@@ -516,7 +591,12 @@ async function collectSourceFiles(
   }
 }
 
-function detectScreens(line: string, file: string, lineNumber: number, analysis: CodeFlowAnalysis): void {
+function detectScreens(
+  line: string,
+  file: string,
+  lineNumber: number,
+  analysis: CodeFlowAnalysis
+): void {
   const patterns = [
     /class\s+([A-Z][A-Za-z0-9_]*(?:Screen|Page|View|Route|Flow)?)\s+extends\s+(?:StatelessWidget|StatefulWidget|ConsumerWidget|HookWidget)/,
     /(?:fun|class)\s+([A-Z][A-Za-z0-9_]*(?:Screen|Activity|Fragment|View))/,
@@ -531,18 +611,47 @@ function detectScreens(line: string, file: string, lineNumber: number, analysis:
   }
 }
 
-function detectRoutes(line: string, file: string, lineNumber: number, analysis: CodeFlowAnalysis): void {
-  const routeMap = line.match(/['"]([^'"]+)['"]\s*:\s*(?:\([^)]*\)\s*=>\s*)?([A-Z][A-Za-z0-9_]*)\s*\(/);
+function detectRoutes(
+  line: string,
+  file: string,
+  lineNumber: number,
+  analysis: CodeFlowAnalysis
+): void {
+  const routeMap = line.match(
+    /['"]([^'"]+)['"]\s*:\s*(?:\([^)]*\)\s*=>\s*)?([A-Z][A-Za-z0-9_]*)\s*\(/
+  );
   if (routeMap?.[1] && routeMap[2] && isLikelyRouteTarget(routeMap[1], routeMap[2], file)) {
-    analysis.routes.push({ route: routeMap[1], target: routeMap[2], file, line: lineNumber, confidence: 0.72 });
+    analysis.routes.push({
+      route: routeMap[1],
+      target: routeMap[2],
+      file,
+      line: lineNumber,
+      confidence: 0.72
+    });
   }
-  const goRoute = line.match(/GoRoute\s*\([^)]*path\s*:\s*['"]([^'"]+)['"][^)]*(?:name\s*:\s*['"]([^'"]+)['"])?/);
+  const goRoute = line.match(
+    /GoRoute\s*\([^)]*path\s*:\s*['"]([^'"]+)['"][^)]*(?:name\s*:\s*['"]([^'"]+)['"])?/
+  );
   if (goRoute?.[1]) {
-    analysis.routes.push({ route: goRoute[1], target: goRoute[2], file, line: lineNumber, confidence: 0.72 });
+    analysis.routes.push({
+      route: goRoute[1],
+      target: goRoute[2],
+      file,
+      line: lineNumber,
+      confidence: 0.72
+    });
   }
-  const rnScreen = line.match(/<Stack\.Screen[^>]*name=['"]([^'"]+)['"][^>]*(?:component=\{([A-Z][A-Za-z0-9_]*)\})?/);
+  const rnScreen = line.match(
+    /<Stack\.Screen[^>]*name=['"]([^'"]+)['"][^>]*(?:component=\{([A-Z][A-Za-z0-9_]*)\})?/
+  );
   if (rnScreen?.[1]) {
-    analysis.routes.push({ route: rnScreen[1], target: rnScreen[2], file, line: lineNumber, confidence: 0.7 });
+    analysis.routes.push({
+      route: rnScreen[1],
+      target: rnScreen[2],
+      file,
+      line: lineNumber,
+      confidence: 0.7
+    });
   }
 }
 
@@ -553,10 +662,21 @@ function isLikelyRouteTarget(route: string, target: string, file: string): boole
   return false;
 }
 
-function detectTransitions(line: string, file: string, lineNumber: number, analysis: CodeFlowAnalysis): void {
+function detectTransitions(
+  line: string,
+  file: string,
+  lineNumber: number,
+  analysis: CodeFlowAnalysis
+): void {
   const patterns: Array<[RegExp, string]> = [
-    [/Navigator\.(?:pushNamed|restorablePushNamed)\s*\([^,]+,\s*['"]([^'"]+)['"]/, "navigator.pushNamed"],
-    [/Navigator\.push\s*\([^)]*MaterialPageRoute[^)]*builder\s*:\s*\([^)]*\)\s*=>\s*([A-Z][A-Za-z0-9_]*)\s*\(/, "navigator.push"],
+    [
+      /Navigator\.(?:pushNamed|restorablePushNamed)\s*\([^,]+,\s*['"]([^'"]+)['"]/,
+      "navigator.pushNamed"
+    ],
+    [
+      /Navigator\.push\s*\([^)]*MaterialPageRoute[^)]*builder\s*:\s*\([^)]*\)\s*=>\s*([A-Z][A-Za-z0-9_]*)\s*\(/,
+      "navigator.push"
+    ],
     [/context\.(?:go|push|replace)\s*\(\s*['"]([^'"]+)['"]/, "go_router"],
     [/navigation\.navigate\s*\(\s*['"]([^'"]+)['"]/, "react-navigation"],
     [/startActivity\s*\([^)]*([A-Z][A-Za-z0-9_]*Activity)::class\.java/, "android.startActivity"]
@@ -564,12 +684,23 @@ function detectTransitions(line: string, file: string, lineNumber: number, analy
   for (const [pattern, trigger] of patterns) {
     const match = line.match(pattern);
     if (match?.[1]) {
-      analysis.transitions.push({ to: match[1], trigger, file, line: lineNumber, confidence: 0.68 });
+      analysis.transitions.push({
+        to: match[1],
+        trigger,
+        file,
+        line: lineNumber,
+        confidence: 0.68
+      });
     }
   }
 }
 
-function detectVisibleTexts(line: string, file: string, lineNumber: number, analysis: CodeFlowAnalysis): void {
+function detectVisibleTexts(
+  line: string,
+  file: string,
+  lineNumber: number,
+  analysis: CodeFlowAnalysis
+): void {
   const patterns = [
     /Text\s*\(\s*['"]([^'"]{2,80})['"]/g,
     /(?:title|label|hintText|semanticLabel|contentDescription)\s*[:=]\s*['"]([^'"]{2,80})['"]/g,

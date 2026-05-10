@@ -10,7 +10,22 @@ export interface McpTool {
   name: string;
   description: string;
   inputSchema: JsonObject;
+  policy?: ToolPolicy;
   handler(input: unknown, context: ToolContext): Promise<ToolResponse>;
+}
+
+export type ToolRiskLevel = "read" | "write" | "device" | "network" | "git" | "dangerous";
+
+export interface ToolPolicy {
+  riskLevel: ToolRiskLevel;
+  requiresApproval: boolean;
+  allowedInCi: boolean;
+  allowedInInteractive: boolean;
+  writesWorkspace: boolean;
+  writesDevice: boolean;
+  networkAccess: boolean;
+  producesArtifacts: boolean;
+  approvalReason?: string;
 }
 
 export interface ToolContext {
@@ -34,6 +49,7 @@ export interface ServerConfig {
   sqlitePath: string;
   apiAllowlist: string[];
   forbiddenPathGlobs: string[];
+  toolPolicies: Record<string, Partial<ToolPolicy>>;
 }
 
 export function textResponse(text: string): ToolResponse {

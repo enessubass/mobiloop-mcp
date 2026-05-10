@@ -6,16 +6,30 @@ import { deviceTools } from "./device.js";
 import { flowTools } from "./flow.js";
 import { loopTools } from "./loop.js";
 import { verifyTools } from "./verify.js";
-import { asObject, optionalBoolean, optionalNumber, optionalString, requireString } from "../utils/validation.js";
+import {
+  asObject,
+  optionalBoolean,
+  optionalNumber,
+  optionalString,
+  requireString
+} from "../utils/validation.js";
 
 export function orchestratorTools(): McpTool[] {
-  const callableTools = [...buildTools(), ...deviceTools(), ...appiumTools(), ...verifyTools(), ...flowTools(), ...loopTools()];
+  const callableTools = [
+    ...buildTools(),
+    ...deviceTools(),
+    ...appiumTools(),
+    ...verifyTools(),
+    ...flowTools(),
+    ...loopTools()
+  ];
   const byName = new Map(callableTools.map((tool) => [tool.name, tool]));
 
   return [
     {
       name: "orchestrator.run_android_validation_loop",
-      description: "Run build -> install -> Appium scripted test -> verification -> evidence -> loop record for Android.",
+      description:
+        "Run build -> install -> Appium scripted test -> verification -> evidence -> loop record for Android.",
       inputSchema: objectSchema(
         {
           goal: stringSchema,
@@ -49,7 +63,10 @@ export function orchestratorTools(): McpTool[] {
         const started = Date.now();
         const maxIterations = Math.max(
           1,
-          Math.min(optionalNumber(args, "maxTestIterations") ?? context.config.maxTestIterations, 20)
+          Math.min(
+            optionalNumber(args, "maxTestIterations") ?? context.config.maxTestIterations,
+            20
+          )
         );
         const iterationOffset = optionalNumber(args, "iterationOffset") ?? 0;
         const results: Array<Record<string, unknown>> = [];
@@ -70,7 +87,9 @@ export function orchestratorTools(): McpTool[] {
           }
           if (!apkPath && (optionalBoolean(args, "buildDebugApk") ?? true)) {
             const build = await callJson(byName, "build.build_debug_apk", { kind }, context);
-            const apkPaths = Array.isArray(build.apkPaths) ? build.apkPaths.filter((entry) => typeof entry === "string") : [];
+            const apkPaths = Array.isArray(build.apkPaths)
+              ? build.apkPaths.filter((entry) => typeof entry === "string")
+              : [];
             apkPath = apkPaths[0] as string | undefined;
             if (!apkPath) {
               throw new Error("Debug APK build succeeded but no APK path was discovered");
@@ -79,7 +98,12 @@ export function orchestratorTools(): McpTool[] {
 
           const avdName = optionalString(args, "avdName");
           if (avdName) {
-            await callJson(byName, "device.start_emulator", { avdName, waitForBoot: true }, context);
+            await callJson(
+              byName,
+              "device.start_emulator",
+              { avdName, waitForBoot: true },
+              context
+            );
           }
           const serial = optionalString(args, "serial");
           const packageName = optionalString(args, "packageName");
@@ -97,10 +121,19 @@ export function orchestratorTools(): McpTool[] {
               }
               const capabilities = objectValue(args.appiumCapabilities);
               if (capabilities) {
-                const session = await callJson(byName, "appium.create_session", { capabilities }, context);
+                const session = await callJson(
+                  byName,
+                  "appium.create_session",
+                  { capabilities },
+                  context
+                );
                 sessionId = typeof session.sessionId === "string" ? session.sessionId : undefined;
               }
-              if (sessionId && (optionalBoolean(args, "flowReplayBeforeSteps") ?? Boolean(optionalString(args, "flowReplayTestName")))) {
+              if (
+                sessionId &&
+                (optionalBoolean(args, "flowReplayBeforeSteps") ??
+                  Boolean(optionalString(args, "flowReplayTestName")))
+              ) {
                 await callJson(
                   byName,
                   "flow.replay_to_checkpoint",
@@ -116,21 +149,36 @@ export function orchestratorTools(): McpTool[] {
               await runAppiumSteps(byName, objectArray(args.appiumSteps), sessionId, context);
 
               for (const expectedText of stringArray(args.expectedTexts)) {
-                if (!sessionId) throw new Error("expectedTexts requires appiumCapabilities/sessionId");
+                if (!sessionId)
+                  throw new Error("expectedTexts requires appiumCapabilities/sessionId");
                 const check = await callJson(
                   byName,
                   "verify.assert_screen_contains_text",
                   { sessionId, text: expectedText },
                   context
                 );
-                checks.push({ tool: "verify.assert_screen_contains_text", expectedText, result: check });
+                checks.push({
+                  tool: "verify.assert_screen_contains_text",
+                  expectedText,
+                  result: check
+                });
               }
               for (const apiCheck of objectArray(args.apiChecks)) {
-                const check = await callJson(byName, "verify.assert_api_response", apiCheck, context);
+                const check = await callJson(
+                  byName,
+                  "verify.assert_api_response",
+                  apiCheck,
+                  context
+                );
                 checks.push({ tool: "verify.assert_api_response", result: check });
               }
               if (sessionId) {
-                const check = await callJson(byName, "verify.assert_appium_session_healthy", { sessionId }, context);
+                const check = await callJson(
+                  byName,
+                  "verify.assert_appium_session_healthy",
+                  { sessionId },
+                  context
+                );
                 checks.push({ tool: "verify.assert_appium_session_healthy", result: check });
               }
               if (packageName) {
@@ -194,7 +242,9 @@ export function orchestratorTools(): McpTool[] {
                 "verify.collect_evidence",
                 { sessionId, serial, packageName, prefix: `iteration-${iteration}-failure` },
                 context
-              ).catch((e) => ({ evidenceCollectionError: e instanceof Error ? e.message : String(e) }));
+              ).catch((e) => ({
+                evidenceCollectionError: e instanceof Error ? e.message : String(e)
+              }));
               const artifacts = artifactValues(evidence);
               await callJson(
                 byName,
@@ -213,10 +263,18 @@ export function orchestratorTools(): McpTool[] {
                 },
                 context
               ).catch(() => undefined);
-              results.push({ iteration, passed: false, failure: lastFailure, evidence, failureAnalysis });
+              results.push({
+                iteration,
+                passed: false,
+                failure: lastFailure,
+                evidence,
+                failureAnalysis
+              });
             } finally {
               if (sessionId) {
-                await callJson(byName, "appium.delete_session", { sessionId }, context).catch(() => undefined);
+                await callJson(byName, "appium.delete_session", { sessionId }, context).catch(
+                  () => undefined
+                );
                 sessionId = undefined;
               }
             }
@@ -231,7 +289,9 @@ export function orchestratorTools(): McpTool[] {
           });
         } finally {
           if (sessionId) {
-            await callJson(byName, "appium.delete_session", { sessionId }, context).catch(() => undefined);
+            await callJson(byName, "appium.delete_session", { sessionId }, context).catch(
+              () => undefined
+            );
           }
         }
       }
@@ -270,7 +330,9 @@ async function callJson(
   if (!tool) throw new Error(`Unknown orchestrator tool: ${toolName}`);
   const response: ToolResponse = await tool.handler(cleanUndefined(args), context);
   if (response.isError) {
-    throw new Error(response.content.map((entry) => ("text" in entry ? entry.text : "")).join("\n"));
+    throw new Error(
+      response.content.map((entry) => ("text" in entry ? entry.text : "")).join("\n")
+    );
   }
   const text = response.content.map((entry) => ("text" in entry ? entry.text : "")).join("\n");
   return text ? (JSON.parse(text) as Record<string, unknown>) : {};
@@ -287,7 +349,9 @@ function objectValue(value: unknown): Record<string, unknown> | undefined {
 
 function objectArray(value: unknown): Record<string, unknown>[] {
   if (!Array.isArray(value)) return [];
-  return value.filter((entry): entry is Record<string, unknown> => Boolean(entry && typeof entry === "object" && !Array.isArray(entry)));
+  return value.filter((entry): entry is Record<string, unknown> =>
+    Boolean(entry && typeof entry === "object" && !Array.isArray(entry))
+  );
 }
 
 function stringArray(value: unknown): string[] {
@@ -324,8 +388,12 @@ function analyzeFailedChecks(failed: Array<Record<string, unknown>>): Record<str
     if (classification) {
       return {
         status: optionalString(classification, "status") ?? "unknown_failure",
-        likelyRootCause: optionalString(classification, "likelyRootCause") ?? "Verification failed with classified evidence.",
-        nextSuggestedAction: optionalString(classification, "nextSuggestedAction") ?? "Inspect collected evidence and rerun.",
+        likelyRootCause:
+          optionalString(classification, "likelyRootCause") ??
+          "Verification failed with classified evidence.",
+        nextSuggestedAction:
+          optionalString(classification, "nextSuggestedAction") ??
+          "Inspect collected evidence and rerun.",
         blockingExternalDependency: isExternalStatus(optionalString(classification, "status"))
       };
     }
@@ -334,15 +402,21 @@ function analyzeFailedChecks(failed: Array<Record<string, unknown>>): Record<str
       return {
         status,
         likelyRootCause: optionalString(result ?? {}, "likelyRootCause") ?? "Verification failed.",
-        nextSuggestedAction: optionalString(result ?? {}, "nextSuggestedAction") ?? "Inspect collected evidence and rerun.",
+        nextSuggestedAction:
+          optionalString(result ?? {}, "nextSuggestedAction") ??
+          "Inspect collected evidence and rerun.",
         blockingExternalDependency: isExternalStatus(status)
       };
     }
   }
   return {
     status: failed.length > 0 ? "unknown_failure" : "passed",
-    likelyRootCause: failed.length > 0 ? "One or more verification checks failed without a classifier result." : "",
-    nextSuggestedAction: failed.length > 0 ? "Collect screenshot, page source, and logs for the failed step." : "",
+    likelyRootCause:
+      failed.length > 0
+        ? "One or more verification checks failed without a classifier result."
+        : "",
+    nextSuggestedAction:
+      failed.length > 0 ? "Collect screenshot, page source, and logs for the failed step." : "",
     blockingExternalDependency: false
   };
 }
@@ -352,7 +426,8 @@ function analyzeErrorMessage(message: string): Record<string, unknown> {
     return {
       status: "automation_error",
       likelyRootCause: message,
-      nextSuggestedAction: "Recreate the Appium session and verify the platform driver before changing app code.",
+      nextSuggestedAction:
+        "Recreate the Appium session and verify the platform driver before changing app code.",
       blockingExternalDependency: false
     };
   }
@@ -360,7 +435,8 @@ function analyzeErrorMessage(message: string): Record<string, unknown> {
     return {
       status: "external_dependency",
       likelyRootCause: message,
-      nextSuggestedAction: "Check staging services, test data, emulator services, and remote credentials/rules.",
+      nextSuggestedAction:
+        "Check staging services, test data, emulator services, and remote credentials/rules.",
       blockingExternalDependency: true
     };
   }
@@ -373,7 +449,10 @@ function analyzeErrorMessage(message: string): Record<string, unknown> {
 }
 
 function summarizeIterations(iterations: Array<Record<string, unknown>>): Record<string, unknown> {
-  const last = iterations.slice().reverse().find((iteration) => objectValue(iteration.failureAnalysis));
+  const last = iterations
+    .slice()
+    .reverse()
+    .find((iteration) => objectValue(iteration.failureAnalysis));
   const analysis = objectValue(last?.failureAnalysis);
   if (!analysis) {
     return {
@@ -386,11 +465,20 @@ function summarizeIterations(iterations: Array<Record<string, unknown>>): Record
   return {
     status: optionalString(analysis, "status") ?? "unknown_failure",
     likelyRootCause: optionalString(analysis, "likelyRootCause") ?? "Validation loop failed.",
-    nextSuggestedAction: optionalString(analysis, "nextSuggestedAction") ?? "Inspect iteration records and artifacts.",
+    nextSuggestedAction:
+      optionalString(analysis, "nextSuggestedAction") ?? "Inspect iteration records and artifacts.",
     blockingExternalDependency: optionalBoolean(analysis, "blockingExternalDependency") ?? false
   };
 }
 
 function isExternalStatus(status: string | undefined): boolean {
-  return Boolean(status && ["remote_rules_not_deployed", "test_data_missing", "environment_missing", "external_dependency"].includes(status));
+  return Boolean(
+    status &&
+    [
+      "remote_rules_not_deployed",
+      "test_data_missing",
+      "environment_missing",
+      "external_dependency"
+    ].includes(status)
+  );
 }

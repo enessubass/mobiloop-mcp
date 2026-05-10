@@ -1,7 +1,13 @@
 import path from "node:path";
 import { McpTool, jsonResponse } from "../types.js";
 import { booleanSchema, numberSchema, objectSchema, stringSchema } from "../schema.js";
-import { asObject, optionalBoolean, optionalNumber, optionalString, requireString } from "../utils/validation.js";
+import {
+  asObject,
+  optionalBoolean,
+  optionalNumber,
+  optionalString,
+  requireString
+} from "../utils/validation.js";
 import { resolveWorkspacePath, resolveWorkspacePathAllowArtifacts } from "../utils/path-guard.js";
 import { runCommand } from "../utils/shell.js";
 import { ensureArtifactsDir, writeArtifactText } from "../utils/artifacts.js";
@@ -13,10 +19,14 @@ export function iosTools(): McpTool[] {
       description: "List available iOS simulators via xcrun simctl.",
       inputSchema: objectSchema({}),
       async handler(_input, { config }) {
-        const result = await runCommand(config.xcrunPath, ["simctl", "list", "devices", "available", "-j"], {
-          cwd: config.workspaceRoot,
-          config
-        });
+        const result = await runCommand(
+          config.xcrunPath,
+          ["simctl", "list", "devices", "available", "-j"],
+          {
+            cwd: config.workspaceRoot,
+            config
+          }
+        );
         return jsonResponse(JSON.parse(result.stdout));
       }
     },
@@ -72,7 +82,12 @@ export function iosTools(): McpTool[] {
           config,
           allowFailure: true
         });
-        return jsonResponse({ device, exitCode: result.exitCode, stdout: result.stdout.trim(), stderr: result.stderr.trim() });
+        return jsonResponse({
+          device,
+          exitCode: result.exitCode,
+          stdout: result.stdout.trim(),
+          stderr: result.stderr.trim()
+        });
       }
     },
     {
@@ -124,7 +139,13 @@ export function iosTools(): McpTool[] {
           config,
           timeoutMs: 45 * 60_000
         });
-        const logPath = await writeArtifactText(config, "build", "ios-build", "log", result.stdout + result.stderr);
+        const logPath = await writeArtifactText(
+          config,
+          "build",
+          "ios-build",
+          "log",
+          result.stdout + result.stderr
+        );
         return jsonResponse({ scheme, configuration, sdk, destination, derivedDataPath, logPath });
       }
     },
@@ -147,7 +168,12 @@ export function iosTools(): McpTool[] {
           config,
           timeoutMs: 120_000
         });
-        return jsonResponse({ device, appPath, stdout: result.stdout.trim(), stderr: result.stderr.trim() });
+        return jsonResponse({
+          device,
+          appPath,
+          stdout: result.stdout.trim(),
+          stderr: result.stderr.trim()
+        });
       }
     },
     {
@@ -176,7 +202,12 @@ export function iosTools(): McpTool[] {
           cwd: config.workspaceRoot,
           config
         });
-        return jsonResponse({ device, bundleId, stdout: result.stdout.trim(), stderr: result.stderr.trim() });
+        return jsonResponse({
+          device,
+          bundleId,
+          stdout: result.stdout.trim(),
+          stderr: result.stderr.trim()
+        });
       }
     },
     {
@@ -188,7 +219,10 @@ export function iosTools(): McpTool[] {
         const device = optionalString(args, "device") ?? "booted";
         const prefix = optionalString(args, "prefix") ?? "ios-screen";
         const dir = await ensureArtifactsDir(config, "screenshots");
-        const screenshotPath = path.join(dir, `${new Date().toISOString().replace(/[:.]/g, "-")}-${prefix}.png`);
+        const screenshotPath = path.join(
+          dir,
+          `${new Date().toISOString().replace(/[:.]/g, "-")}-${prefix}.png`
+        );
         await runCommand(config.xcrunPath, ["simctl", "io", device, "screenshot", screenshotPath], {
           cwd: config.workspaceRoot,
           config
@@ -231,7 +265,13 @@ export function iosTools(): McpTool[] {
           config,
           allowFailure: true
         });
-        const logPath = await writeArtifactText(config, "logs", prefix, "log", result.stdout + result.stderr);
+        const logPath = await writeArtifactText(
+          config,
+          "logs",
+          prefix,
+          "log",
+          result.stdout + result.stderr
+        );
         return jsonResponse({ device, last, predicate, logPath, exitCode: result.exitCode });
       }
     }

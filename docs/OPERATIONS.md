@@ -32,7 +32,10 @@
 6. Let MobiLoop generate candidate E2E scenarios when starting from a new app:
 
    ```json
-   { "tool": "flow.generate_test_scenarios", "args": { "goal": "cover onboarding, login, validation, and main navigation" } }
+   {
+     "tool": "flow.generate_test_scenarios",
+     "args": { "goal": "cover onboarding, login, validation, and main navigation" }
+   }
    ```
 
 7. Seed flow context when you want faster repeated runs:

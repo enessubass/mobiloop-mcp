@@ -25,6 +25,7 @@ COPY --from=build /app/dist/src ./dist/src
 COPY package.json README.md LICENSE CHANGELOG.md CONTRIBUTING.md mobiloop.config.example.json ./
 COPY docs ./docs
 COPY examples ./examples
+COPY schema ./schema
 
 VOLUME ["/workspace"]
 ENV MOBILOOP_WORKSPACE_ROOT=/workspace

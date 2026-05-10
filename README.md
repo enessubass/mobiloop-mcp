@@ -64,14 +64,14 @@ The server does not claim that a test passed because a model says so. A pass sho
 
 Install only what your target app needs.
 
-| Workflow | Host | Required tools |
-| --- | --- | --- |
-| MCP runtime | macOS, Linux, Windows | Node.js 20+ |
-| Android build/test | macOS, Linux, Windows | Android SDK, `adb`, emulator or physical device, Java/Gradle as needed, Appium 2, UiAutomator2 driver |
-| Flutter Android | macOS, Linux, Windows | Flutter SDK, Android SDK, Appium for UI flows |
-| React Native Android | macOS, Linux, Windows | Node/npm, Android Gradle toolchain, Android SDK, Appium |
-| iOS simulator | macOS only | Xcode, `xcrun simctl`, iOS Simulator, Appium 2, XCUITest driver |
-| Docker MCP runtime | macOS, Linux, Windows | Docker, plus host-side mobile tools when driving devices |
+| Workflow             | Host                  | Required tools                                                                                        |
+| -------------------- | --------------------- | ----------------------------------------------------------------------------------------------------- |
+| MCP runtime          | macOS, Linux, Windows | Node.js 20+                                                                                           |
+| Android build/test   | macOS, Linux, Windows | Android SDK, `adb`, emulator or physical device, Java/Gradle as needed, Appium 2, UiAutomator2 driver |
+| Flutter Android      | macOS, Linux, Windows | Flutter SDK, Android SDK, Appium for UI flows                                                         |
+| React Native Android | macOS, Linux, Windows | Node/npm, Android Gradle toolchain, Android SDK, Appium                                               |
+| iOS simulator        | macOS only            | Xcode, `xcrun simctl`, iOS Simulator, Appium 2, XCUITest driver                                       |
+| Docker MCP runtime   | macOS, Linux, Windows | Docker, plus host-side mobile tools when driving devices                                              |
 
 Start Appium before Appium or flow replay tools:
 
@@ -120,6 +120,13 @@ When an MCP client cannot expose the server as callable tools, use the CLI wrapp
 ```bash
 MOBILOOP_WORKSPACE_ROOT=/absolute/path/to/mobile/app \
 node dist/src/cli.js list-tools
+```
+
+Inspect tool policy metadata:
+
+```bash
+MOBILOOP_WORKSPACE_ROOT=/absolute/path/to/mobile/app \
+node dist/src/cli.js list-tools --json
 ```
 
 Call any tool directly:
@@ -221,21 +228,21 @@ Use split servers when you want tighter policy boundaries per responsibility.
 
 All binaries are listed below.
 
-| Binary | Scope |
-| --- | --- |
-| `mobiloop` | CLI wrapper for listing tools, calling tools, and generating scenarios |
-| `mobiloop-mcp` | All tools |
-| `mobiloop-code-mcp` | Code and git tools |
-| `mobiloop-env-mcp` | Environment preflight and compatibility matrix |
-| `mobiloop-build-mcp` | Dependency, lint, test, and APK build tools |
-| `mobiloop-device-mcp` | Android `adb` and emulator tools |
-| `mobiloop-ios-mcp` | iOS simulator and Xcode tools |
-| `mobiloop-appium-mcp` | Appium UI automation tools |
-| `mobiloop-verify-mcp` | Assertions and evidence collection |
-| `mobiloop-flow-mcp` | Source-flow analysis and checkpoint replay |
-| `mobiloop-loop-mcp` | Iteration records and reports |
-| `mobiloop-ci-mcp` | Artifact manifests, GitHub summaries, PR comments |
-| `mobiloop-orchestrator-mcp` | Android build-install-test-verify loop |
+| Binary                      | Scope                                                                  |
+| --------------------------- | ---------------------------------------------------------------------- |
+| `mobiloop`                  | CLI wrapper for listing tools, calling tools, and generating scenarios |
+| `mobiloop-mcp`              | All tools                                                              |
+| `mobiloop-code-mcp`         | Code and git tools                                                     |
+| `mobiloop-env-mcp`          | Environment preflight and compatibility matrix                         |
+| `mobiloop-build-mcp`        | Dependency, lint, test, and APK build tools                            |
+| `mobiloop-device-mcp`       | Android `adb` and emulator tools                                       |
+| `mobiloop-ios-mcp`          | iOS simulator and Xcode tools                                          |
+| `mobiloop-appium-mcp`       | Appium UI automation tools                                             |
+| `mobiloop-verify-mcp`       | Assertions and evidence collection                                     |
+| `mobiloop-flow-mcp`         | Source-flow analysis and checkpoint replay                             |
+| `mobiloop-loop-mcp`         | Iteration records and reports                                          |
+| `mobiloop-ci-mcp`           | Artifact manifests, GitHub summaries, PR comments                      |
+| `mobiloop-orchestrator-mcp` | Android build-install-test-verify loop                                 |
 
 ## Configuration
 
@@ -255,24 +262,25 @@ export MOBILOOP_CONFIG=/absolute/path/to/mobiloop.config.json
 
 Common fields:
 
-| Field | Default | Purpose |
-| --- | --- | --- |
-| `workspaceRoot` | current working directory | Mobile app workspace the MCP server may access |
-| `artifactsDir` | `.mobiloop` | Evidence, logs, screenshots, reports, flow memory |
-| `maxCommandMs` | `120000` | Default command timeout |
-| `maxOutputBytes` | `1048576` | Output cap for command tools |
-| `maxFixAttempts` | `3` | Suggested fix-loop limit |
-| `maxTestIterations` | `5` | Orchestrator loop limit |
-| `maxRuntimeMinutes` | `30` | Suggested total runtime limit |
-| `allowedBranchPattern` | `^feature/ai-[A-Za-z0-9._/-]+$` | Branches where commit tools are allowed |
-| `appiumServerUrl` | `http://127.0.0.1:4723` | Appium server endpoint |
-| `adbPath` | `adb` | Android Debug Bridge path |
-| `emulatorPath` | `emulator` | Android emulator CLI path |
-| `xcrunPath` | `xcrun` | iOS simulator CLI path |
-| `xcodebuildPath` | `xcodebuild` | Xcode build CLI path |
-| `sqlitePath` | `sqlite3` | SQLite CLI path for read-only assertions |
-| `apiAllowlist` | localhost only | URLs allowed for API verification |
-| `forbiddenPathGlobs` | secret-like defaults | Files blocked from read/write operations |
+| Field                  | Default                         | Purpose                                           |
+| ---------------------- | ------------------------------- | ------------------------------------------------- |
+| `workspaceRoot`        | current working directory       | Mobile app workspace the MCP server may access    |
+| `artifactsDir`         | `.mobiloop`                     | Evidence, logs, screenshots, reports, flow memory |
+| `maxCommandMs`         | `120000`                        | Default command timeout                           |
+| `maxOutputBytes`       | `1048576`                       | Output cap for command tools                      |
+| `maxFixAttempts`       | `3`                             | Suggested fix-loop limit                          |
+| `maxTestIterations`    | `5`                             | Orchestrator loop limit                           |
+| `maxRuntimeMinutes`    | `30`                            | Suggested total runtime limit                     |
+| `allowedBranchPattern` | `^feature/ai-[A-Za-z0-9._/-]+$` | Branches where commit tools are allowed           |
+| `appiumServerUrl`      | `http://127.0.0.1:4723`         | Appium server endpoint                            |
+| `adbPath`              | `adb`                           | Android Debug Bridge path                         |
+| `emulatorPath`         | `emulator`                      | Android emulator CLI path                         |
+| `xcrunPath`            | `xcrun`                         | iOS simulator CLI path                            |
+| `xcodebuildPath`       | `xcodebuild`                    | Xcode build CLI path                              |
+| `sqlitePath`           | `sqlite3`                       | SQLite CLI path for read-only assertions          |
+| `apiAllowlist`         | localhost only                  | URLs allowed for API verification                 |
+| `forbiddenPathGlobs`   | secret-like defaults            | Files blocked from read/write operations          |
+| `toolPolicies`         | built-in defaults               | Per-tool risk and approval metadata overrides     |
 
 Environment variables override selected fields:
 
@@ -280,6 +288,8 @@ Environment variables override selected fields:
 export MOBILOOP_WORKSPACE_ROOT=/absolute/path/to/mobile/app
 export APPIUM_SERVER_URL=http://127.0.0.1:4723
 ```
+
+The config schema is available at [schema/mobiloop.config.schema.json](schema/mobiloop.config.schema.json). See [docs/CONFIGURATION.md](docs/CONFIGURATION.md).
 
 ## Recommended First Run
 
@@ -460,10 +470,7 @@ Record the passing path:
 {
   "testName": "onboarding-to-login",
   "status": "passed",
-  "checkpointIds": [
-    "onboarding-to-login-001-onboarding-1",
-    "onboarding-to-login-002-login"
-  ]
+  "checkpointIds": ["onboarding-to-login-001-onboarding-1", "onboarding-to-login-002-login"]
 }
 ```
 
@@ -578,6 +585,7 @@ Default blocked paths include:
 - paths containing `secret` or `credential`
 
 MCP clients should still apply human approval for high-impact operations such as dependency installation, emulator launch, app install, commits, pushes, and PR creation.
+MobiLoop exposes machine-readable policy metadata through `mobiloop list-tools --json`; see [docs/TOOL_REFERENCE.md](docs/TOOL_REFERENCE.md).
 
 See [docs/SECURITY.md](docs/SECURITY.md).
 
@@ -591,17 +599,17 @@ The default artifact directory is:
 
 Typical contents:
 
-| Directory | Contents |
-| --- | --- |
-| `build/` | dependency, lint, test, and APK build logs |
-| `screenshots/` | Appium or device screenshots |
-| `sources/` | Appium page source XML |
-| `logs/` | device or simulator logs |
-| `evidence/` | combined verification artifacts |
-| `flow/` | source-flow analysis, checkpoint memory, replay records |
-| `loop/` | JSONL iteration records |
-| `reports/` | Markdown final reports |
-| `ci/` | CI manifests, summaries, annotations |
+| Directory      | Contents                                                |
+| -------------- | ------------------------------------------------------- |
+| `build/`       | dependency, lint, test, and APK build logs              |
+| `screenshots/` | Appium or device screenshots                            |
+| `sources/`     | Appium page source XML                                  |
+| `logs/`        | device or simulator logs                                |
+| `evidence/`    | combined verification artifacts                         |
+| `flow/`        | source-flow analysis, checkpoint memory, replay records |
+| `loop/`        | JSONL iteration records                                 |
+| `reports/`     | Markdown final reports                                  |
+| `ci/`          | CI manifests, summaries, annotations                    |
 
 ## Tool Groups
 
@@ -619,6 +627,7 @@ Typical contents:
 
 - `env.preflight`
 - `env.compatibility_matrix`
+- `env.ensure_appium`
 
 ### Build
 
@@ -647,7 +656,7 @@ Typical contents:
 - `ios.list_simulators`
 - `ios.boot_simulator`
 - `ios.shutdown_simulator`
-- `ios.build_simulator_app`
+- `ios.build_app`
 - `ios.install_app`
 - `ios.launch_app`
 - `ios.capture_screenshot`
@@ -674,17 +683,21 @@ Typical contents:
 ### Verification
 
 - `verify.assert_screen_contains_text`
-- `verify.assert_api_response`
 - `verify.assert_no_crash_in_logcat`
-- `verify.assert_no_ios_crash_in_logs`
+- `verify.assert_appium_session_healthy`
+- `verify.assert_api_response`
+- `verify.collect_evidence`
+- `verify.assert_navigation_reached`
 - `verify.assert_accessibility_labels`
 - `verify.assert_screenshot_diff`
-- `verify.assert_sqlite_state`
-- `verify.collect_evidence`
+- `verify.assert_sqlite_query`
+- `verify.hash_artifact`
 
 ### Flow
 
 - `flow.analyze_from_code`
+- `flow.generate_test_scenarios`
+- `flow.run_script`
 - `flow.record_checkpoint`
 - `flow.record_test_run`
 - `flow.plan_replay`
@@ -760,6 +773,8 @@ npm_config_cache=/tmp/mobiloop-npm-cache npm pack --dry-run
 
 ```bash
 npm ci
+npm run format:check
+npm run lint
 npm run typecheck
 npm test
 npm run pack:check
@@ -770,12 +785,29 @@ The Dockerfile also runs the test suite during image build.
 ## Project Files
 
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- [docs/ARCHITECTURE_DETAILED.md](docs/ARCHITECTURE_DETAILED.md)
+- [docs/TOOL_REFERENCE.md](docs/TOOL_REFERENCE.md)
+- [docs/CONFIGURATION.md](docs/CONFIGURATION.md)
+- [docs/AGENT_PROTOCOL.md](docs/AGENT_PROTOCOL.md)
+- [docs/TEST_STRATEGY.md](docs/TEST_STRATEGY.md)
+- [docs/CI_CD.md](docs/CI_CD.md)
+- [docs/SECURITY_THREAT_MODEL.md](docs/SECURITY_THREAT_MODEL.md)
 - [docs/OPERATIONS.md](docs/OPERATIONS.md)
+- [docs/OPERATIONS_RUNBOOK.md](docs/OPERATIONS_RUNBOOK.md)
+- [docs/TROUBLESHOOTING_DETAILED.md](docs/TROUBLESHOOTING_DETAILED.md)
+- [docs/FLOW_MEMORY.md](docs/FLOW_MEMORY.md)
+- [docs/ORCHESTRATOR.md](docs/ORCHESTRATOR.md)
+- [docs/RELEASE_PROCESS.md](docs/RELEASE_PROCESS.md)
+- [docs/LIMITATIONS.md](docs/LIMITATIONS.md)
+- [docs/EXAMPLES.md](docs/EXAMPLES.md)
 - [docs/DOCKER.md](docs/DOCKER.md)
 - [docs/SECURITY.md](docs/SECURITY.md)
+- [docs/demo/flutter-login-loop.md](docs/demo/flutter-login-loop.md)
 - [examples/android-validation-loop.json](examples/android-validation-loop.json)
 - [examples/flow-memory-replay.json](examples/flow-memory-replay.json)
 - [examples/github-actions-mobiloop.yml](examples/github-actions-mobiloop.yml)
+- [examples/mobile-fixtures/flutter-login-demo](examples/mobile-fixtures/flutter-login-demo)
+- [examples/artifacts/successful-loop-report.md](examples/artifacts/successful-loop-report.md)
 
 ## License
 

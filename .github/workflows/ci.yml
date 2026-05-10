@@ -26,11 +26,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Format check
+        run: npm run format:check
+
+      - name: Lint
+        run: npm run lint
+
       - name: Typecheck
         run: npm run typecheck
 
       - name: Test
         run: npm test
+
+      - name: Dependency audit
+        run: npm audit --audit-level=high
 
       - name: Package dry run
         run: npm run pack:check

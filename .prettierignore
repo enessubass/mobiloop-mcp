@@ -1,0 +1,6 @@
+dist
+node_modules
+.mobiloop
+coverage
+*.tgz
+package-lock.json

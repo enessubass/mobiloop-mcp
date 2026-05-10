@@ -17,8 +17,13 @@ test("env.preflight accepts a reachable Appium server without requiring a global
   try {
     const tool = envTools().find((entry) => entry.name === "env.preflight");
     assert.ok(tool);
-    const result = await tool.handler({ target: "ci" }, { config: config(root, "http://127.0.0.1:4723") });
-    const payload = JSON.parse(result.content.map((entry) => ("text" in entry ? entry.text : "")).join("\n"));
+    const result = await tool.handler(
+      { target: "ci" },
+      { config: config(root, "http://127.0.0.1:4723") }
+    );
+    const payload = JSON.parse(
+      result.content.map((entry) => ("text" in entry ? entry.text : "")).join("\n")
+    );
     const appium = payload.checks.find((check: { name: string }) => check.name === "appium");
     assert.equal(appium.ok, true);
     assert.match(appium.detail, /server reachable/);
@@ -44,6 +49,7 @@ function config(root: string, appiumServerUrl: string): ServerConfig {
     xcodebuildPath: "xcodebuild",
     sqlitePath: "sqlite3",
     apiAllowlist: ["http://127.0.0.1:*", "http://localhost:*"],
-    forbiddenPathGlobs: [".env", ".env.*"]
+    forbiddenPathGlobs: [".env", ".env.*"],
+    toolPolicies: {}
   };
 }

@@ -20,11 +20,15 @@ const config: ServerConfig = {
   xcodebuildPath: "xcodebuild",
   sqlitePath: "sqlite3",
   apiAllowlist: ["http://127.0.0.1:*", "http://localhost:*"],
-  forbiddenPathGlobs: [".env", "**/*.jks", "**/*secret*"]
+  forbiddenPathGlobs: [".env", "**/*.jks", "**/*secret*"],
+  toolPolicies: {}
 };
 
 test("resolveWorkspacePath allows normal workspace files", () => {
-  assert.equal(resolveWorkspacePath(config, "src/main.ts"), path.resolve("/tmp/mobile-app/src/main.ts"));
+  assert.equal(
+    resolveWorkspacePath(config, "src/main.ts"),
+    path.resolve("/tmp/mobile-app/src/main.ts")
+  );
 });
 
 test("resolveWorkspacePath blocks path traversal", () => {

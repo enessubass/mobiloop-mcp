@@ -2,7 +2,13 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { McpTool, jsonResponse } from "../types.js";
 import { arraySchema, numberSchema, objectSchema, stringSchema } from "../schema.js";
-import { asObject, optionalNumber, optionalString, optionalStringArray, requireString } from "../utils/validation.js";
+import {
+  asObject,
+  optionalNumber,
+  optionalString,
+  optionalStringArray,
+  requireString
+} from "../utils/validation.js";
 import { ensureArtifactsDir, writeArtifactText } from "../utils/artifacts.js";
 
 export function loopTools(): McpTool[] {
@@ -66,7 +72,13 @@ export function loopTools(): McpTool[] {
         const summary = optionalString(args, "summary") ?? "";
         const records = await readIterations(config.artifactsDir);
         const markdown = renderReport(title, finalStatus, summary, records);
-        const reportPath = await writeArtifactText(config, "reports", "mobiloop-report", "md", markdown);
+        const reportPath = await writeArtifactText(
+          config,
+          "reports",
+          "mobiloop-report",
+          "md",
+          markdown
+        );
         return jsonResponse({ reportPath, finalStatus, iterations: records.length });
       }
     },

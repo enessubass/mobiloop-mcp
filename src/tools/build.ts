@@ -2,7 +2,7 @@ import fsSync from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { McpTool, jsonResponse } from "../types.js";
-import { enumSchema, objectSchema, stringSchema } from "../schema.js";
+import { enumSchema, objectSchema } from "../schema.js";
 import { asObject, optionalString, stringEnum } from "../utils/validation.js";
 import { writeArtifactText } from "../utils/artifacts.js";
 import { runCommand } from "../utils/shell.js";
@@ -33,8 +33,20 @@ export function buildTools(): McpTool[] {
           config,
           timeoutMs: 10 * 60_000
         });
-        const logPath = await writeArtifactText(config, "build", "install-dependencies", "log", result.stdout + result.stderr);
-        return jsonResponse({ kind, command, exitCode: result.exitCode, durationMs: result.durationMs, logPath });
+        const logPath = await writeArtifactText(
+          config,
+          "build",
+          "install-dependencies",
+          "log",
+          result.stdout + result.stderr
+        );
+        return jsonResponse({
+          kind,
+          command,
+          exitCode: result.exitCode,
+          durationMs: result.durationMs,
+          logPath
+        });
       }
     },
     {
@@ -49,8 +61,20 @@ export function buildTools(): McpTool[] {
           config,
           timeoutMs: 10 * 60_000
         });
-        const logPath = await writeArtifactText(config, "build", "lint", "log", result.stdout + result.stderr);
-        return jsonResponse({ kind, command, exitCode: result.exitCode, durationMs: result.durationMs, logPath });
+        const logPath = await writeArtifactText(
+          config,
+          "build",
+          "lint",
+          "log",
+          result.stdout + result.stderr
+        );
+        return jsonResponse({
+          kind,
+          command,
+          exitCode: result.exitCode,
+          durationMs: result.durationMs,
+          logPath
+        });
       }
     },
     {
@@ -65,8 +89,20 @@ export function buildTools(): McpTool[] {
           config,
           timeoutMs: 15 * 60_000
         });
-        const logPath = await writeArtifactText(config, "build", "unit-tests", "log", result.stdout + result.stderr);
-        return jsonResponse({ kind, command, exitCode: result.exitCode, durationMs: result.durationMs, logPath });
+        const logPath = await writeArtifactText(
+          config,
+          "build",
+          "unit-tests",
+          "log",
+          result.stdout + result.stderr
+        );
+        return jsonResponse({
+          kind,
+          command,
+          exitCode: result.exitCode,
+          durationMs: result.durationMs,
+          logPath
+        });
       }
     },
     {
@@ -82,13 +118,27 @@ export function buildTools(): McpTool[] {
           timeoutMs: 30 * 60_000
         });
         const apkPaths = await findDebugApks(config.workspaceRoot, kind);
-        const logPath = await writeArtifactText(config, "build", "debug-apk", "log", result.stdout + result.stderr);
-        return jsonResponse({ kind, command, exitCode: result.exitCode, durationMs: result.durationMs, apkPaths, logPath });
+        const logPath = await writeArtifactText(
+          config,
+          "build",
+          "debug-apk",
+          "log",
+          result.stdout + result.stderr
+        );
+        return jsonResponse({
+          kind,
+          command,
+          exitCode: result.exitCode,
+          durationMs: result.durationMs,
+          apkPaths,
+          logPath
+        });
       }
     },
     {
       name: "build.build_release_candidate",
-      description: "Build a release candidate APK. Release signing requirements are delegated to the target project.",
+      description:
+        "Build a release candidate APK. Release signing requirements are delegated to the target project.",
       inputSchema: objectSchema({ kind: enumSchema(["flutter", "react-native", "android"]) }),
       async handler(input, { config }) {
         const kind = await resolvedKind(input, config.workspaceRoot);
@@ -99,8 +149,21 @@ export function buildTools(): McpTool[] {
           timeoutMs: 45 * 60_000
         });
         const apkPaths = await findApks(config.workspaceRoot, kind, "release");
-        const logPath = await writeArtifactText(config, "build", "release-candidate", "log", result.stdout + result.stderr);
-        return jsonResponse({ kind, command, exitCode: result.exitCode, durationMs: result.durationMs, apkPaths, logPath });
+        const logPath = await writeArtifactText(
+          config,
+          "build",
+          "release-candidate",
+          "log",
+          result.stdout + result.stderr
+        );
+        return jsonResponse({
+          kind,
+          command,
+          exitCode: result.exitCode,
+          durationMs: result.durationMs,
+          apkPaths,
+          logPath
+        });
       }
     },
     {
@@ -119,11 +182,18 @@ export function buildTools(): McpTool[] {
 async function resolvedKind(input: unknown, workspaceRoot: string): Promise<ProjectKind> {
   const args = asObject(input ?? {});
   const detected = await detectProject(workspaceRoot);
-  const kind = stringEnum(args, "kind", ["flutter", "react-native", "android"], detected.kind === "unknown" ? undefined : detected.kind);
+  const kind = stringEnum(
+    args,
+    "kind",
+    ["flutter", "react-native", "android"],
+    detected.kind === "unknown" ? undefined : detected.kind
+  );
   return kind;
 }
 
-async function detectProject(workspaceRoot: string): Promise<{ kind: ProjectKind; reasons: string[] }> {
+async function detectProject(
+  workspaceRoot: string
+): Promise<{ kind: ProjectKind; reasons: string[] }> {
   const reasons: string[] = [];
   if (await exists(path.join(workspaceRoot, "pubspec.yaml"))) {
     reasons.push("pubspec.yaml found");
@@ -137,7 +207,11 @@ async function detectProject(workspaceRoot: string): Promise<{ kind: ProjectKind
       return { kind: "react-native", reasons };
     }
   }
-  if ((await exists(path.join(workspaceRoot, "gradlew"))) || (await exists(path.join(workspaceRoot, "build.gradle"))) || (await exists(path.join(workspaceRoot, "build.gradle.kts")))) {
+  if (
+    (await exists(path.join(workspaceRoot, "gradlew"))) ||
+    (await exists(path.join(workspaceRoot, "build.gradle"))) ||
+    (await exists(path.join(workspaceRoot, "build.gradle.kts")))
+  ) {
     reasons.push("Gradle Android files found");
     return { kind: "android", reasons };
   }
@@ -147,7 +221,11 @@ async function detectProject(workspaceRoot: string): Promise<{ kind: ProjectKind
 function dependencyCommand(root: string, kind: ProjectKind): CommandSpec {
   if (kind === "flutter") return { command: "flutter", args: ["pub", "get"], cwd: root };
   if (kind === "react-native") {
-    return { command: "npm", args: [hasFileSync(root, "package-lock.json") ? "ci" : "install"], cwd: root };
+    return {
+      command: "npm",
+      args: [hasFileSync(root, "package-lock.json") ? "ci" : "install"],
+      cwd: root
+    };
   }
   if (kind === "android") return gradle(root, ["--version"]);
   throw new Error("Cannot install dependencies for unknown project type");
@@ -155,27 +233,31 @@ function dependencyCommand(root: string, kind: ProjectKind): CommandSpec {
 
 function lintCommand(root: string, kind: ProjectKind): CommandSpec {
   if (kind === "flutter") return { command: "flutter", args: ["analyze"], cwd: root };
-  if (kind === "react-native") return { command: "npm", args: ["run", "--if-present", "lint"], cwd: root };
+  if (kind === "react-native")
+    return { command: "npm", args: ["run", "--if-present", "lint"], cwd: root };
   if (kind === "android") return gradle(root, ["lintDebug"]);
   throw new Error("Cannot lint unknown project type");
 }
 
 function testCommand(root: string, kind: ProjectKind): CommandSpec {
   if (kind === "flutter") return { command: "flutter", args: ["test"], cwd: root };
-  if (kind === "react-native") return { command: "npm", args: ["test", "--", "--watch=false"], cwd: root };
+  if (kind === "react-native")
+    return { command: "npm", args: ["test", "--", "--watch=false"], cwd: root };
   if (kind === "android") return gradle(root, ["test"]);
   throw new Error("Cannot test unknown project type");
 }
 
 function debugApkCommand(root: string, kind: ProjectKind): CommandSpec {
-  if (kind === "flutter") return { command: "flutter", args: ["build", "apk", "--debug"], cwd: root };
+  if (kind === "flutter")
+    return { command: "flutter", args: ["build", "apk", "--debug"], cwd: root };
   if (kind === "react-native") return gradle(path.join(root, "android"), ["assembleDebug"]);
   if (kind === "android") return gradle(root, ["assembleDebug"]);
   throw new Error("Cannot build unknown project type");
 }
 
 function releaseCandidateCommand(root: string, kind: ProjectKind): CommandSpec {
-  if (kind === "flutter") return { command: "flutter", args: ["build", "apk", "--release"], cwd: root };
+  if (kind === "flutter")
+    return { command: "flutter", args: ["build", "apk", "--release"], cwd: root };
   if (kind === "react-native") return gradle(path.join(root, "android"), ["assembleRelease"]);
   if (kind === "android") return gradle(root, ["assembleRelease"]);
   throw new Error("Cannot build unknown project type");
@@ -190,13 +272,20 @@ async function findDebugApks(root: string, kind: ProjectKind): Promise<string[]>
   return findApks(root, kind, "debug");
 }
 
-async function findApks(root: string, kind: ProjectKind, variant: "debug" | "release"): Promise<string[]> {
+async function findApks(
+  root: string,
+  kind: ProjectKind,
+  variant: "debug" | "release"
+): Promise<string[]> {
   const candidates =
     kind === "flutter"
       ? [path.join(root, "build", "app", "outputs", "flutter-apk")]
       : kind === "react-native"
         ? [path.join(root, "android", "app", "build", "outputs", "apk", variant)]
-        : [path.join(root, "app", "build", "outputs", "apk", variant), path.join(root, "build", "outputs", "apk", variant)];
+        : [
+            path.join(root, "app", "build", "outputs", "apk", variant),
+            path.join(root, "build", "outputs", "apk", variant)
+          ];
   const output: string[] = [];
   for (const dir of candidates) {
     const entries = await fs.readdir(dir).catch(() => []);
@@ -210,7 +299,10 @@ async function findApks(root: string, kind: ProjectKind, variant: "debug" | "rel
 }
 
 async function exists(filePath: string): Promise<boolean> {
-  return fs.access(filePath).then(() => true, () => false);
+  return fs.access(filePath).then(
+    () => true,
+    () => false
+  );
 }
 
 function hasFileSync(root: string, fileName: string): boolean {

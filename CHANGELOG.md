@@ -8,6 +8,8 @@ Initial release candidate.
 - Added generated E2E scenario candidates and high-level flow script execution.
 - Improved Appium exact-first text tapping, Flutter-friendly text input modes, readiness waits, and clicked-target reporting.
 - Added Appium server bootstrap helper, session health assertion, common evidence schema, and logcat root-cause classification.
+- Added machine-readable tool policy metadata, config schema, CLI policy listing, lint/format checks, and expanded production documentation.
+- Added sample artifacts and a minimal Flutter login fixture for local MobiLoop trials.
 - Made Java preflight context-aware so Flutter target checks warn instead of blocking solely on a missing global `java`.
 - Branded the project as MobiLoop MCP with `mobiloop-*` binaries, `MOBILOOP_*` env vars, and `.mobiloop` artifacts.
 - Added GitHub Actions CI and GHCR image publishing workflow.

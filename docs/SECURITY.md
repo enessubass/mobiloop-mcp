@@ -56,4 +56,12 @@ Verification tools produce evidence rather than relying on model claims:
 
 MCP clients should still apply their own approval policy for high-impact actions such as dependency install, emulator launch, device install, commit, push, and PR creation.
 
+MobiLoop exposes policy metadata for every tool. Inspect it with:
+
+```bash
+mobiloop list-tools --json
+```
+
+The metadata is advisory for MCP clients and includes risk level, approval recommendation, workspace/device mutation flags, network access, and artifact production. Override local policy with `toolPolicies` in `mobiloop.config.json` when your runner has stricter rules.
+
 This server provides guardrails; it is not a replacement for host-level sandboxing.

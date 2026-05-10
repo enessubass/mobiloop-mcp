@@ -5,7 +5,13 @@ import { PNG } from "pngjs";
 import { McpTool, ServerConfig, jsonResponse } from "../types.js";
 import { arraySchema, numberSchema, objectSchema, stringSchema } from "../schema.js";
 import { AppiumClient } from "../utils/appium-client.js";
-import { asObject, optionalNumber, optionalString, optionalStringArray, requireString } from "../utils/validation.js";
+import {
+  asObject,
+  optionalNumber,
+  optionalString,
+  optionalStringArray,
+  requireString
+} from "../utils/validation.js";
 import { resolveWorkspacePath } from "../utils/path-guard.js";
 import { runCommand } from "../utils/shell.js";
 import { writeArtifactBuffer, writeArtifactText } from "../utils/artifacts.js";
@@ -54,10 +60,18 @@ export function verifyTools(): McpTool[] {
           ? await fs.readFile(resolveWorkspacePath(config, logPath), "utf8")
           : await pullLogcat(config, serial, packageName);
         const classification = classifyLogcat(logText);
-        const evidencePath = await writeArtifactText(config, "verification", "logcat-crash-check", "log", logText);
+        const evidencePath = await writeArtifactText(
+          config,
+          "verification",
+          "logcat-crash-check",
+          "log",
+          logText
+        );
         return jsonResponse({
           passed: classification.appCrashFindings.length === 0,
-          findings: classification.appCrashFindings.map((finding) => `${finding.lineNumber}: ${finding.line}`),
+          findings: classification.appCrashFindings.map(
+            (finding) => `${finding.lineNumber}: ${finding.line}`
+          ),
           classification: classification as never,
           automationHealthy: classification.automationFindings.length === 0,
           serial,
@@ -73,8 +87,11 @@ export function verifyTools(): McpTool[] {
     },
     {
       name: "verify.assert_appium_session_healthy",
-      description: "Assert the Appium session and page source are reachable, distinguishing automation failures from app crashes.",
-      inputSchema: objectSchema({ sessionId: stringSchema, serverUrl: stringSchema }, ["sessionId"]),
+      description:
+        "Assert the Appium session and page source are reachable, distinguishing automation failures from app crashes.",
+      inputSchema: objectSchema({ sessionId: stringSchema, serverUrl: stringSchema }, [
+        "sessionId"
+      ]),
       async handler(input, { config }) {
         const args = asObject(input);
         const serverUrl = optionalString(args, "serverUrl") ?? config.appiumServerUrl;
@@ -87,7 +104,9 @@ export function verifyTools(): McpTool[] {
           health,
           status: health.healthy ? "passed" : "automation_error",
           likelyRootCause: health.healthy ? "" : health.detail,
-          nextSuggestedAction: health.healthy ? "" : "Recreate the Appium session and verify the platform driver before changing app code."
+          nextSuggestedAction: health.healthy
+            ? ""
+            : "Recreate the Appium session and verify the platform driver before changing app code."
         });
       }
     },
@@ -128,7 +147,13 @@ export function verifyTools(): McpTool[] {
           });
           const responseText = await response.text();
           const missing = bodyContains.filter((entry) => !responseText.includes(entry));
-          const evidencePath = await writeArtifactText(config, "verification", "api-response", "txt", responseText);
+          const evidencePath = await writeArtifactText(
+            config,
+            "verification",
+            "api-response",
+            "txt",
+            responseText
+          );
           return jsonResponse({
             passed: response.status === expectedStatus && missing.length === 0,
             status: response.status,
@@ -168,7 +193,9 @@ export function verifyTools(): McpTool[] {
           evidence.screenshotPath = await client.saveScreenshot(config, sessionId, prefix);
           evidence.sourcePath = await client.savePageSource(config, sessionId, prefix);
         }
-        const logs = await pullLogcat(config, serial, packageName).catch((error) => `logcat unavailable: ${error instanceof Error ? error.message : String(error)}`);
+        const logs = await pullLogcat(config, serial, packageName).catch(
+          (error) => `logcat unavailable: ${error instanceof Error ? error.message : String(error)}`
+        );
         evidence.logPath = await writeArtifactText(config, "logs", `${prefix}-logcat`, "log", logs);
         const classification = classifyLogcat(logs);
         return jsonResponse({
@@ -214,7 +241,8 @@ export function verifyTools(): McpTool[] {
     },
     {
       name: "verify.assert_accessibility_labels",
-      description: "Assert clickable or input-like nodes have a text, label, name, content-desc, or resource-id.",
+      description:
+        "Assert clickable or input-like nodes have a text, label, name, content-desc, or resource-id.",
       inputSchema: objectSchema(
         {
           sessionId: stringSchema,
@@ -235,13 +263,20 @@ export function verifyTools(): McpTool[] {
           ? await fs.readFile(resolveWorkspacePath(config, sourcePath), "utf8")
           : await new AppiumClient({ serverUrl }).pageSource(sessionId!);
         const findings = accessibilityFindings(source);
-        const evidencePath = await writeArtifactText(config, "verification", "accessibility-label-check", "xml", source);
+        const evidencePath = await writeArtifactText(
+          config,
+          "verification",
+          "accessibility-label-check",
+          "xml",
+          source
+        );
         return jsonResponse({ passed: findings.length === 0, findings, evidencePath });
       }
     },
     {
       name: "verify.assert_screenshot_diff",
-      description: "Compare two PNG screenshots and assert the pixel diff ratio is at or below maxDiffRatio.",
+      description:
+        "Compare two PNG screenshots and assert the pixel diff ratio is at or below maxDiffRatio.",
       inputSchema: objectSchema(
         {
           baselinePath: stringSchema,
@@ -278,7 +313,13 @@ export function verifyTools(): McpTool[] {
         );
         const totalPixels = baseline.width * baseline.height;
         const diffRatio = diffPixels / totalPixels;
-        const diffPath = await writeArtifactBuffer(config, "verification", "screenshot-diff", "png", PNG.sync.write(diff));
+        const diffPath = await writeArtifactBuffer(
+          config,
+          "verification",
+          "screenshot-diff",
+          "png",
+          PNG.sync.write(diff)
+        );
         return jsonResponse({
           passed: diffRatio <= maxDiffRatio,
           diffPixels,
@@ -308,10 +349,14 @@ export function verifyTools(): McpTool[] {
         assertReadonlySql(query);
         const expectedOutput = optionalString(args, "expectedOutput");
         const outputContains = optionalString(args, "outputContains");
-        const result = await runCommand(config.sqlitePath, ["-readonly", "-batch", databasePath, query], {
-          cwd: config.workspaceRoot,
-          config
-        });
+        const result = await runCommand(
+          config.sqlitePath,
+          ["-readonly", "-batch", databasePath, query],
+          {
+            cwd: config.workspaceRoot,
+            config
+          }
+        );
         const output = result.stdout.trim();
         const passed =
           expectedOutput !== undefined
@@ -352,11 +397,15 @@ async function pullLogcat(
 ): Promise<string> {
   const serialArgs = serial ? ["-s", serial] : [];
   const pid = packageName ? await pidOf(config, serial, packageName) : undefined;
-  const result = await runCommand(config.adbPath, [...serialArgs, "logcat", "-d", ...(pid ? ["--pid", pid] : [])], {
-    cwd: config.workspaceRoot,
-    config,
-    allowFailure: true
-  });
+  const result = await runCommand(
+    config.adbPath,
+    [...serialArgs, "logcat", "-d", ...(pid ? ["--pid", pid] : [])],
+    {
+      cwd: config.workspaceRoot,
+      config,
+      allowFailure: true
+    }
+  );
   return result.stdout + result.stderr;
 }
 
@@ -391,7 +440,8 @@ function normalizeHeaders(value: unknown): Record<string, string> {
 
 function accessibilityFindings(source: string): string[] {
   const findings: string[] = [];
-  const nodeRegex = /<[^!?][^>]*(?:clickable="true"|enabled="true"|type="XCUIElementType(?:Button|TextField|SecureTextField)"|class="[^"]*(?:Button|EditText|TextInput)[^"]*")[^>]*>/g;
+  const nodeRegex =
+    /<[^!?][^>]*(?:clickable="true"|enabled="true"|type="XCUIElementType(?:Button|TextField|SecureTextField)"|class="[^"]*(?:Button|EditText|TextInput)[^"]*")[^>]*>/g;
   const nameRegex = /\b(?:text|label|name|content-desc|resource-id)="([^"]+)"/g;
   const matches = source.match(nodeRegex) ?? [];
   for (const node of matches) {
@@ -410,11 +460,19 @@ function accessibilityFindings(source: string): string[] {
 }
 
 function assertReadonlySql(query: string): void {
-  const normalized = query.trim().replace(/^\s*--.*$/gm, "").toLowerCase();
-  if (!normalized.startsWith("select") && !normalized.startsWith("with") && !normalized.startsWith("pragma")) {
+  const normalized = query
+    .trim()
+    .replace(/^\s*--.*$/gm, "")
+    .toLowerCase();
+  if (
+    !normalized.startsWith("select") &&
+    !normalized.startsWith("with") &&
+    !normalized.startsWith("pragma")
+  ) {
     throw new Error("Only read-only SELECT, WITH, or PRAGMA queries are allowed");
   }
-  const forbidden = /\b(insert|update|delete|drop|alter|create|replace|attach|detach|vacuum|reindex|truncate)\b/i;
+  const forbidden =
+    /\b(insert|update|delete|drop|alter|create|replace|attach|detach|vacuum|reindex|truncate)\b/i;
   if (forbidden.test(normalized)) {
     throw new Error("Query contains a forbidden write/schema keyword");
   }

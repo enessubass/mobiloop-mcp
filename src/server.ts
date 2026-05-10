@@ -3,10 +3,12 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { loadConfig } from "./config.js";
 import { McpTool, errorResponse } from "./types.js";
+import { attachToolPolicies } from "./utils/tool-policy.js";
 
 export async function runMcpServer(name: string, tools: McpTool[]): Promise<void> {
   const config = await loadConfig();
-  const toolByName = new Map(tools.map((tool) => [tool.name, tool]));
+  const configuredTools = attachToolPolicies(tools, config.toolPolicies);
+  const toolByName = new Map(configuredTools.map((tool) => [tool.name, tool]));
 
   const server = new Server(
     {
@@ -21,7 +23,7 @@ export async function runMcpServer(name: string, tools: McpTool[]): Promise<void
   );
 
   server.setRequestHandler(ListToolsRequestSchema, async () => ({
-    tools: tools.map((tool) => ({
+    tools: configuredTools.map((tool) => ({
       name: tool.name,
       description: tool.description,
       inputSchema: tool.inputSchema
@@ -45,7 +47,9 @@ export async function runMcpServer(name: string, tools: McpTool[]): Promise<void
 
 export function runAndExitOnError(name: string, tools: McpTool[]): void {
   runMcpServer(name, tools).catch((error) => {
-    process.stderr.write(`${error instanceof Error ? error.stack ?? error.message : String(error)}\n`);
+    process.stderr.write(
+      `${error instanceof Error ? (error.stack ?? error.message) : String(error)}\n`
+    );
     process.exit(1);
   });
 }

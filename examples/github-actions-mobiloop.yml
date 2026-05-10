@@ -8,12 +8,14 @@ jobs:
   mcp-package-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm run format:check
+      - run: npm run lint
       - run: npm test
       - run: docker build -t mobiloop-mcp:ci .
 
@@ -23,7 +25,7 @@ jobs:
     runs-on: self-hosted
     needs: mcp-package-check
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install MCP dependencies
         run: npm ci
@@ -61,6 +63,11 @@ jobs:
           await client.close();
           if (!parsed.passed) process.exit(1);
           NODE
+
+      - name: Optional full Android validation loop
+        if: env.MOBILOOP_ANDROID_LOOP_ARGS != ''
+        run: |
+          node dist/src/cli.js call orchestrator.run_android_validation_loop "$MOBILOOP_ANDROID_LOOP_ARGS"
 
       - name: Upload MCP artifacts
         if: always()

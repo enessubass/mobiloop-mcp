@@ -1,7 +1,12 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { ServerConfig } from "./types.js";
-import { asOptionalNumber, asOptionalString, asOptionalStringArray } from "./utils/validation.js";
+import { ServerConfig, ToolPolicy } from "./types.js";
+import {
+  asOptionalNumber,
+  asOptionalString,
+  asOptionalStringArray,
+  optionalObject
+} from "./utils/validation.js";
 
 const DEFAULT_FORBIDDEN_PATH_GLOBS = [
   ".env",
@@ -28,7 +33,8 @@ export async function loadConfig(): Promise<ServerConfig> {
   const rawConfig = await readJsonIfExists(configPath);
   const workspaceRootFromEnv =
     process.env.MOBILOOP_WORKSPACE_ROOT ?? process.env.AGENTIC_MOBILE_WORKSPACE_ROOT;
-  const workspaceRootValue = workspaceRootFromEnv ?? asOptionalString(rawConfig, "workspaceRoot") ?? cwd;
+  const workspaceRootValue =
+    workspaceRootFromEnv ?? asOptionalString(rawConfig, "workspaceRoot") ?? cwd;
   const workspaceRoot = path.resolve(cwd, workspaceRootValue);
 
   const artifactsValue = asOptionalString(rawConfig, "artifactsDir") ?? ".mobiloop";
@@ -59,8 +65,24 @@ export async function loadConfig(): Promise<ServerConfig> {
       "http://localhost:*"
     ],
     forbiddenPathGlobs:
-      asOptionalStringArray(rawConfig, "forbiddenPathGlobs") ?? DEFAULT_FORBIDDEN_PATH_GLOBS
+      asOptionalStringArray(rawConfig, "forbiddenPathGlobs") ?? DEFAULT_FORBIDDEN_PATH_GLOBS,
+    toolPolicies: parseToolPolicies(rawConfig)
   };
+}
+
+function parseToolPolicies(
+  rawConfig: Record<string, unknown>
+): Record<string, Partial<ToolPolicy>> {
+  const value = optionalObject(rawConfig, "toolPolicies");
+  if (!value) return {};
+  const policies: Record<string, Partial<ToolPolicy>> = {};
+  for (const [toolName, rawPolicy] of Object.entries(value)) {
+    if (!rawPolicy || typeof rawPolicy !== "object" || Array.isArray(rawPolicy)) {
+      throw new Error(`toolPolicies.${toolName} must be an object`);
+    }
+    policies[toolName] = rawPolicy as Partial<ToolPolicy>;
+  }
+  return policies;
 }
 
 async function defaultConfigPath(cwd: string): Promise<string> {

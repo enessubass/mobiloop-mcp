@@ -19,7 +19,8 @@ export function envTools(): McpTool[] {
   return [
     {
       name: "env.preflight",
-      description: "Check host/project readiness for Android, iOS, Flutter, React Native, CI, or all environments.",
+      description:
+        "Check host/project readiness for Android, iOS, Flutter, React Native, CI, or all environments.",
       inputSchema: objectSchema({ target: stringSchema }, []),
       async handler(input, { config }) {
         const args = asObject(input ?? {});
@@ -38,23 +39,45 @@ export function envTools(): McpTool[] {
           detail: process.version
         });
         checks.push(await checkPath("workspaceRoot", config.workspaceRoot, true));
-        checks.push(await checkPath("artifactsDir_parent", path.dirname(config.artifactsDir), true));
+        checks.push(
+          await checkPath("artifactsDir_parent", path.dirname(config.artifactsDir), true)
+        );
         checks.push(await checkCommand(config, "git", ["--version"], true));
         checks.push(await checkGitRepo(config));
 
-        if (target === "all" || target === "android" || target === "flutter" || target === "react-native") {
+        if (
+          target === "all" ||
+          target === "android" ||
+          target === "flutter" ||
+          target === "react-native"
+        ) {
           checks.push(await checkCommand(config, config.adbPath, ["version"], true));
-          checks.push(await checkCommand(config, config.emulatorPath, ["-version"], target === "android"));
-          checks.push(await checkCommand(config, "java", ["-version"], target === "android" || target === "react-native"));
+          checks.push(
+            await checkCommand(config, config.emulatorPath, ["-version"], target === "android")
+          );
+          checks.push(
+            await checkCommand(
+              config,
+              "java",
+              ["-version"],
+              target === "android" || target === "react-native"
+            )
+          );
         }
         if (target === "all" || target === "flutter") {
           checks.push(await checkCommand(config, "flutter", ["--version"], true));
-          checks.push(await checkPath("pubspec.yaml", path.join(config.workspaceRoot, "pubspec.yaml"), false));
+          checks.push(
+            await checkPath("pubspec.yaml", path.join(config.workspaceRoot, "pubspec.yaml"), false)
+          );
         }
         if (target === "all" || target === "react-native") {
           checks.push(await checkCommand(config, "npm", ["--version"], true));
-          checks.push(await checkPath("package.json", path.join(config.workspaceRoot, "package.json"), false));
-          checks.push(await checkPath("android directory", path.join(config.workspaceRoot, "android"), false));
+          checks.push(
+            await checkPath("package.json", path.join(config.workspaceRoot, "package.json"), false)
+          );
+          checks.push(
+            await checkPath("android directory", path.join(config.workspaceRoot, "android"), false)
+          );
         }
         if (target === "all" || target === "ios") {
           const macRequired = os.platform() === "darwin";
@@ -62,7 +85,9 @@ export function envTools(): McpTool[] {
             name: "macOS_for_iOS",
             required: true,
             ok: macRequired,
-            detail: macRequired ? "iOS simulator workflows available on macOS" : "iOS simulator workflows require macOS"
+            detail: macRequired
+              ? "iOS simulator workflows available on macOS"
+              : "iOS simulator workflows require macOS"
           });
           checks.push(await checkCommand(config, config.xcrunPath, ["--version"], macRequired));
           checks.push(await checkCommand(config, config.xcodebuildPath, ["-version"], macRequired));
@@ -70,7 +95,9 @@ export function envTools(): McpTool[] {
         if (target === "all" || target === "ci") {
           checks.push(await checkCommand(config, "gh", ["--version"], false));
         }
-        checks.push(await checkAppium(config, target === "android" || target === "ios" || target === "all"));
+        checks.push(
+          await checkAppium(config, target === "android" || target === "ios" || target === "all")
+        );
         checks.push(await checkCommand(config, config.sqlitePath, ["-version"], false));
         checks.push(await checkCommand(config, "rg", ["--version"], false));
 
@@ -95,12 +122,24 @@ export function envTools(): McpTool[] {
           mcpTransport: "stdio",
           android: {
             hosts: ["macOS", "Linux", "Windows"],
-            requires: ["Android SDK", "adb", "Android Emulator or physical device", "Appium 2", "UiAutomator2 driver"]
+            requires: [
+              "Android SDK",
+              "adb",
+              "Android Emulator or physical device",
+              "Appium 2",
+              "UiAutomator2 driver"
+            ]
           },
           flutter: {
             hosts: ["macOS", "Linux", "Windows"],
-            requires: ["Flutter SDK", "Android SDK for Android builds", "Xcode on macOS for iOS builds"],
-            notes: ["Java is reported as a warning by preflight for Flutter because Flutter can supply the effective Gradle/JDK path."]
+            requires: [
+              "Flutter SDK",
+              "Android SDK for Android builds",
+              "Xcode on macOS for iOS builds"
+            ],
+            notes: [
+              "Java is reported as a warning by preflight for Flutter because Flutter can supply the effective Gradle/JDK path."
+            ]
           },
           reactNative: {
             hosts: ["macOS", "Linux", "Windows for Android", "macOS for iOS"],
@@ -108,7 +147,13 @@ export function envTools(): McpTool[] {
           },
           ios: {
             hosts: ["macOS only"],
-            requires: ["Xcode", "xcrun simctl", "iOS Simulator", "Appium 2", "XCUITest driver/WebDriverAgent"]
+            requires: [
+              "Xcode",
+              "xcrun simctl",
+              "iOS Simulator",
+              "Appium 2",
+              "XCUITest driver/WebDriverAgent"
+            ]
           },
           notGuaranteed: [
             "iOS simulator on Linux or Windows",
@@ -121,7 +166,8 @@ export function envTools(): McpTool[] {
     },
     {
       name: "env.ensure_appium",
-      description: "Check Appium readiness, optionally install a driver and start a detached Appium server.",
+      description:
+        "Check Appium readiness, optionally install a driver and start a detached Appium server.",
       inputSchema: objectSchema(
         {
           serverUrl: stringSchema,
@@ -141,7 +187,8 @@ export function envTools(): McpTool[] {
         const args = asObject(input ?? {});
         const serverUrl = optionalString(args, "serverUrl") ?? config.appiumServerUrl;
         const parsedServerUrl = new URL(serverUrl);
-        const address = optionalString(args, "address") ?? (parsedServerUrl.hostname || "127.0.0.1");
+        const address =
+          optionalString(args, "address") ?? (parsedServerUrl.hostname || "127.0.0.1");
         const port = optionalNumber(args, "port") ?? Number(parsedServerUrl.port || 4723);
         const useNpx = optionalBoolean(args, "useNpx") ?? false;
         const appiumCommand = optionalString(args, "appiumCommand") ?? "appium";
@@ -149,13 +196,22 @@ export function envTools(): McpTool[] {
         const driverName = optionalString(args, "driverName") ?? "uiautomator2";
         const installDriver = optionalBoolean(args, "installDriver") ?? false;
         const startServer = optionalBoolean(args, "startServer") ?? true;
-        const timeoutMs = Math.max(2_000, Math.min(optionalNumber(args, "timeoutMs") ?? 20_000, 120_000));
+        const timeoutMs = Math.max(
+          2_000,
+          Math.min(optionalNumber(args, "timeoutMs") ?? 20_000, 120_000)
+        );
         const env = appiumHome ? { APPIUM_HOME: appiumHome } : undefined;
         const actions: Array<Record<string, unknown>> = [];
 
         let server = await checkAppiumServer(serverUrl);
         if (server.ok) {
-          return jsonResponse({ passed: true, serverUrl, alreadyRunning: true, actions, detail: server.detail });
+          return jsonResponse({
+            passed: true,
+            serverUrl,
+            alreadyRunning: true,
+            actions,
+            detail: server.detail
+          });
         }
 
         if (installDriver) {
@@ -172,14 +228,18 @@ export function envTools(): McpTool[] {
           const installed = `${list.stdout}\n${list.stderr}`.includes(driverName);
           actions.push({ action: "driver_list", command, exitCode: list.exitCode, installed });
           if (!installed) {
-            const install = await runCommand(command, [...prefixArgs, "driver", "install", driverName], {
-              cwd: config.workspaceRoot,
-              config,
-              env,
-              allowFailure: true,
-              timeoutMs: Math.max(timeoutMs, 60_000),
-              maxOutputBytes: 40_000
-            });
+            const install = await runCommand(
+              command,
+              [...prefixArgs, "driver", "install", driverName],
+              {
+                cwd: config.workspaceRoot,
+                config,
+                env,
+                allowFailure: true,
+                timeoutMs: Math.max(timeoutMs, 60_000),
+                maxOutputBytes: 40_000
+              }
+            );
             actions.push({
               action: "driver_install",
               driverName,
@@ -259,7 +319,10 @@ async function checkAppiumServer(serverUrl: string): Promise<{ ok: boolean; deta
   }
 }
 
-async function waitForAppiumServer(serverUrl: string, timeoutMs: number): Promise<{ ok: boolean; detail: string }> {
+async function waitForAppiumServer(
+  serverUrl: string,
+  timeoutMs: number
+): Promise<{ ok: boolean; detail: string }> {
   const started = Date.now();
   let last = await checkAppiumServer(serverUrl);
   while (!last.ok && Date.now() - started < timeoutMs) {
@@ -278,9 +341,19 @@ function normalizeTarget(value: string): PreflightTarget {
 async function checkPath(name: string, filePath: string, required: boolean): Promise<Check> {
   try {
     const stat = await fs.stat(filePath);
-    return { name, required, ok: true, detail: stat.isDirectory() ? "directory exists" : "file exists" };
+    return {
+      name,
+      required,
+      ok: true,
+      detail: stat.isDirectory() ? "directory exists" : "file exists"
+    };
   } catch (error) {
-    return { name, required, ok: false, detail: error instanceof Error ? error.message : String(error) };
+    return {
+      name,
+      required,
+      ok: false,
+      detail: error instanceof Error ? error.message : String(error)
+    };
   }
 }
 
@@ -298,7 +371,11 @@ async function checkCommand(
       timeoutMs: 10_000,
       maxOutputBytes: 16_000
     });
-    const output = `${result.stdout}\n${result.stderr}`.trim().split(/\r?\n/).slice(0, 3).join("\n");
+    const output = `${result.stdout}\n${result.stderr}`
+      .trim()
+      .split(/\r?\n/)
+      .slice(0, 3)
+      .join("\n");
     return {
       name: `command:${command}`,
       required,
@@ -306,7 +383,12 @@ async function checkCommand(
       detail: output || `exit ${result.exitCode ?? result.signal}`
     };
   } catch (error) {
-    return { name: `command:${command}`, required, ok: false, detail: error instanceof Error ? error.message : String(error) };
+    return {
+      name: `command:${command}`,
+      required,
+      ok: false,
+      detail: error instanceof Error ? error.message : String(error)
+    };
   }
 }
 
@@ -324,6 +406,11 @@ async function checkGitRepo(config: ServerConfig): Promise<Check> {
       detail: result.stdout.trim() || result.stderr.trim() || "not a git repository"
     };
   } catch (error) {
-    return { name: "git_repository", required: false, ok: false, detail: error instanceof Error ? error.message : String(error) };
+    return {
+      name: "git_repository",
+      required: false,
+      ok: false,
+      detail: error instanceof Error ? error.message : String(error)
+    };
   }
 }

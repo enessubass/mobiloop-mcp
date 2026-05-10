@@ -39,14 +39,16 @@ const RULES: Array<{
     status: "remote_rules_not_deployed",
     severity: "error",
     summary: "Firestore permission denied or rules rejected the request.",
-    pattern: /Firestore.*PERMISSION_DENIED|PERMISSION_DENIED.*Firestore|Missing or insufficient permissions/i
+    pattern:
+      /Firestore.*PERMISSION_DENIED|PERMISSION_DENIED.*Firestore|Missing or insufficient permissions/i
   },
   {
     category: "firebase_auth",
     status: "test_data_missing",
     severity: "error",
     summary: "Firebase Auth rejected credentials or test user state.",
-    pattern: /FirebaseAuth|INVALID_LOGIN_CREDENTIALS|ERROR_INVALID|ERROR_USER|wrong-password|user-not-found/i
+    pattern:
+      /FirebaseAuth|INVALID_LOGIN_CREDENTIALS|ERROR_INVALID|ERROR_USER|wrong-password|user-not-found/i
   },
   {
     category: "automation_instrumentation",
@@ -67,21 +69,24 @@ const RULES: Array<{
     status: "app_bug",
     severity: "error",
     summary: "Application crash signature detected.",
-    pattern: /FATAL EXCEPTION|AndroidRuntime|Process: .*?, PID:|java\.lang\.[A-Za-z]+Exception|Unhandled Exception|Fatal signal \d+/i
+    pattern:
+      /FATAL EXCEPTION|AndroidRuntime|Process: .*?, PID:|java\.lang\.[A-Za-z]+Exception|Unhandled Exception|Fatal signal \d+/i
   },
   {
     category: "play_services",
     status: "environment_missing",
     severity: "warning",
     summary: "Google Play Services or provider dependency appears missing or unhealthy.",
-    pattern: /Google Play services|GoogleApiAvailability|ProviderInstaller|DynamiteModule|GmsClient/i
+    pattern:
+      /Google Play services|GoogleApiAvailability|ProviderInstaller|DynamiteModule|GmsClient/i
   },
   {
     category: "network",
     status: "external_dependency",
     severity: "warning",
     summary: "Network or remote service connectivity problem detected.",
-    pattern: /UnknownHostException|SocketTimeoutException|SSLHandshakeException|ECONNREFUSED|timeout|Unable to resolve host/i
+    pattern:
+      /UnknownHostException|SocketTimeoutException|SSLHandshakeException|ECONNREFUSED|timeout|Unable to resolve host/i
   },
   {
     category: "renderer",
@@ -111,10 +116,17 @@ export function classifyLogcat(logText: string): LogClassification {
   }
 
   const trimmed = findings.slice(0, 100);
-  const appCrashFindings = trimmed.filter((finding) => ["app_crash", "anr"].includes(finding.category));
+  const appCrashFindings = trimmed.filter((finding) =>
+    ["app_crash", "anr"].includes(finding.category)
+  );
   const automationFindings = trimmed.filter((finding) => finding.status === "automation_error");
   const externalDependencyFindings = trimmed.filter((finding) =>
-    ["environment_missing", "external_dependency", "remote_rules_not_deployed", "test_data_missing"].includes(finding.status)
+    [
+      "environment_missing",
+      "external_dependency",
+      "remote_rules_not_deployed",
+      "test_data_missing"
+    ].includes(finding.status)
   );
   const status = highestStatus(trimmed);
   return {

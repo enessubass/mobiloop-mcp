@@ -10,7 +10,23 @@ async function main(): Promise<void> {
   }
 
   if (command === "list-tools") {
-    for (const tool of allTools()) {
+    const config = await loadConfig();
+    const tools = allTools(config.toolPolicies);
+    if (args.includes("--json")) {
+      console.log(
+        JSON.stringify(
+          tools.map((tool) => ({
+            name: tool.name,
+            description: tool.description,
+            policy: tool.policy
+          })),
+          null,
+          2
+        )
+      );
+      return;
+    }
+    for (const tool of tools) {
       console.log(`${tool.name}\t${tool.description}`);
     }
     return;
@@ -19,12 +35,15 @@ async function main(): Promise<void> {
   if (command === "call") {
     const [toolName, rawJson = "{}"] = args;
     if (!toolName) throw new Error("Usage: mobiloop call <tool.name> '<json-args>'");
-    const tool = allTools().find((entry) => entry.name === toolName);
+    const config = await loadConfig();
+    const tool = allTools(config.toolPolicies).find((entry) => entry.name === toolName);
     if (!tool) throw new Error(`Unknown tool: ${toolName}`);
     const input = JSON.parse(rawJson);
-    const response = await tool.handler(input, { config: await loadConfig() });
+    const response = await tool.handler(input, { config });
     if (response.isError) {
-      const message = response.content.map((entry) => ("text" in entry ? entry.text : "")).join("\n");
+      const message = response.content
+        .map((entry) => ("text" in entry ? entry.text : ""))
+        .join("\n");
       throw new Error(message || "Tool returned an error");
     }
     for (const entry of response.content) {
@@ -35,9 +54,12 @@ async function main(): Promise<void> {
 
   if (command === "generate-scenarios") {
     const goal = args.join(" ").trim();
-    const tool = allTools().find((entry) => entry.name === "flow.generate_test_scenarios");
+    const config = await loadConfig();
+    const tool = allTools(config.toolPolicies).find(
+      (entry) => entry.name === "flow.generate_test_scenarios"
+    );
     if (!tool) throw new Error("flow.generate_test_scenarios is not registered");
-    const response = await tool.handler({ goal: goal || undefined }, { config: await loadConfig() });
+    const response = await tool.handler({ goal: goal || undefined }, { config });
     for (const entry of response.content) {
       if ("text" in entry) process.stdout.write(`${entry.text}\n`);
     }
@@ -52,6 +74,7 @@ function printHelp(): void {
 
 Usage:
   mobiloop list-tools
+  mobiloop list-tools --json
   mobiloop call <tool.name> '<json-args>'
   mobiloop generate-scenarios [goal text]
 

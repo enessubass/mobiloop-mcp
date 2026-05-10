@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hierarchy rotation="0">
+  <android.widget.FrameLayout resource-id="android:id/content">
+    <android.view.View content-desc="Login screen">
+      <android.widget.EditText text="" hint="E-posta" resource-id="com.example:id/email" />
+      <android.widget.EditText text="" hint="Şifre" resource-id="com.example:id/password" />
+      <android.widget.Button text="Giriş Yap" content-desc="Giriş Yap" resource-id="com.example:id/login" clickable="true" />
+    </android.view.View>
+  </android.widget.FrameLayout>
+</hierarchy>
+

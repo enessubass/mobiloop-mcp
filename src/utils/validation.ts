@@ -40,7 +40,10 @@ export function optionalNumber(input: Record<string, unknown>, key: string): num
   return value;
 }
 
-export function optionalStringArray(input: Record<string, unknown>, key: string): string[] | undefined {
+export function optionalStringArray(
+  input: Record<string, unknown>,
+  key: string
+): string[] | undefined {
   const value = input[key];
   if (value === undefined || value === null) return undefined;
   if (!Array.isArray(value) || value.some((entry) => typeof entry !== "string")) {
@@ -49,7 +52,10 @@ export function optionalStringArray(input: Record<string, unknown>, key: string)
   return value;
 }
 
-export function optionalObject(input: Record<string, unknown>, key: string): Record<string, unknown> | undefined {
+export function optionalObject(
+  input: Record<string, unknown>,
+  key: string
+): Record<string, unknown> | undefined {
   const value = input[key];
   if (value === undefined || value === null) return undefined;
   if (typeof value !== "object" || Array.isArray(value)) {
@@ -68,7 +74,10 @@ export function asOptionalNumber(input: Record<string, unknown>, key: string): n
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
-export function asOptionalStringArray(input: Record<string, unknown>, key: string): string[] | undefined {
+export function asOptionalStringArray(
+  input: Record<string, unknown>,
+  key: string
+): string[] | undefined {
   const value = input[key];
   return Array.isArray(value) && value.every((entry) => typeof entry === "string")
     ? value
@@ -92,7 +101,10 @@ export function stringEnum<T extends string>(
   return value as T;
 }
 
-export function unknownJsonObject(input: Record<string, unknown>, key: string): Record<string, unknown> {
+export function unknownJsonObject(
+  input: Record<string, unknown>,
+  key: string
+): Record<string, unknown> {
   const value = input[key];
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     throw new Error(`${key} must be an object`);

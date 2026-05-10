@@ -1,0 +1,67 @@
+{
+  "goal": "Build and verify login flow on Android emulator.",
+  "kind": "flutter",
+  "packageName": "com.example.app",
+  "avdName": "Pixel_8_API_35",
+  "installDependencies": false,
+  "runLint": true,
+  "runUnitTests": true,
+  "buildDebugApk": true,
+  "clearAppData": true,
+  "collectEvidence": true,
+  "maxTestIterations": 3,
+  "appiumCapabilities": {
+    "platformName": "Android",
+    "appium:automationName": "UiAutomator2",
+    "appium:deviceName": "Android Emulator",
+    "appium:appPackage": "com.example.app",
+    "appium:appActivity": ".MainActivity",
+    "appium:noReset": false
+  },
+  "appiumSteps": [
+    {
+      "tool": "appium.wait_for_visible",
+      "args": {
+        "locator": {
+          "strategy": "text",
+          "value": "Login"
+        },
+        "timeoutMs": 10000
+      }
+    },
+    {
+      "tool": "appium.type_text",
+      "args": {
+        "locator": {
+          "strategy": "accessibility id",
+          "value": "email"
+        },
+        "text": "test@example.com"
+      }
+    },
+    {
+      "tool": "appium.type_text",
+      "args": {
+        "locator": {
+          "strategy": "accessibility id",
+          "value": "password"
+        },
+        "text": "password123"
+      }
+    },
+    {
+      "tool": "appium.tap_by_text",
+      "args": {
+        "text": "Login"
+      }
+    }
+  ],
+  "expectedTexts": ["Home"],
+  "apiChecks": [
+    {
+      "url": "http://127.0.0.1:3000/health",
+      "expectedStatus": 200,
+      "bodyContains": ["ok"]
+    }
+  ]
+}

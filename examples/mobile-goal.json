@@ -1,0 +1,13 @@
+{
+  "goal": "Implement login flow, build a debug APK, install it on an Android emulator, test login with Appium, collect evidence, fix failures, and repeat until verification passes or the iteration limit is reached.",
+  "limits": {
+    "max_fix_attempts": 3,
+    "max_test_iterations": 5,
+    "max_runtime_minutes": 30
+  },
+  "expected": {
+    "visible_text_after_login": "Home",
+    "no_logcat_crash": true,
+    "api_status": 200
+  }
+}

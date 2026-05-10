@@ -1,0 +1,35 @@
+{
+  "workspaceRoot": ".",
+  "artifactsDir": ".mobiloop",
+  "maxCommandMs": 120000,
+  "maxOutputBytes": 1048576,
+  "maxFixAttempts": 3,
+  "maxTestIterations": 5,
+  "maxRuntimeMinutes": 30,
+  "allowedBranchPattern": "^feature/ai-[A-Za-z0-9._/-]+$",
+  "appiumServerUrl": "http://127.0.0.1:4723",
+  "adbPath": "adb",
+  "emulatorPath": "emulator",
+  "xcrunPath": "xcrun",
+  "xcodebuildPath": "xcodebuild",
+  "sqlitePath": "sqlite3",
+  "apiAllowlist": [
+    "http://127.0.0.1:*",
+    "http://localhost:*",
+    "https://staging.example.com"
+  ],
+  "forbiddenPathGlobs": [
+    ".env",
+    ".env.*",
+    "**/.env",
+    "**/.env.*",
+    "**/*.keystore",
+    "**/*.jks",
+    "**/*.p12",
+    "**/*.mobileprovision",
+    "**/GoogleService-Info.plist",
+    "**/google-services.json",
+    "**/*secret*",
+    "**/*credential*"
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "description": "Minimal flow-memory sequence: record onboarding checkpoints, mark a passing path, then replay to login.",
+  "recordCheckpoint1": {
+    "tool": "flow.record_checkpoint",
+    "args": {
+      "testName": "onboarding-to-login",
+      "name": "Onboarding 1",
+      "order": 1,
+      "sessionId": "APPIUM_SESSION_ID",
+      "actionToNext": {
+        "tool": "appium.tap_by_text",
+        "args": {
+          "text": "İleri"
+        }
+      }
+    }
+  },
+  "recordCheckpoint2": {
+    "tool": "flow.record_checkpoint",
+    "args": {
+      "testName": "onboarding-to-login",
+      "name": "Onboarding 2",
+      "order": 2,
+      "sessionId": "APPIUM_SESSION_ID",
+      "actionToNext": {
+        "tool": "appium.tap_by_text",
+        "args": {
+          "text": "İleri"
+        }
+      }
+    }
+  },
+  "recordCheckpoint3": {
+    "tool": "flow.record_checkpoint",
+    "args": {
+      "testName": "onboarding-to-login",
+      "name": "Login",
+      "order": 3,
+      "sessionId": "APPIUM_SESSION_ID"
+    }
+  },
+  "recordPassingRun": {
+    "tool": "flow.record_test_run",
+    "args": {
+      "testName": "onboarding-to-login",
+      "status": "passed",
+      "checkpointIds": [
+        "onboarding-to-login-001-onboarding-1",
+        "onboarding-to-login-002-onboarding-2",
+        "onboarding-to-login-003-login"
+      ]
+    }
+  },
+  "dryRunReplay": {
+    "tool": "flow.replay_to_checkpoint",
+    "args": {
+      "sessionId": "APPIUM_SESSION_ID",
+      "testName": "onboarding-to-login",
+      "targetCheckpointId": "onboarding-to-login-003-login",
+      "dryRun": true
+    }
+  },
+  "executeReplay": {
+    "tool": "flow.replay_to_checkpoint",
+    "args": {
+      "sessionId": "APPIUM_SESSION_ID",
+      "testName": "onboarding-to-login",
+      "targetCheckpointId": "onboarding-to-login-003-login",
+      "delayMs": 500
+    }
+  }
+}

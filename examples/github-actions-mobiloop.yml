@@ -1,0 +1,71 @@
+name: MobiLoop Validation
+
+on:
+  workflow_dispatch:
+  pull_request:
+
+jobs:
+  mcp-package-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: docker build -t mobiloop-mcp:ci .
+
+  android-validation:
+    # Use a self-hosted runner with Android SDK, Java, emulator/device,
+    # Appium 2, and the target app framework installed.
+    runs-on: self-hosted
+    needs: mcp-package-check
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install MCP dependencies
+        run: npm ci
+
+      - name: Build MCP
+        run: npm run build
+
+      - name: Start Appium
+        run: appium --address 127.0.0.1 --port 4723 > appium.log 2>&1 &
+
+      - name: Preflight
+        run: |
+          node <<'NODE'
+          import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+          import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+
+          const transport = new StdioClientTransport({
+            command: "node",
+            args: ["dist/src/servers/env.js"],
+            cwd: process.cwd(),
+            env: {
+              ...process.env,
+              MOBILOOP_WORKSPACE_ROOT: process.cwd()
+            }
+          });
+          const client = new Client({ name: "ci-preflight", version: "0.0.0" });
+          await client.connect(transport);
+          const result = await client.callTool({
+            name: "env.preflight",
+            arguments: { target: "android" }
+          });
+          const text = result.content.map((entry) => entry.type === "text" ? entry.text : "").join("\n");
+          const parsed = JSON.parse(text);
+          console.log(JSON.stringify(parsed, null, 2));
+          await client.close();
+          if (!parsed.passed) process.exit(1);
+          NODE
+
+      - name: Upload MCP artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobiloop-artifacts
+          path: .mobiloop
+          if-no-files-found: ignore

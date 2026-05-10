@@ -1,0 +1,17 @@
+node_modules
+dist
+.git
+.DS_Store
+.mobiloop
+.agentic-mobile-mcp
+.env
+.env.*
+*.log
+*.keystore
+*.jks
+*.p12
+*.mobileprovision
+GoogleService-Info.plist
+google-services.json
+npm-debug.log
+coverage

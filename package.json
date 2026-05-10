@@ -1,0 +1,71 @@
+{
+  "name": "mobiloop-mcp",
+  "version": "0.1.0",
+  "description": "A guarded MCP server for build, device, Appium, verification, and agentic mobile development loops.",
+  "type": "module",
+  "bin": {
+    "mobiloop-mcp": "dist/src/index.js",
+    "mobiloop-code-mcp": "dist/src/servers/code.js",
+    "mobiloop-env-mcp": "dist/src/servers/env.js",
+    "mobiloop-build-mcp": "dist/src/servers/build.js",
+    "mobiloop-device-mcp": "dist/src/servers/device.js",
+    "mobiloop-ios-mcp": "dist/src/servers/ios.js",
+    "mobiloop-appium-mcp": "dist/src/servers/appium.js",
+    "mobiloop-verify-mcp": "dist/src/servers/verify.js",
+    "mobiloop-flow-mcp": "dist/src/servers/flow.js",
+    "mobiloop-loop-mcp": "dist/src/servers/loop.js",
+    "mobiloop-ci-mcp": "dist/src/servers/ci.js",
+    "mobiloop-orchestrator-mcp": "dist/src/servers/orchestrator.js"
+  },
+  "files": [
+    "dist/src",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "docs",
+    "examples",
+    "Dockerfile",
+    ".dockerignore",
+    "docker-compose.example.yml",
+    "mobiloop.config.example.json"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && node --test \"dist/test/**/*.test.js\"",
+    "pack:check": "npm_config_cache=/tmp/mobiloop-npm-cache npm pack --dry-run",
+    "prepack": "npm run build",
+    "start": "node dist/src/index.js",
+    "dev": "tsx src/index.ts"
+  },
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "appium",
+    "android",
+    "ios",
+    "flutter",
+    "mobile",
+    "automation",
+    "emulator",
+    "agentic",
+    "qa"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.4",
+    "fast-xml-parser": "^5.2.5",
+    "pixelmatch": "^7.1.0",
+    "pngjs": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "@types/pngjs": "^6.0.5",
+    "tsx": "^4.20.4",
+    "typescript": "^5.9.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

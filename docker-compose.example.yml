@@ -1,0 +1,24 @@
+services:
+  mobiloop-mcp:
+    build:
+      context: .
+    image: mobiloop-mcp:local
+    stdin_open: true
+    tty: false
+    environment:
+      MOBILOOP_WORKSPACE_ROOT: /workspace
+      APPIUM_SERVER_URL: http://host.docker.internal:4723
+    volumes:
+      - /absolute/path/to/mobile/app:/workspace
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  mobiloop-env:
+    image: mobiloop-mcp:local
+    stdin_open: true
+    tty: false
+    entrypoint: ["node", "/app/dist/src/servers/env.js"]
+    environment:
+      MOBILOOP_WORKSPACE_ROOT: /workspace
+    volumes:
+      - /absolute/path/to/mobile/app:/workspace

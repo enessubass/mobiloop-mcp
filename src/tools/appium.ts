@@ -1,7 +1,16 @@
-import { AppiumClient, locatorFromInput } from "../utils/appium-client.js";
+import { AppiumClient, TextMatchMode, locatorFromInput } from "../utils/appium-client.js";
 import { McpTool, jsonResponse } from "../types.js";
-import { booleanSchema, locatorSchema, numberSchema, objectSchema, stringSchema } from "../schema.js";
-import { asObject, optionalBoolean, optionalNumber, optionalString, requireString, unknownJsonObject } from "../utils/validation.js";
+import { arraySchema, booleanSchema, locatorSchema, numberSchema, objectSchema, stringSchema } from "../schema.js";
+import {
+  asObject,
+  optionalBoolean,
+  optionalNumber,
+  optionalString,
+  optionalStringArray,
+  requireString,
+  stringEnum,
+  unknownJsonObject
+} from "../utils/validation.js";
 
 export function appiumTools(): McpTool[] {
   return [
@@ -37,17 +46,49 @@ export function appiumTools(): McpTool[] {
     },
     {
       name: "appium.observe_screen",
-      description: "Capture screenshot and page source for the current Appium session.",
-      inputSchema: objectSchema({ sessionId: stringSchema, serverUrl: stringSchema, prefix: stringSchema }, ["sessionId"]),
+      description: "Capture screenshot and page source for the current Appium session, optionally waiting for app UI readiness.",
+      inputSchema: objectSchema(
+        {
+          sessionId: stringSchema,
+          serverUrl: stringSchema,
+          prefix: stringSchema,
+          waitForAnyText: arraySchema(stringSchema),
+          waitForPackageIdle: booleanSchema,
+          minWaitMs: numberSchema,
+          stableMs: numberSchema,
+          timeoutMs: numberSchema
+        },
+        ["sessionId"]
+      ),
       async handler(input, { config }) {
         const args = asObject(input);
         const serverUrl = optionalString(args, "serverUrl") ?? config.appiumServerUrl;
         const sessionId = requireString(args, "sessionId");
         const prefix = optionalString(args, "prefix") ?? "appium-observe";
         const client = new AppiumClient({ serverUrl });
-        const screenshotPath = await client.saveScreenshot(config, sessionId, prefix);
-        const sourcePath = await client.savePageSource(config, sessionId, prefix);
-        return jsonResponse({ serverUrl, sessionId, screenshotPath, sourcePath });
+        const minWaitMs = Math.max(0, Math.min(optionalNumber(args, "minWaitMs") ?? 0, 30_000));
+        if (minWaitMs > 0) await sleep(minWaitMs);
+        const timeoutMs = Math.max(500, Math.min(optionalNumber(args, "timeoutMs") ?? 10_000, 120_000));
+        const waitForAnyText = optionalStringArray(args, "waitForAnyText") ?? [];
+        const readiness: Record<string, unknown> = {};
+        if (waitForAnyText.length > 0) {
+          readiness.waitForAnyText = await client.waitForAnyText(sessionId, waitForAnyText, timeoutMs);
+        }
+        if (optionalBoolean(args, "waitForPackageIdle") ?? false) {
+          readiness.waitForPackageIdle = await client.waitForStableSource(sessionId, {
+            timeoutMs,
+            stableMs: Math.max(500, Math.min(optionalNumber(args, "stableMs") ?? 1_000, 15_000))
+          });
+        }
+        const evidence = await client.saveObservation(config, sessionId, prefix);
+        return jsonResponse({
+          serverUrl,
+          sessionId,
+          screenshotPath: evidence.screenshotPath,
+          sourcePath: evidence.sourcePath,
+          evidence,
+          readiness
+        });
       }
     },
     {
@@ -76,12 +117,13 @@ export function appiumTools(): McpTool[] {
     },
     {
       name: "appium.tap_by_text",
-      description: "Tap the first visible element matching text, label, name, or content-desc.",
+      description: "Tap a visible element by text with exact-first matching before contains fallback.",
       inputSchema: objectSchema(
         {
           sessionId: stringSchema,
           serverUrl: stringSchema,
           text: stringSchema,
+          matchMode: stringSchema,
           timeoutMs: numberSchema
         },
         ["sessionId", "text"]
@@ -92,12 +134,13 @@ export function appiumTools(): McpTool[] {
         const sessionId = requireString(args, "sessionId");
         const text = requireString(args, "text");
         const timeoutMs = optionalNumber(args, "timeoutMs") ?? 10_000;
+        const matchMode = stringEnum(args, "matchMode", ["auto", "exact", "contains"] as const, "auto");
         const client = new AppiumClient({ serverUrl });
         const wait = await client.waitForVisible(sessionId, { strategy: "text", value: text }, timeoutMs);
         if (!wait.found) throw new Error(`Text not visible: ${text}`);
-        const tapTarget = await client.findTextTapTarget(sessionId, text);
-        await client.clickElement(sessionId, tapTarget);
-        return jsonResponse({ serverUrl, sessionId, tapped: true, text });
+        const tapTarget = await client.findTextTapTarget(sessionId, text, matchMode as TextMatchMode);
+        await client.clickElement(sessionId, tapTarget.elementId);
+        return jsonResponse({ serverUrl, sessionId, tapped: true, text, matchMode, target: tapTarget as never });
       }
     },
     {
@@ -162,6 +205,7 @@ export function appiumTools(): McpTool[] {
           serverUrl: stringSchema,
           locator: locatorSchema(),
           text: stringSchema,
+          mode: stringSchema,
           clearFirst: booleanSchema
         },
         ["sessionId", "locator", "text"]
@@ -172,12 +216,19 @@ export function appiumTools(): McpTool[] {
         const sessionId = requireString(args, "sessionId");
         const text = requireString(args, "text");
         const clearFirst = optionalBoolean(args, "clearFirst") ?? true;
+        const mode = stringEnum(args, "mode", ["sendKeys", "setValue", "adbKeyboard"] as const, "sendKeys");
         const locator = locatorFromInput(args);
         const client = new AppiumClient({ serverUrl });
         const element = await client.findElement(sessionId, locator);
         if (clearFirst) await client.clearElement(sessionId, element);
-        await client.typeText(sessionId, element, text);
-        return jsonResponse({ serverUrl, sessionId, typed: true, locator: locator as never, clearFirst });
+        if (mode === "setValue") {
+          await client.setElementValue(sessionId, element, text);
+        } else if (mode === "adbKeyboard") {
+          await client.adbInputText(sessionId, element, text);
+        } else {
+          await client.typeText(sessionId, element, text);
+        }
+        return jsonResponse({ serverUrl, sessionId, typed: true, locator: locator as never, clearFirst, mode });
       }
     },
     {
@@ -290,4 +341,8 @@ export function appiumTools(): McpTool[] {
       }
     }
   ];
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }

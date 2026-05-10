@@ -17,6 +17,25 @@ export interface Locator {
   value: string;
 }
 
+export type TextMatchMode = "auto" | "exact" | "contains";
+
+export interface TextTapTarget {
+  elementId: string;
+  matchType: string;
+  matchedAttribute: string;
+  matchedText: string;
+  strategy: "xpath" | "text";
+  selector: string;
+}
+
+export interface EvidenceArtifact {
+  label: string;
+  timestamp: string;
+  screenshotPath?: string;
+  sourcePath?: string;
+  logPath?: string;
+}
+
 export interface AppiumRequestOptions {
   serverUrl: string;
 }
@@ -63,6 +82,15 @@ export class AppiumClient {
     return writeArtifactText(config, "sources", prefix, "xml", source);
   }
 
+  async saveObservation(config: ServerConfig, sessionId: string, prefix: string): Promise<EvidenceArtifact> {
+    const timestamp = new Date().toISOString();
+    const [screenshotPath, sourcePath] = await Promise.all([
+      this.saveScreenshot(config, sessionId, prefix),
+      this.savePageSource(config, sessionId, prefix)
+    ]);
+    return { label: prefix, timestamp, screenshotPath, sourcePath };
+  }
+
   async findElement(sessionId: string, locator: Locator): Promise<string> {
     const using = locatorUsing(locator);
     const value = await this.request("POST", `/session/${sessionId}/element`, {
@@ -82,15 +110,81 @@ export class AppiumClient {
     return value.map(elementId);
   }
 
-  async findTextTapTarget(sessionId: string, text: string): Promise<string> {
+  async findTextTapTarget(sessionId: string, text: string, matchMode: TextMatchMode = "auto"): Promise<TextTapTarget> {
     const literal = xpathLiteral(text);
-    const semanticMatch = `@text=${literal} or @label=${literal} or @name=${literal} or contains(@content-desc, ${literal})`;
-    const clickableWithDescendant = `//*[@clickable='true' and (${semanticMatch} or .//*[${semanticMatch}])]`;
-    try {
-      return await this.findElement(sessionId, { strategy: "xpath", value: clickableWithDescendant });
-    } catch {
-      return this.findElement(sessionId, { strategy: "text", value: text });
+    const exactAttrs = ["content-desc", "text", "label", "name"];
+    const containsAttrs = ["content-desc", "text", "label", "name"];
+    const candidates: Array<Omit<TextTapTarget, "elementId">> = [];
+
+    if (matchMode !== "contains") {
+      for (const attr of exactAttrs) {
+        candidates.push({
+          matchType: `exact:${attr}:clickable`,
+          matchedAttribute: attr,
+          matchedText: text,
+          strategy: "xpath",
+          selector: `//*[@clickable='true' and @${attr}=${literal}]`
+        });
+      }
+      for (const attr of exactAttrs) {
+        candidates.push({
+          matchType: `exact:${attr}:clickable-ancestor`,
+          matchedAttribute: attr,
+          matchedText: text,
+          strategy: "xpath",
+          selector: `//*[@clickable='true' and .//*[@${attr}=${literal}]]`
+        });
+      }
+      for (const attr of exactAttrs) {
+        candidates.push({
+          matchType: `exact:${attr}`,
+          matchedAttribute: attr,
+          matchedText: text,
+          strategy: "xpath",
+          selector: `//*[@${attr}=${literal}]`
+        });
+      }
     }
+
+    if (matchMode !== "exact") {
+      for (const attr of containsAttrs) {
+        candidates.push({
+          matchType: `contains:${attr}:clickable`,
+          matchedAttribute: attr,
+          matchedText: text,
+          strategy: "xpath",
+          selector: `//*[@clickable='true' and contains(@${attr}, ${literal})]`
+        });
+      }
+      for (const attr of containsAttrs) {
+        candidates.push({
+          matchType: `contains:${attr}:clickable-ancestor`,
+          matchedAttribute: attr,
+          matchedText: text,
+          strategy: "xpath",
+          selector: `//*[@clickable='true' and .//*[contains(@${attr}, ${literal})]]`
+        });
+      }
+    }
+
+    for (const candidate of candidates) {
+      try {
+        const elementId = await this.findElement(sessionId, { strategy: "xpath", value: candidate.selector });
+        return { ...candidate, elementId };
+      } catch {
+        // Try the next, more permissive candidate.
+      }
+    }
+
+    const elementId = await this.findElement(sessionId, { strategy: "text", value: text });
+    return {
+      elementId,
+      matchType: "text-locator-fallback",
+      matchedAttribute: "text",
+      matchedText: text,
+      strategy: "text",
+      selector: text
+    };
   }
 
   async clickElement(sessionId: string, element: string): Promise<unknown> {
@@ -106,6 +200,23 @@ export class AppiumClient {
       text,
       value: [...text]
     });
+  }
+
+  async setElementValue(sessionId: string, element: string, text: string): Promise<unknown> {
+    return this.request("POST", `/session/${sessionId}/appium/element/${element}/value`, {
+      text,
+      value: [...text]
+    });
+  }
+
+  async adbInputText(sessionId: string, element: string, text: string): Promise<unknown> {
+    await this.clickElement(sessionId, element);
+    return this.executeScript(sessionId, "mobile: shell", [
+      {
+        command: "input",
+        args: ["text", escapeAdbInputText(text)]
+      }
+    ]);
   }
 
   async back(sessionId: string): Promise<unknown> {
@@ -156,6 +267,54 @@ export class AppiumClient {
     return { found: false };
   }
 
+  async waitForAnyText(
+    sessionId: string,
+    texts: string[],
+    timeoutMs: number
+  ): Promise<{ found: boolean; matchedText?: string }> {
+    const started = Date.now();
+    while (Date.now() - started < timeoutMs) {
+      const source = await this.pageSource(sessionId);
+      const matchedText = texts.find((text) => source.includes(text));
+      if (matchedText) return { found: true, matchedText };
+      await sleep(500);
+    }
+    return { found: false };
+  }
+
+  async waitForStableSource(
+    sessionId: string,
+    options: { timeoutMs: number; stableMs: number; intervalMs?: number }
+  ): Promise<{ stable: boolean; observedMs: number }> {
+    const started = Date.now();
+    const intervalMs = options.intervalMs ?? 500;
+    let previous = "";
+    let stableSince = Date.now();
+    while (Date.now() - started < options.timeoutMs) {
+      const source = await this.pageSource(sessionId);
+      if (source === previous) {
+        if (Date.now() - stableSince >= options.stableMs) {
+          return { stable: true, observedMs: Date.now() - started };
+        }
+      } else {
+        previous = source;
+        stableSince = Date.now();
+      }
+      await sleep(intervalMs);
+    }
+    return { stable: false, observedMs: Date.now() - started };
+  }
+
+  async sessionHealth(sessionId: string): Promise<{ healthy: boolean; detail: string }> {
+    try {
+      await this.request("GET", `/session/${sessionId}`);
+      await this.pageSource(sessionId);
+      return { healthy: true, detail: "session and page source are reachable" };
+    } catch (error) {
+      return { healthy: false, detail: error instanceof Error ? error.message : String(error) };
+    }
+  }
+
   async accessibilitySummary(sessionId: string): Promise<unknown> {
     const source = await this.pageSource(sessionId);
     const parsed = new XMLParser({
@@ -177,6 +336,10 @@ export class AppiumClient {
         }
       ]
     });
+  }
+
+  private async executeScript(sessionId: string, script: string, args: unknown[]): Promise<unknown> {
+    return this.request("POST", `/session/${sessionId}/execute/sync`, { script, args });
   }
 
   private async request(method: string, route: string, body?: unknown): Promise<unknown> {
@@ -264,6 +427,14 @@ function xpathLiteral(value: string): string {
   if (!value.includes("'")) return `'${value}'`;
   if (!value.includes('"')) return `"${value}"`;
   return `concat(${value.split("'").map((part) => `'${part}'`).join(', "\"\'\"", ')})`;
+}
+
+function escapeAdbInputText(value: string): string {
+  return value.replace(/\\/g, "\\\\").replace(/\s/g, "%s").replace(/[&<>|;$'"`]/g, "\\$&");
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function isWebDriverError(value: unknown): value is { error: string; message: string } {

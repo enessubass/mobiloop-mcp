@@ -30,6 +30,7 @@ goal
   -> lint/unit test/build
   -> install on device
   -> optional flow-memory replay to known checkpoint
+  -> generated or hand-authored high-level flow script
   -> Appium user flow
   -> verification assertions
   -> evidence collection
@@ -43,7 +44,9 @@ The MCP server does not claim success by itself. Success must be represented by 
 - build command exit code and logs
 - Appium page source and screenshots
 - flow checkpoint signatures and replay plans
+- generated scenario candidates and flow script execution records
 - logcat crash checks
+- logcat root-cause classification
 - API assertion output
 - loop iteration records
 - generated Markdown report
@@ -57,7 +60,7 @@ The MCP server does not claim success by itself. Success must be represented by 
 - iOS MCP owns `xcrun simctl` and `xcodebuild` operations.
 - Appium MCP owns UI automation through WebDriver/Appium.
 - Verification MCP owns assertions and evidence collection.
-- Flow MCP owns source-flow analysis, screen checkpoint memory, and deterministic Appium replay to a remembered checkpoint.
+- Flow MCP owns source-flow analysis, generated scenario candidates, high-level flow scripts, screen checkpoint memory, and deterministic Appium replay to a remembered checkpoint.
 - Loop MCP owns iteration JSONL and final reports.
 - CI MCP owns artifact manifests, GitHub step summaries, and PR comments.
 - Orchestrator MCP owns a bounded Android validation pass across build, install, optional flow replay, Appium, verification, evidence, and loop record tools.

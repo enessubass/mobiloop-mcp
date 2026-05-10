@@ -12,6 +12,7 @@
   },
   "homepage": "https://github.com/enessubass/mobiloop-mcp#readme",
   "bin": {
+    "mobiloop": "dist/src/cli.js",
     "mobiloop-mcp": "dist/src/index.js",
     "mobiloop-code-mcp": "dist/src/servers/code.js",
     "mobiloop-env-mcp": "dist/src/servers/env.js",

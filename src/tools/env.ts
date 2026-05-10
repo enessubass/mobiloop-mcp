@@ -2,9 +2,9 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { McpTool, ServerConfig, jsonResponse } from "../types.js";
-import { objectSchema, stringSchema } from "../schema.js";
-import { asObject, optionalString } from "../utils/validation.js";
-import { runCommand } from "../utils/shell.js";
+import { booleanSchema, numberSchema, objectSchema, stringSchema } from "../schema.js";
+import { asObject, optionalBoolean, optionalNumber, optionalString } from "../utils/validation.js";
+import { runCommand, startDetachedCommand } from "../utils/shell.js";
 
 type PreflightTarget = "all" | "android" | "ios" | "flutter" | "react-native" | "ci";
 
@@ -45,7 +45,7 @@ export function envTools(): McpTool[] {
         if (target === "all" || target === "android" || target === "flutter" || target === "react-native") {
           checks.push(await checkCommand(config, config.adbPath, ["version"], true));
           checks.push(await checkCommand(config, config.emulatorPath, ["-version"], target === "android"));
-          checks.push(await checkCommand(config, "java", ["-version"], true));
+          checks.push(await checkCommand(config, "java", ["-version"], target === "android" || target === "react-native"));
         }
         if (target === "all" || target === "flutter") {
           checks.push(await checkCommand(config, "flutter", ["--version"], true));
@@ -99,7 +99,8 @@ export function envTools(): McpTool[] {
           },
           flutter: {
             hosts: ["macOS", "Linux", "Windows"],
-            requires: ["Flutter SDK", "Android SDK for Android builds", "Xcode on macOS for iOS builds"]
+            requires: ["Flutter SDK", "Android SDK for Android builds", "Xcode on macOS for iOS builds"],
+            notes: ["Java is reported as a warning by preflight for Flutter because Flutter can supply the effective Gradle/JDK path."]
           },
           reactNative: {
             hosts: ["macOS", "Linux", "Windows for Android", "macOS for iOS"],
@@ -115,6 +116,101 @@ export function envTools(): McpTool[] {
             "Appium flows without stable accessibility ids or testable app state",
             "external API checks outside apiAllowlist"
           ]
+        });
+      }
+    },
+    {
+      name: "env.ensure_appium",
+      description: "Check Appium readiness, optionally install a driver and start a detached Appium server.",
+      inputSchema: objectSchema(
+        {
+          serverUrl: stringSchema,
+          address: stringSchema,
+          port: numberSchema,
+          appiumCommand: stringSchema,
+          useNpx: booleanSchema,
+          appiumHome: stringSchema,
+          driverName: stringSchema,
+          installDriver: booleanSchema,
+          startServer: booleanSchema,
+          timeoutMs: numberSchema
+        },
+        []
+      ),
+      async handler(input, { config }) {
+        const args = asObject(input ?? {});
+        const serverUrl = optionalString(args, "serverUrl") ?? config.appiumServerUrl;
+        const parsedServerUrl = new URL(serverUrl);
+        const address = optionalString(args, "address") ?? (parsedServerUrl.hostname || "127.0.0.1");
+        const port = optionalNumber(args, "port") ?? Number(parsedServerUrl.port || 4723);
+        const useNpx = optionalBoolean(args, "useNpx") ?? false;
+        const appiumCommand = optionalString(args, "appiumCommand") ?? "appium";
+        const appiumHome = optionalString(args, "appiumHome");
+        const driverName = optionalString(args, "driverName") ?? "uiautomator2";
+        const installDriver = optionalBoolean(args, "installDriver") ?? false;
+        const startServer = optionalBoolean(args, "startServer") ?? true;
+        const timeoutMs = Math.max(2_000, Math.min(optionalNumber(args, "timeoutMs") ?? 20_000, 120_000));
+        const env = appiumHome ? { APPIUM_HOME: appiumHome } : undefined;
+        const actions: Array<Record<string, unknown>> = [];
+
+        let server = await checkAppiumServer(serverUrl);
+        if (server.ok) {
+          return jsonResponse({ passed: true, serverUrl, alreadyRunning: true, actions, detail: server.detail });
+        }
+
+        if (installDriver) {
+          const command = useNpx ? "npx" : appiumCommand;
+          const prefixArgs = useNpx ? ["appium"] : [];
+          const list = await runCommand(command, [...prefixArgs, "driver", "list", "--installed"], {
+            cwd: config.workspaceRoot,
+            config,
+            env,
+            allowFailure: true,
+            timeoutMs,
+            maxOutputBytes: 20_000
+          });
+          const installed = `${list.stdout}\n${list.stderr}`.includes(driverName);
+          actions.push({ action: "driver_list", command, exitCode: list.exitCode, installed });
+          if (!installed) {
+            const install = await runCommand(command, [...prefixArgs, "driver", "install", driverName], {
+              cwd: config.workspaceRoot,
+              config,
+              env,
+              allowFailure: true,
+              timeoutMs: Math.max(timeoutMs, 60_000),
+              maxOutputBytes: 40_000
+            });
+            actions.push({
+              action: "driver_install",
+              driverName,
+              command,
+              exitCode: install.exitCode,
+              output: `${install.stdout}\n${install.stderr}`.trim().slice(0, 2000)
+            });
+          }
+        }
+
+        if (startServer) {
+          const command = useNpx ? "npx" : appiumCommand;
+          const serverArgs = useNpx
+            ? ["appium", "--address", address, "--port", String(port)]
+            : ["--address", address, "--port", String(port)];
+          const started = startDetachedCommand(command, serverArgs, {
+            cwd: config.workspaceRoot,
+            env
+          });
+          actions.push({ action: "start_server", ...started });
+          server = await waitForAppiumServer(serverUrl, timeoutMs);
+        }
+
+        return jsonResponse({
+          passed: server.ok,
+          serverUrl,
+          actions,
+          detail: server.detail,
+          nextSuggestedAction: server.ok
+            ? "Create an Appium session and start the flow."
+            : "Check whether the port is already used, Appium is installed, or APPIUM_HOME/driver installation needs manual setup."
         });
       }
     }
@@ -161,6 +257,16 @@ async function checkAppiumServer(serverUrl: string): Promise<{ ok: boolean; deta
   } finally {
     clearTimeout(timeout);
   }
+}
+
+async function waitForAppiumServer(serverUrl: string, timeoutMs: number): Promise<{ ok: boolean; detail: string }> {
+  const started = Date.now();
+  let last = await checkAppiumServer(serverUrl);
+  while (!last.ok && Date.now() - started < timeoutMs) {
+    await new Promise((resolve) => setTimeout(resolve, 750));
+    last = await checkAppiumServer(serverUrl);
+  }
+  return last;
 }
 
 function normalizeTarget(value: string): PreflightTarget {

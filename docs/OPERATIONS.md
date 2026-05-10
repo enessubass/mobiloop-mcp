@@ -29,13 +29,19 @@
 
 5. Fix required failures before running `orchestrator.run_android_validation_loop`.
 
-6. Seed flow context when you want faster repeated runs:
+6. Let MobiLoop generate candidate E2E scenarios when starting from a new app:
+
+   ```json
+   { "tool": "flow.generate_test_scenarios", "args": { "goal": "cover onboarding, login, validation, and main navigation" } }
+   ```
+
+7. Seed flow context when you want faster repeated runs:
 
    ```json
    { "tool": "flow.analyze_from_code", "args": { "maxFiles": 1000 } }
    ```
 
-7. During a passing Appium path, record checkpoints with `flow.record_checkpoint`, then persist the ordered path with `flow.record_test_run`.
+8. During a passing Appium path, record checkpoints with `flow.record_checkpoint`, then persist the ordered path with `flow.record_test_run`.
 
 ## Android Host Checklist
 
@@ -63,8 +69,11 @@
 - Build failures: inspect `.mobiloop/build/*.log`
 - Device failures: run `device.list_devices` and collect logcat
 - Appium locator failures: run `appium.observe_screen` and inspect source XML
+- Appium setup failures: run `env.ensure_appium` to check server reachability, install a driver, or start a detached server
+- Appium session failures: run `verify.assert_appium_session_healthy` to separate automation failure from AUT failure
 - Flow replay failures: run `flow.plan_replay` with `dryRun` first, inspect match score, then lower neither `minimumScore` nor checkpoint quality blindly
 - Crash failures: run `verify.assert_no_crash_in_logcat`
+- Root cause triage: inspect `verify.collect_evidence.classification` for `app_bug`, `automation_error`, `environment_missing`, `remote_rules_not_deployed`, and `test_data_missing`
 - Visual regressions: run `verify.assert_screenshot_diff`
 - API failures: confirm `apiAllowlist` and expected status/body
 

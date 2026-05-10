@@ -10,16 +10,7 @@ import { resolveWorkspacePath } from "../utils/path-guard.js";
 import { runCommand } from "../utils/shell.js";
 import { writeArtifactBuffer, writeArtifactText } from "../utils/artifacts.js";
 import { assertApiAllowed } from "../utils/api-allowlist.js";
-
-const CRASH_PATTERNS = [
-  /FATAL EXCEPTION/i,
-  /AndroidRuntime/i,
-  /ANR in /i,
-  /Process: .*?, PID:/i,
-  /java\.lang\.[A-Za-z]+Exception/i,
-  /Unhandled Exception/i,
-  /Fatal signal \d+/i
-];
+import { classifyLogcat } from "../utils/log-classifier.js";
 
 export function verifyTools(): McpTool[] {
   return [
@@ -62,14 +53,41 @@ export function verifyTools(): McpTool[] {
         const logText = logPath
           ? await fs.readFile(resolveWorkspacePath(config, logPath), "utf8")
           : await pullLogcat(config, serial, packageName);
-        const findings = crashFindings(logText);
+        const classification = classifyLogcat(logText);
         const evidencePath = await writeArtifactText(config, "verification", "logcat-crash-check", "log", logText);
         return jsonResponse({
-          passed: findings.length === 0,
-          findings,
+          passed: classification.appCrashFindings.length === 0,
+          findings: classification.appCrashFindings.map((finding) => `${finding.lineNumber}: ${finding.line}`),
+          classification: classification as never,
+          automationHealthy: classification.automationFindings.length === 0,
           serial,
           packageName,
-          evidencePath
+          evidencePath,
+          evidence: {
+            label: "logcat-crash-check",
+            timestamp: new Date().toISOString(),
+            logPath: evidencePath
+          }
+        });
+      }
+    },
+    {
+      name: "verify.assert_appium_session_healthy",
+      description: "Assert the Appium session and page source are reachable, distinguishing automation failures from app crashes.",
+      inputSchema: objectSchema({ sessionId: stringSchema, serverUrl: stringSchema }, ["sessionId"]),
+      async handler(input, { config }) {
+        const args = asObject(input);
+        const serverUrl = optionalString(args, "serverUrl") ?? config.appiumServerUrl;
+        const sessionId = requireString(args, "sessionId");
+        const health = await new AppiumClient({ serverUrl }).sessionHealth(sessionId);
+        return jsonResponse({
+          passed: health.healthy,
+          serverUrl,
+          sessionId,
+          health,
+          status: health.healthy ? "passed" : "automation_error",
+          likelyRootCause: health.healthy ? "" : health.detail,
+          nextSuggestedAction: health.healthy ? "" : "Recreate the Appium session and verify the platform driver before changing app code."
         });
       }
     },
@@ -152,7 +170,22 @@ export function verifyTools(): McpTool[] {
         }
         const logs = await pullLogcat(config, serial, packageName).catch((error) => `logcat unavailable: ${error instanceof Error ? error.message : String(error)}`);
         evidence.logPath = await writeArtifactText(config, "logs", `${prefix}-logcat`, "log", logs);
-        return jsonResponse({ serverUrl, sessionId, serial, packageName, evidence });
+        const classification = classifyLogcat(logs);
+        return jsonResponse({
+          serverUrl,
+          sessionId,
+          serial,
+          packageName,
+          evidence: {
+            label: prefix,
+            timestamp: new Date().toISOString(),
+            ...evidence
+          },
+          classification: classification as never,
+          likelyRootCause: classification.likelyRootCause,
+          nextSuggestedAction: classification.nextSuggestedAction,
+          status: classification.status
+        });
       }
     },
     {
@@ -339,17 +372,6 @@ async function pidOf(
     allowFailure: true
   });
   return result.stdout.trim().split(/\s+/)[0] || undefined;
-}
-
-function crashFindings(logText: string): string[] {
-  const lines = logText.split(/\r?\n/);
-  const findings: string[] = [];
-  for (const [index, line] of lines.entries()) {
-    if (CRASH_PATTERNS.some((pattern) => pattern.test(line))) {
-      findings.push(`${index + 1}: ${line}`.slice(0, 500));
-    }
-  }
-  return findings.slice(0, 50);
 }
 
 function normalizeHeaders(value: unknown): Record<string, string> {

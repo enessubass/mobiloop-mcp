@@ -129,6 +129,10 @@ export function orchestratorTools(): McpTool[] {
                 const check = await callJson(byName, "verify.assert_api_response", apiCheck, context);
                 checks.push({ tool: "verify.assert_api_response", result: check });
               }
+              if (sessionId) {
+                const check = await callJson(byName, "verify.assert_appium_session_healthy", { sessionId }, context);
+                checks.push({ tool: "verify.assert_appium_session_healthy", result: check });
+              }
               if (packageName) {
                 const check = await callJson(
                   byName,
@@ -140,6 +144,7 @@ export function orchestratorTools(): McpTool[] {
               }
 
               const failed = checks.filter((check) => resultFailed(check.result));
+              const failureAnalysis = analyzeFailedChecks(failed);
               if (optionalBoolean(args, "collectEvidence") ?? true) {
                 const evidence = await callJson(
                   byName,
@@ -160,25 +165,30 @@ export function orchestratorTools(): McpTool[] {
                   device: serial ?? avdName ?? "default",
                   test_result: passed ? "passed" : "failed",
                   failure: passed ? "" : JSON.stringify(failed),
-                  root_cause: passed ? "" : "verification_failed",
-                  fix: passed ? "" : "requires_code_or_test_fix_by_agent",
+                  root_cause: passed ? "" : failureAnalysis.likelyRootCause,
+                  fix: passed ? "" : failureAnalysis.nextSuggestedAction,
                   retest: passed ? "passed" : "pending",
                   artifacts
                 },
                 context
               );
-              results.push({ iteration, passed, checks, artifacts, record });
+              results.push({ iteration, passed, checks, artifacts, record, failureAnalysis });
               if (passed) {
                 return jsonResponse({
                   passed: true,
                   goal,
                   iterations: results,
+                  status: "passed",
+                  likelyRootCause: "",
+                  nextSuggestedAction: "",
+                  blockingExternalDependency: false,
                   durationMs: Date.now() - started
                 });
               }
               lastFailure = JSON.stringify(failed);
             } catch (error) {
               lastFailure = error instanceof Error ? error.message : String(error);
+              const failureAnalysis = analyzeErrorMessage(lastFailure);
               const evidence = await callJson(
                 byName,
                 "verify.collect_evidence",
@@ -196,14 +206,14 @@ export function orchestratorTools(): McpTool[] {
                   device: serial ?? avdName ?? "default",
                   test_result: "failed",
                   failure: lastFailure,
-                  root_cause: "tool_or_verification_error",
-                  fix: "requires_code_or_environment_fix_by_agent",
+                  root_cause: failureAnalysis.likelyRootCause,
+                  fix: failureAnalysis.nextSuggestedAction,
                   retest: "pending",
                   artifacts
                 },
                 context
               ).catch(() => undefined);
-              results.push({ iteration, passed: false, failure: lastFailure, evidence });
+              results.push({ iteration, passed: false, failure: lastFailure, evidence, failureAnalysis });
             } finally {
               if (sessionId) {
                 await callJson(byName, "appium.delete_session", { sessionId }, context).catch(() => undefined);
@@ -216,6 +226,7 @@ export function orchestratorTools(): McpTool[] {
             goal,
             failure: lastFailure,
             iterations: results,
+            ...summarizeIterations(results),
             durationMs: Date.now() - started
           });
         } finally {
@@ -304,4 +315,82 @@ function artifactValues(value: unknown): string[] {
       for (const child of Object.values(entry)) collect(child);
     }
   }
+}
+
+function analyzeFailedChecks(failed: Array<Record<string, unknown>>): Record<string, unknown> {
+  for (const check of failed) {
+    const result = objectValue(check.result);
+    const classification = objectValue(result?.classification);
+    if (classification) {
+      return {
+        status: optionalString(classification, "status") ?? "unknown_failure",
+        likelyRootCause: optionalString(classification, "likelyRootCause") ?? "Verification failed with classified evidence.",
+        nextSuggestedAction: optionalString(classification, "nextSuggestedAction") ?? "Inspect collected evidence and rerun.",
+        blockingExternalDependency: isExternalStatus(optionalString(classification, "status"))
+      };
+    }
+    const status = optionalString(result ?? {}, "status");
+    if (status) {
+      return {
+        status,
+        likelyRootCause: optionalString(result ?? {}, "likelyRootCause") ?? "Verification failed.",
+        nextSuggestedAction: optionalString(result ?? {}, "nextSuggestedAction") ?? "Inspect collected evidence and rerun.",
+        blockingExternalDependency: isExternalStatus(status)
+      };
+    }
+  }
+  return {
+    status: failed.length > 0 ? "unknown_failure" : "passed",
+    likelyRootCause: failed.length > 0 ? "One or more verification checks failed without a classifier result." : "",
+    nextSuggestedAction: failed.length > 0 ? "Collect screenshot, page source, and logs for the failed step." : "",
+    blockingExternalDependency: false
+  };
+}
+
+function analyzeErrorMessage(message: string): Record<string, unknown> {
+  if (/appium|session|uiautomator|instrumentation/i.test(message)) {
+    return {
+      status: "automation_error",
+      likelyRootCause: message,
+      nextSuggestedAction: "Recreate the Appium session and verify the platform driver before changing app code.",
+      blockingExternalDependency: false
+    };
+  }
+  if (/permission_denied|firestore|firebase|google play|network|timeout/i.test(message)) {
+    return {
+      status: "external_dependency",
+      likelyRootCause: message,
+      nextSuggestedAction: "Check staging services, test data, emulator services, and remote credentials/rules.",
+      blockingExternalDependency: true
+    };
+  }
+  return {
+    status: "unknown_failure",
+    likelyRootCause: message,
+    nextSuggestedAction: "Inspect the failed tool output and collected evidence.",
+    blockingExternalDependency: false
+  };
+}
+
+function summarizeIterations(iterations: Array<Record<string, unknown>>): Record<string, unknown> {
+  const last = iterations.slice().reverse().find((iteration) => objectValue(iteration.failureAnalysis));
+  const analysis = objectValue(last?.failureAnalysis);
+  if (!analysis) {
+    return {
+      status: "unknown_failure",
+      likelyRootCause: "Validation loop failed without classified evidence.",
+      nextSuggestedAction: "Inspect iteration records and artifacts.",
+      blockingExternalDependency: false
+    };
+  }
+  return {
+    status: optionalString(analysis, "status") ?? "unknown_failure",
+    likelyRootCause: optionalString(analysis, "likelyRootCause") ?? "Validation loop failed.",
+    nextSuggestedAction: optionalString(analysis, "nextSuggestedAction") ?? "Inspect iteration records and artifacts.",
+    blockingExternalDependency: optionalBoolean(analysis, "blockingExternalDependency") ?? false
+  };
+}
+
+function isExternalStatus(status: string | undefined): boolean {
+  return Boolean(status && ["remote_rules_not_deployed", "test_data_missing", "environment_missing", "external_dependency"].includes(status));
 }

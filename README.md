@@ -18,7 +18,9 @@ It is built for the workflow where the agent does not just write code. It builds
 - **Android and iOS tool split**: Android `adb`/emulator tools and iOS `xcrun simctl`/`xcodebuild` tools are separated.
 - **Appium UI automation**: semantic taps, typing, swipes, back navigation, visibility assertions, screenshots, and accessibility summaries.
 - **Flow memory**: record runtime screen checkpoints, remember the latest passing path, and auto-replay stable setup steps to a target checkpoint.
+- **Scenario generation and flow DSL**: scan source for candidate E2E scenarios, then run high-level JSON flows with wait/tap/type/assert/evidence steps.
 - **Source-flow analysis**: scan Flutter, React Native, Android, and iOS source for screen, route, transition, and visible-text candidates.
+- **Root-cause classification**: classify logcat evidence into app bugs, automation errors, missing environment, remote rules, and test-data issues.
 - **Guarded code tools**: workspace-only reads/searches/patches, forbidden secret paths, guarded branches, commits, and PR creation.
 - **Docker-ready MCP runtime**: package the Node MCP server in Docker while keeping mobile SDKs, emulators, devices, and Appium on the host or runner.
 - **Composable binaries**: run everything as one server or split each responsibility into its own MCP server.
@@ -111,6 +113,29 @@ For development:
 npm run dev
 ```
 
+## CLI Fallback
+
+When an MCP client cannot expose the server as callable tools, use the CLI wrapper:
+
+```bash
+MOBILOOP_WORKSPACE_ROOT=/absolute/path/to/mobile/app \
+node dist/src/cli.js list-tools
+```
+
+Call any tool directly:
+
+```bash
+MOBILOOP_WORKSPACE_ROOT=/absolute/path/to/mobile/app \
+node dist/src/cli.js call flow.generate_test_scenarios '{"goal":"login smoke and validation"}'
+```
+
+Generate scenario candidates:
+
+```bash
+MOBILOOP_WORKSPACE_ROOT=/absolute/path/to/mobile/app \
+node dist/src/cli.js generate-scenarios "cover onboarding, login, and validation"
+```
+
 ## MCP Client Configuration
 
 ### All-In-One Server
@@ -198,6 +223,7 @@ All binaries are listed below.
 
 | Binary | Scope |
 | --- | --- |
+| `mobiloop` | CLI wrapper for listing tools, calling tools, and generating scenarios |
 | `mobiloop-mcp` | All tools |
 | `mobiloop-code-mcp` | Code and git tools |
 | `mobiloop-env-mcp` | Environment preflight and compatibility matrix |
@@ -330,6 +356,46 @@ Minimal shape:
 ```
 
 See [examples/android-validation-loop.json](examples/android-validation-loop.json).
+
+## AI-Generated Scenario Candidates
+
+MobiLoop can generate candidate E2E scenarios from the app source so the agent starts from a concrete test plan instead of an empty screen.
+
+```json
+{
+  "tool": "flow.generate_test_scenarios",
+  "args": {
+    "goal": "cover onboarding, login, form validation, and main navigation",
+    "maxScenarios": 8,
+    "includeNegativeCases": true
+  }
+}
+```
+
+The output includes priorities, candidate steps, assertions, source references, and limitations. Treat these as executable candidates: the agent should run them through Appium, collect evidence, and refine them into stable checkpoint paths.
+
+For scripted execution without writing custom client code:
+
+```json
+{
+  "tool": "flow.run_script",
+  "args": {
+    "sessionId": "APPIUM_SESSION_ID",
+    "steps": [
+      { "action": "observe", "waitForAnyText": ["Giriş Yap", "Login"], "waitForPackageIdle": true },
+      { "action": "tapText", "text": "Giriş Yap", "matchMode": "auto" },
+      {
+        "action": "type",
+        "locator": { "strategy": "text", "value": "E-posta" },
+        "text": "test@example.com",
+        "mode": "sendKeys"
+      },
+      { "action": "assertText", "text": "Ana Sayfa" },
+      { "action": "collectEvidence", "label": "login-result" }
+    ]
+  }
+}
+```
 
 ## Flow Memory And Auto-Replay
 

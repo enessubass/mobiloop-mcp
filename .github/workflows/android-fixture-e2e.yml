@@ -2,6 +2,20 @@ name: Android Fixture E2E
 
 on:
   workflow_dispatch:
+    inputs:
+      avd_name:
+        description: Android Virtual Device name to boot when the runner has no active device
+        required: false
+        default: Pixel_7_API_35
+      start_emulator:
+        description: Start the configured AVD before running the fixture
+        required: false
+        type: boolean
+        default: true
+  schedule:
+    - cron: "0 2 * * *"
+  pull_request:
+    types: [labeled, synchronize, reopened]
 
 permissions:
   contents: read
@@ -10,10 +24,12 @@ jobs:
   flutter-login-demo:
     name: Flutter Login Demo On Android
     runs-on: self-hosted
+    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'android-e2e')
     timeout-minutes: 45
     env:
       APPIUM_SERVER_URL: http://127.0.0.1:4723
       MOBILOOP_REQUIRE_APPROVAL: "true"
+      MOBILOOP_ANDROID_AVD_NAME: ${{ github.event.inputs.avd_name || vars.MOBILOOP_ANDROID_AVD_NAME || 'Pixel_7_API_35' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -29,6 +45,29 @@ jobs:
 
       - name: Build MCP
         run: npm run build
+
+      - name: List Android devices before readiness
+        run: node dist/src/cli.js call device.list_devices '{}'
+
+      - name: Start emulator when requested
+        if: github.event_name != 'workflow_dispatch' || inputs.start_emulator
+        run: |
+          node dist/src/cli.js call device.start_emulator "{
+            \"avdName\": \"${MOBILOOP_ANDROID_AVD_NAME}\",
+            \"waitForBoot\": true,
+            \"timeoutMs\": 180000,
+            \"approval\": {
+              \"approved\": true,
+              \"approvedBy\": \"ci\",
+              \"reason\": \"Start Android emulator for fixture E2E\"
+            }
+          }"
+
+      - name: Verify Android device after readiness
+        run: |
+          node dist/src/cli.js call device.list_devices '{}'
+          adb devices -l
+          adb devices | awk 'NR > 1 && $2 == "device" { found = 1 } END { exit found ? 0 : 1 }'
 
       - name: Prepare Flutter Android fixture
         working-directory: examples/mobile-fixtures/flutter-login-demo

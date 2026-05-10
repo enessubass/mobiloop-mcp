@@ -31,4 +31,13 @@ The project publishes container images to:
 ghcr.io/enessubass/mobiloop-mcp:latest
 ```
 
+Tag builds also publish the SemVer tag, for example:
+
+```text
+ghcr.io/enessubass/mobiloop-mcp:0.1.0-alpha.1
+ghcr.io/enessubass/mobiloop-mcp:v0.1.0-alpha.1
+```
+
+The GHCR workflow uploads an SBOM artifact and runs a non-blocking HIGH/CRITICAL Trivy scan. Treat scan findings as release review input during the alpha phase.
+
 NPM publish is not enabled yet.

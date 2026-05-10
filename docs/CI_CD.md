@@ -45,8 +45,16 @@ The repository includes a concrete self-hosted workflow:
 .github/workflows/android-fixture-e2e.yml
 ```
 
-It is manual because public hosted runners do not provide a stable Android emulator/Appium environment for every project. On a configured self-hosted runner it is intended to be the real proof pipeline for the Flutter fixture.
+It can be run manually, runs nightly, and also runs for PRs labeled `android-e2e`. Public hosted runners do not provide a stable Android emulator/Appium environment for every project, so this workflow still requires a configured self-hosted runner.
+
+The workflow boots the configured AVD when requested, verifies `adb devices`, builds the Flutter fixture APK, starts Appium, runs `orchestrator.run_android_validation_loop`, and uploads `.mobiloop` artifacts.
+
+Configure the runner with either the default `Pixel_7_API_35` AVD or a repository variable:
+
+```text
+MOBILOOP_ANDROID_AVD_NAME=Pixel_7_API_35
+```
 
 ## Release
 
-GHCR publish is manual or tag-triggered through `.github/workflows/publish-ghcr.yml`.
+GHCR publish is manual or tag-triggered through `.github/workflows/publish-ghcr.yml`. The publish workflow emits an SBOM artifact and runs a non-blocking Trivy HIGH/CRITICAL image scan so alpha images are observable without blocking on upstream base-image advisories.

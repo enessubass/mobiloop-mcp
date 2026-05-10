@@ -1,9 +1,12 @@
 # Changelog
 
-## 0.1.0
+## 0.1.0-alpha.1
 
-Initial release candidate.
+Initial alpha release.
 
+- Added deterministic self-hosted Android fixture E2E readiness with optional AVD boot, device listing, nightly schedule, and PR label gate.
+- Added GHCR SBOM artifact generation and non-blocking Trivy image scan during image publishing.
+- Added policy hint tags to MCP/CLI tool descriptions for clients that do not call `policy.list_tools`.
 - Added CLI fallback wrapper (`mobiloop call`, `mobiloop list-tools`, `mobiloop generate-scenarios`).
 - Added generated E2E scenario candidates and high-level flow script execution.
 - Improved Appium exact-first text tapping, Flutter-friendly text input modes, readiness waits, and clicked-target reporting.

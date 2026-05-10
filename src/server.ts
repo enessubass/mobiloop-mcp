@@ -5,7 +5,7 @@ import { loadConfig } from "./config.js";
 import { McpTool, errorResponse } from "./types.js";
 import { enforceToolApproval, stripApproval } from "./utils/approval.js";
 import { redactToolResponse } from "./utils/redaction.js";
-import { attachToolPolicies } from "./utils/tool-policy.js";
+import { attachToolPolicies, describeToolWithPolicy } from "./utils/tool-policy.js";
 
 export async function runMcpServer(name: string, tools: McpTool[]): Promise<void> {
   const config = await loadConfig();
@@ -27,7 +27,7 @@ export async function runMcpServer(name: string, tools: McpTool[]): Promise<void
   server.setRequestHandler(ListToolsRequestSchema, async () => ({
     tools: configuredTools.map((tool) => ({
       name: tool.name,
-      description: tool.description,
+      description: describeToolWithPolicy(tool),
       inputSchema: tool.inputSchema
     }))
   }));

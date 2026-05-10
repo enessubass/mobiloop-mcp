@@ -3,14 +3,14 @@
 Guarded MCP servers for agentic mobile development loops.
 
 ```text
-code change -> build -> install on device -> Appium test -> evidence -> fix loop -> report
+code change -> build -> install on device -> Appium test -> evidence -> classify -> report
 ```
 
 MobiLoop MCP is a controlled tool layer between an AI coding agent and a real mobile development environment. It lets an MCP client read and patch a mobile project, build it, install it on Android or iOS targets, drive the app through Appium, verify logs/screens/API results, remember known app-flow checkpoints, and produce evidence-based reports.
 
-The name reflects the core contract: mobile work should run through a measurable loop of change, build, device execution, verification, and fix.
+The name reflects the core contract: mobile work should run through a measurable loop of change, build, device execution, verification, and evidence-backed triage.
 
-It is built for the workflow where the agent does not just write code. It builds, runs, tests, observes, fixes, and repeats.
+It is built for the workflow where the agent does not just write code. It builds, runs, tests, observes, classifies failures, and hands back evidence. An agent can still use the separate guarded code tools to patch and retest, but that patch step is intentionally outside the default orchestrator.
 
 Today, MobiLoop provides guarded build-test-verify loops and evidence-based failure classification. Fully automated patch-and-retest is intentionally kept outside the default orchestrator until stricter approval, rollback, and review controls are enabled.
 
@@ -829,6 +829,7 @@ The Dockerfile also runs the test suite during image build.
 - [docs/DOCKER.md](docs/DOCKER.md)
 - [docs/SECURITY.md](docs/SECURITY.md)
 - [docs/demo/flutter-login-loop.md](docs/demo/flutter-login-loop.md)
+- [docs/releases/v0.1.0-alpha.1.md](docs/releases/v0.1.0-alpha.1.md)
 - [.github/workflows/android-fixture-e2e.yml](.github/workflows/android-fixture-e2e.yml)
 - [examples/android-validation-loop.json](examples/android-validation-loop.json)
 - [examples/flow-memory-replay.json](examples/flow-memory-replay.json)

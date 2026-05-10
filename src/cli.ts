@@ -3,6 +3,7 @@ import { loadConfig } from "./config.js";
 import { allTools } from "./tools/index.js";
 import { enforceToolApproval, stripApproval } from "./utils/approval.js";
 import { redactToolResponse } from "./utils/redaction.js";
+import { describeToolWithPolicy } from "./utils/tool-policy.js";
 
 async function main(): Promise<void> {
   const [command, ...args] = process.argv.slice(2);
@@ -29,7 +30,7 @@ async function main(): Promise<void> {
       return;
     }
     for (const tool of tools) {
-      console.log(`${tool.name}\t${tool.description}`);
+      console.log(`${tool.name}\t${describeToolWithPolicy(tool)}`);
     }
     return;
   }

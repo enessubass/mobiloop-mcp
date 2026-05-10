@@ -47,7 +47,7 @@ The self-hosted proof workflow is:
 .github/workflows/android-fixture-e2e.yml
 ```
 
-It prepares the Flutter login fixture, builds a debug APK, starts Appium, runs `orchestrator.run_android_validation_loop`, and uploads `.mobiloop` artifacts.
+It can boot the configured AVD, verifies `adb devices`, prepares the Flutter login fixture, builds a debug APK, starts Appium, runs `orchestrator.run_android_validation_loop`, and uploads `.mobiloop` artifacts. It runs manually, nightly, and for pull requests labeled `android-e2e`.
 
 ## Required Evidence For A Passing Loop
 

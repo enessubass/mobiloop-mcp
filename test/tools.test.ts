@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { allTools } from "../src/tools/index.js";
+import { describeToolWithPolicy } from "../src/utils/tool-policy.js";
 
 test("all tool names are unique and include core release groups", () => {
   const tools = allTools();
@@ -49,4 +50,12 @@ test("all tools expose policy metadata and high-impact tools require approval", 
 
   assert.equal(byName.get("code.read_file")?.policy?.requiresApproval, false);
   assert.equal(byName.get("flow.generate_test_scenarios")?.policy?.requiresApproval, false);
+});
+
+test("tool descriptions can expose policy hints for generic MCP clients", () => {
+  const tool = allTools().find((entry) => entry.name === "device.clear_app_data");
+  assert.ok(tool);
+  const description = describeToolWithPolicy(tool);
+  assert.match(description, /\[approval required\]/);
+  assert.match(description, /\[device mutation\]/);
 });

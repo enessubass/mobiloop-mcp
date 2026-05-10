@@ -28,6 +28,19 @@ export function policyForTool(toolName: string): ToolPolicy {
   return { ...policy, ...explicitPolicy(toolName) };
 }
 
+export function describeToolWithPolicy(tool: McpTool): string {
+  const policy = tool.policy;
+  if (!policy) return tool.description;
+  const tags = [
+    policy.requiresApproval ? "approval required" : undefined,
+    policy.writesDevice ? "device mutation" : undefined,
+    policy.writesWorkspace ? "workspace write" : undefined,
+    policy.networkAccess ? "network" : undefined,
+    policy.riskLevel !== "read" ? `risk:${policy.riskLevel}` : undefined
+  ].filter(Boolean);
+  return tags.length > 0 ? `[${tags.join("][")}] ${tool.description}` : tool.description;
+}
+
 function policyForPrefix(toolName: string): ToolPolicy {
   if (toolName.startsWith("code.")) return writePolicy("write", true);
   if (toolName.startsWith("build.")) return writePolicy("network", true);

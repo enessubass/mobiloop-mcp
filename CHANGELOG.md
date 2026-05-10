@@ -5,6 +5,7 @@
 Initial release candidate.
 
 - Branded the project as MobiLoop MCP with `mobiloop-*` binaries, `MOBILOOP_*` env vars, and `.mobiloop` artifacts.
+- Added GitHub Actions CI and GHCR image publishing workflow.
 - Added guarded MCP tools for code, environment, build, Android device, iOS simulator, Appium, verification, flow memory, loop reporting, CI, and orchestration.
 - Added source-flow analysis for Flutter, React Native, Android, and iOS codebases.
 - Added runtime checkpoint memory and replay-to-checkpoint support for repeated mobile test setup flows.

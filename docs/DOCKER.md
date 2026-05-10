@@ -34,6 +34,16 @@ This keeps MCP reproducible while respecting the hard platform constraints of mo
 docker build -t mobiloop-mcp:local .
 ```
 
+## Published Image
+
+MobiLoop MCP is published to GitHub Container Registry:
+
+```bash
+docker pull ghcr.io/enessubass/mobiloop-mcp:latest
+```
+
+The image is built from this repository and is intended to run the MCP server only. Mobile SDKs, Appium, emulators, simulators, and physical devices should stay on the host or a dedicated runner.
+
 ## Run As MCP Server
 
 For stdio MCP clients, the container must run with an interactive stdin:
@@ -43,7 +53,7 @@ docker run --rm -i \
   -e MOBILOOP_WORKSPACE_ROOT=/workspace \
   -e APPIUM_SERVER_URL=http://host.docker.internal:4723 \
   -v /absolute/path/to/mobile/app:/workspace \
-  mobiloop-mcp:local
+  ghcr.io/enessubass/mobiloop-mcp:latest
 ```
 
 On Linux, add host gateway mapping if needed:
@@ -54,7 +64,7 @@ docker run --rm -i \
   -e MOBILOOP_WORKSPACE_ROOT=/workspace \
   -e APPIUM_SERVER_URL=http://host.docker.internal:4723 \
   -v /absolute/path/to/mobile/app:/workspace \
-  mobiloop-mcp:local
+  ghcr.io/enessubass/mobiloop-mcp:latest
 ```
 
 ## MCP Client Config For Docker
@@ -75,7 +85,7 @@ docker run --rm -i \
         "APPIUM_SERVER_URL=http://host.docker.internal:4723",
         "-v",
         "/absolute/path/to/mobile/app:/workspace",
-        "mobiloop-mcp:local"
+        "ghcr.io/enessubass/mobiloop-mcp:latest"
       ]
     }
   }

@@ -466,6 +466,12 @@ Build:
 docker build -t mobiloop-mcp:local .
 ```
 
+Published GHCR image:
+
+```bash
+docker pull ghcr.io/enessubass/mobiloop-mcp:latest
+```
+
 Run as an MCP stdio server:
 
 ```bash
@@ -473,7 +479,7 @@ docker run --rm -i \
   -e MOBILOOP_WORKSPACE_ROOT=/workspace \
   -e APPIUM_SERVER_URL=http://host.docker.internal:4723 \
   -v /absolute/path/to/mobile/app:/workspace \
-  mobiloop-mcp:local
+  ghcr.io/enessubass/mobiloop-mcp:latest
 ```
 
 On Linux, add:

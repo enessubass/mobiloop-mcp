@@ -3,6 +3,14 @@
   "version": "0.1.0",
   "description": "A guarded MCP server for build, device, Appium, verification, and agentic mobile development loops.",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/enessubass/mobiloop-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/enessubass/mobiloop-mcp/issues"
+  },
+  "homepage": "https://github.com/enessubass/mobiloop-mcp#readme",
   "bin": {
     "mobiloop-mcp": "dist/src/index.js",
     "mobiloop-code-mcp": "dist/src/servers/code.js",

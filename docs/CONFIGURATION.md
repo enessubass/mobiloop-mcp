@@ -6,7 +6,7 @@ MobiLoop reads config from `mobiloop.config.json` in the current working directo
 MOBILOOP_CONFIG=/absolute/path/to/mobiloop.config.json
 ```
 
-`MOBILOOP_WORKSPACE_ROOT` and `APPIUM_SERVER_URL` override their matching config values.
+`MOBILOOP_WORKSPACE_ROOT`, `APPIUM_SERVER_URL`, `MOBILOOP_REQUIRE_APPROVAL`, and `MOBILOOP_REDACT_ARTIFACTS` override their matching config values.
 
 ## Schema
 
@@ -36,6 +36,27 @@ Use it in config files:
 | `apiAllowlist`         | Keep it narrow. Prefer localhost and explicit staging hosts.                  |
 | `forbiddenPathGlobs`   | Keep secret, keystore, provisioning, and service-config patterns blocked.     |
 | `toolPolicies`         | Override risk metadata for local policy engines or MCP clients.               |
+| `requireApproval`      | Set true in production to enforce approval payloads server-side.              |
+| `redactArtifacts`      | Keep true unless another artifact sanitizer runs after MobiLoop.              |
+
+MobiLoop validates `mobiloop.config.json` against the JSON schema at startup. Invalid fields fail early with a path-specific error.
+
+## Approval Enforcement
+
+When `requireApproval` or `MOBILOOP_REQUIRE_APPROVAL=true` is enabled, tools whose effective policy has `requiresApproval: true` must include:
+
+```json
+{
+  "approval": {
+    "approved": true,
+    "approvedBy": "human-or-ci",
+    "reason": "Why this high-impact tool is allowed",
+    "expiresAt": "2026-05-11T12:00:00Z"
+  }
+}
+```
+
+`expiresAt` is optional. Expired or malformed approvals are rejected before the tool handler runs.
 
 ## Tool Policy Overrides
 

@@ -1,0 +1,120 @@
+name: Android Fixture E2E
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  flutter-login-demo:
+    name: Flutter Login Demo On Android
+    runs-on: self-hosted
+    timeout-minutes: 45
+    env:
+      APPIUM_SERVER_URL: http://127.0.0.1:4723
+      MOBILOOP_REQUIRE_APPROVAL: "true"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install MCP dependencies
+        run: npm ci
+
+      - name: Build MCP
+        run: npm run build
+
+      - name: Prepare Flutter Android fixture
+        working-directory: examples/mobile-fixtures/flutter-login-demo
+        run: |
+          flutter create --platforms=android --project-name mobiloop_flutter_login_demo --org com.example .
+          flutter pub get
+          flutter test
+          flutter build apk --debug
+
+      - name: Ensure Appium
+        run: |
+          node dist/src/cli.js call env.ensure_appium '{
+            "installDriver": true,
+            "startServer": true,
+            "driverName": "uiautomator2",
+            "approval": {
+              "approved": true,
+              "approvedBy": "ci",
+              "reason": "Start Appium and ensure UiAutomator2 for Android fixture E2E"
+            }
+          }'
+
+      - name: Run MobiLoop Android validation loop
+        env:
+          MOBILOOP_WORKSPACE_ROOT: ${{ github.workspace }}/examples/mobile-fixtures/flutter-login-demo
+        run: |
+          node ${{ github.workspace }}/dist/src/cli.js call orchestrator.run_android_validation_loop '{
+            "goal": "Validate Flutter login fixture on Android emulator",
+            "kind": "flutter",
+            "apkPath": "build/app/outputs/flutter-apk/app-debug.apk",
+            "packageName": "com.example.mobiloop_flutter_login_demo",
+            "runLint": false,
+            "runUnitTests": false,
+            "buildDebugApk": false,
+            "clearAppData": true,
+            "collectEvidence": true,
+            "maxTestIterations": 1,
+            "appiumCapabilities": {
+              "platformName": "Android",
+              "appium:automationName": "UiAutomator2",
+              "appium:deviceName": "Android",
+              "appium:appPackage": "com.example.mobiloop_flutter_login_demo",
+              "appium:appActivity": ".MainActivity",
+              "appium:noReset": false
+            },
+            "appiumSteps": [
+              {
+                "tool": "appium.wait_for_visible",
+                "args": {
+                  "locator": { "strategy": "text", "value": "Giriş Yap" },
+                  "timeoutMs": 15000
+                }
+              },
+              {
+                "tool": "appium.type_text",
+                "args": {
+                  "locator": { "strategy": "text", "value": "E-posta" },
+                  "text": "fixture@example.com",
+                  "mode": "sendKeys"
+                }
+              },
+              {
+                "tool": "appium.type_text",
+                "args": {
+                  "locator": { "strategy": "text", "value": "Şifre" },
+                  "text": "123456",
+                  "mode": "sendKeys"
+                }
+              },
+              {
+                "tool": "appium.tap_by_text",
+                "args": { "text": "Giriş Yap", "matchMode": "exact" }
+              }
+            ],
+            "expectedTexts": ["Ana Sayfa"],
+            "approval": {
+              "approved": true,
+              "approvedBy": "ci",
+              "reason": "Run self-hosted Android fixture validation loop"
+            }
+          }'
+
+      - name: Upload MobiLoop artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobiloop-android-fixture-artifacts
+          path: examples/mobile-fixtures/flutter-login-demo/.mobiloop
+          if-no-files-found: warn

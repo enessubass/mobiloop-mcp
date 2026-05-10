@@ -102,3 +102,73 @@ test("loadConfig supports legacy agentic-mobile env vars as fallback", async () 
     }
   }
 });
+
+test("loadConfig validates mobiloop.config.json against schema", async () => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "mobiloop-invalid-config-"));
+  const originalCwd = process.cwd();
+  const originalConfig = process.env.MOBILOOP_CONFIG;
+  const originalRoot = process.env.MOBILOOP_WORKSPACE_ROOT;
+  const configPath = path.join(dir, "mobiloop.config.json");
+  await fs.writeFile(
+    configPath,
+    JSON.stringify({
+      workspaceRoot: dir,
+      maxTestIterations: 0,
+      requireApproval: "yes"
+    }),
+    "utf8"
+  );
+  process.env.MOBILOOP_CONFIG = configPath;
+  delete process.env.MOBILOOP_WORKSPACE_ROOT;
+  process.chdir(dir);
+  try {
+    await assert.rejects(() => loadConfig(), /Invalid .*mobiloop\.config\.json/);
+  } finally {
+    process.chdir(originalCwd);
+    if (originalConfig === undefined) {
+      delete process.env.MOBILOOP_CONFIG;
+    } else {
+      process.env.MOBILOOP_CONFIG = originalConfig;
+    }
+    if (originalRoot === undefined) {
+      delete process.env.MOBILOOP_WORKSPACE_ROOT;
+    } else {
+      process.env.MOBILOOP_WORKSPACE_ROOT = originalRoot;
+    }
+  }
+});
+
+test("loadConfig supports approval and redaction env overrides", async () => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "mobiloop-env-config-"));
+  const originalCwd = process.cwd();
+  const originalConfig = process.env.MOBILOOP_CONFIG;
+  const originalRoot = process.env.MOBILOOP_WORKSPACE_ROOT;
+  const originalRequireApproval = process.env.MOBILOOP_REQUIRE_APPROVAL;
+  const originalRedactArtifacts = process.env.MOBILOOP_REDACT_ARTIFACTS;
+  const configPath = path.join(dir, "mobiloop.config.json");
+  await fs.writeFile(configPath, JSON.stringify({ workspaceRoot: dir }), "utf8");
+  process.env.MOBILOOP_CONFIG = configPath;
+  process.env.MOBILOOP_REQUIRE_APPROVAL = "true";
+  process.env.MOBILOOP_REDACT_ARTIFACTS = "false";
+  delete process.env.MOBILOOP_WORKSPACE_ROOT;
+  process.chdir(dir);
+  try {
+    const config = await loadConfig();
+    assert.equal(config.requireApproval, true);
+    assert.equal(config.redactArtifacts, false);
+  } finally {
+    process.chdir(originalCwd);
+    restoreEnv("MOBILOOP_CONFIG", originalConfig);
+    restoreEnv("MOBILOOP_WORKSPACE_ROOT", originalRoot);
+    restoreEnv("MOBILOOP_REQUIRE_APPROVAL", originalRequireApproval);
+    restoreEnv("MOBILOOP_REDACT_ARTIFACTS", originalRedactArtifacts);
+  }
+});
+
+function restoreEnv(name: string, value: string | undefined): void {
+  if (value === undefined) {
+    delete process.env[name];
+  } else {
+    process.env[name] = value;
+  }
+}

@@ -144,6 +144,8 @@ function config(root: string): ServerConfig {
     sqlitePath: "sqlite3",
     apiAllowlist: ["http://127.0.0.1:*", "http://localhost:*"],
     forbiddenPathGlobs: [".env", ".env.*"],
-    toolPolicies: {}
+    toolPolicies: {},
+    requireApproval: false,
+    redactArtifacts: true
   };
 }

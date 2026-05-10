@@ -19,6 +19,7 @@ test("all tool names are unique and include core release groups", () => {
     "flow.replay_to_checkpoint",
     "loop.generate_report",
     "ci.collect_artifact_manifest",
+    "policy.list_tools",
     "orchestrator.run_android_validation_loop"
   ]) {
     assert.ok(names.includes(required), `${required} should be registered`);

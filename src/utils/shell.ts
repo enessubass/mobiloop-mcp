@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import { Buffer } from "node:buffer";
 import { ServerConfig } from "../types.js";
+import { redactText } from "./redaction.js";
 
 export interface CommandResult {
   command: string;
@@ -82,14 +83,16 @@ export async function runCommand(
       clearTimeout(timeout);
       const stdoutBuffer = Buffer.concat(stdoutChunks);
       const stderrBuffer = Buffer.concat(stderrChunks);
+      const stdout = stripAnsi(stdoutBuffer.toString("utf8"));
+      const stderr = stripAnsi(stderrBuffer.toString("utf8"));
       resolve({
         command,
         args,
         cwd: options.cwd,
         exitCode,
         signal,
-        stdout: stripAnsi(stdoutBuffer.toString("utf8")),
-        stderr: stripAnsi(stderrBuffer.toString("utf8")),
+        stdout: options.config.redactArtifacts ? redactText(stdout) : stdout,
+        stderr: options.config.redactArtifacts ? redactText(stderr) : stderr,
         stdoutBuffer,
         durationMs: Date.now() - started
       });

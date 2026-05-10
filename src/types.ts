@@ -32,6 +32,13 @@ export interface ToolContext {
   config: ServerConfig;
 }
 
+export interface ApprovalPayload {
+  approved: boolean;
+  approvedBy: string;
+  reason: string;
+  expiresAt?: string;
+}
+
 export interface ServerConfig {
   workspaceRoot: string;
   artifactsDir: string;
@@ -50,6 +57,8 @@ export interface ServerConfig {
   apiAllowlist: string[];
   forbiddenPathGlobs: string[];
   toolPolicies: Record<string, Partial<ToolPolicy>>;
+  requireApproval: boolean;
+  redactArtifacts: boolean;
 }
 
 export function textResponse(text: string): ToolResponse {

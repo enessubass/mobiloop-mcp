@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { loadConfig } from "./config.js";
 import { allTools } from "./tools/index.js";
+import { enforceToolApproval, stripApproval } from "./utils/approval.js";
 
 async function main(): Promise<void> {
   const [command, ...args] = process.argv.slice(2);
@@ -39,7 +40,8 @@ async function main(): Promise<void> {
     const tool = allTools(config.toolPolicies).find((entry) => entry.name === toolName);
     if (!tool) throw new Error(`Unknown tool: ${toolName}`);
     const input = JSON.parse(rawJson);
-    const response = await tool.handler(input, { config });
+    enforceToolApproval(tool, input, config);
+    const response = await tool.handler(stripApproval(input), { config });
     if (response.isError) {
       const message = response.content
         .map((entry) => ("text" in entry ? entry.text : ""))

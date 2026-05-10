@@ -52,6 +52,8 @@ Verification tools produce evidence rather than relying on model claims:
 - accessibility label findings
 - sqlite read-only query results
 
+Text artifacts and command text output are redacted by default for common bearer tokens, JWTs, API keys, secret-like key-value pairs, emails, and phone numbers. Screenshot redaction still requires external OCR/sanitization if screenshots can contain sensitive values.
+
 ## Human Approval Layer
 
 MCP clients should still apply their own approval policy for high-impact actions such as dependency install, emulator launch, device install, commit, push, and PR creation.
@@ -62,6 +64,14 @@ MobiLoop exposes policy metadata for every tool. Inspect it with:
 mobiloop list-tools --json
 ```
 
-The metadata is advisory for MCP clients and includes risk level, approval recommendation, workspace/device mutation flags, network access, and artifact production. Override local policy with `toolPolicies` in `mobiloop.config.json` when your runner has stricter rules.
+The metadata includes risk level, approval recommendation, workspace/device mutation flags, network access, and artifact production. Override local policy with `toolPolicies` in `mobiloop.config.json` when your runner has stricter rules.
+
+Enable server-side enforcement with:
+
+```bash
+MOBILOOP_REQUIRE_APPROVAL=true
+```
+
+When enabled, tools marked `requiresApproval` fail unless the input includes a valid `approval` object with `approved`, `approvedBy`, `reason`, and an optional non-expired `expiresAt`.
 
 This server provides guardrails; it is not a replacement for host-level sandboxing.

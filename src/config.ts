@@ -1,7 +1,10 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { Ajv2020 } from "ajv/dist/2020.js";
 import { ServerConfig, ToolPolicy } from "./types.js";
 import {
+  asOptionalBoolean,
   asOptionalNumber,
   asOptionalString,
   asOptionalStringArray,
@@ -31,6 +34,7 @@ export async function loadConfig(): Promise<ServerConfig> {
     : await defaultConfigPath(cwd);
 
   const rawConfig = await readJsonIfExists(configPath);
+  await validateConfigSchema(rawConfig, configPath);
   const workspaceRootFromEnv =
     process.env.MOBILOOP_WORKSPACE_ROOT ?? process.env.AGENTIC_MOBILE_WORKSPACE_ROOT;
   const workspaceRootValue =
@@ -66,8 +70,60 @@ export async function loadConfig(): Promise<ServerConfig> {
     ],
     forbiddenPathGlobs:
       asOptionalStringArray(rawConfig, "forbiddenPathGlobs") ?? DEFAULT_FORBIDDEN_PATH_GLOBS,
-    toolPolicies: parseToolPolicies(rawConfig)
+    toolPolicies: parseToolPolicies(rawConfig),
+    requireApproval:
+      envBoolean("MOBILOOP_REQUIRE_APPROVAL") ??
+      asOptionalBoolean(rawConfig, "requireApproval") ??
+      false,
+    redactArtifacts:
+      envBoolean("MOBILOOP_REDACT_ARTIFACTS") ??
+      asOptionalBoolean(rawConfig, "redactArtifacts") ??
+      true
   };
+}
+
+async function validateConfigSchema(
+  rawConfig: Record<string, unknown>,
+  configPath: string
+): Promise<void> {
+  const schema = await readConfigSchema();
+  const ajv = new Ajv2020({ allErrors: true, strict: false, validateFormats: false });
+  const validate = ajv.compile(schema);
+  if (validate(rawConfig)) return;
+  const details = (validate.errors ?? [])
+    .map((error: { instancePath?: string; message?: string }) => {
+      const pathLabel = error.instancePath || "/";
+      return `- ${pathLabel} ${error.message ?? "is invalid"}`;
+    })
+    .join("\n");
+  throw new Error(`Invalid ${configPath}:\n${details}`);
+}
+
+async function readConfigSchema(): Promise<Record<string, unknown>> {
+  const currentDir = path.dirname(fileURLToPath(import.meta.url));
+  const candidates = [
+    path.resolve(currentDir, "../schema/mobiloop.config.schema.json"),
+    path.resolve(currentDir, "../../schema/mobiloop.config.schema.json"),
+    path.resolve(process.cwd(), "schema/mobiloop.config.schema.json")
+  ];
+  for (const candidate of candidates) {
+    try {
+      return JSON.parse(await fs.readFile(candidate, "utf8")) as Record<string, unknown>;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+        throw error;
+      }
+    }
+  }
+  throw new Error("Could not find schema/mobiloop.config.schema.json");
+}
+
+function envBoolean(name: string): boolean | undefined {
+  const value = process.env[name];
+  if (value === undefined) return undefined;
+  if (["1", "true", "yes", "on"].includes(value.toLowerCase())) return true;
+  if (["0", "false", "no", "off"].includes(value.toLowerCase())) return false;
+  throw new Error(`${name} must be true or false`);
 }
 
 function parseToolPolicies(

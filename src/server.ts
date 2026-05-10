@@ -3,6 +3,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { loadConfig } from "./config.js";
 import { McpTool, errorResponse } from "./types.js";
+import { enforceToolApproval, stripApproval } from "./utils/approval.js";
 import { attachToolPolicies } from "./utils/tool-policy.js";
 
 export async function runMcpServer(name: string, tools: McpTool[]): Promise<void> {
@@ -36,7 +37,9 @@ export async function runMcpServer(name: string, tools: McpTool[]): Promise<void
       return errorResponse(`Unknown tool: ${request.params.name}`);
     }
     try {
-      return await tool.handler(request.params.arguments ?? {}, { config });
+      const input = request.params.arguments ?? {};
+      enforceToolApproval(tool, input, config);
+      return await tool.handler(stripApproval(input), { config });
     } catch (error) {
       return errorResponse(error);
     }

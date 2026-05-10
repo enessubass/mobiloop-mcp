@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import { XMLParser } from "fast-xml-parser";
 import { ServerConfig } from "../types.js";
 import { writeArtifactBuffer, writeArtifactText } from "./artifacts.js";
+import { redactText } from "./redaction.js";
 
 export type LocatorStrategy =
   | "accessibility id"
@@ -376,7 +377,7 @@ export class AppiumClient {
     const text = await response.text();
     const payload = text ? JSON.parse(text) : {};
     if (!response.ok) {
-      throw new Error(`Appium ${method} ${route} failed (${response.status}): ${text}`);
+      throw new Error(`Appium ${method} ${route} failed (${response.status}): ${redactText(text)}`);
     }
     if (payload && typeof payload === "object" && "value" in payload) {
       const value = (payload as { value: unknown }).value;

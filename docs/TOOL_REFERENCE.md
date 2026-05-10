@@ -24,6 +24,8 @@ Each tool includes a `policy` block with risk metadata:
 
 MCP clients should use this metadata to decide when to ask for human approval. MobiLoop still enforces path, branch, timeout, output, and API allowlist controls internally.
 
+When `requireApproval` or `MOBILOOP_REQUIRE_APPROVAL=true` is enabled, the server also enforces this metadata before calling high-impact handlers.
+
 ## Code Tools
 
 | Tool                  | Purpose                                             | Main Risk | Approval |
@@ -121,3 +123,149 @@ Verification tools should produce evidence instead of model claims.
 | `ci.comment_pr`                            | Comment on a PR.                                  |
 | `ci.create_github_annotations`             | Create GitHub annotation JSON.                    |
 | `orchestrator.run_android_validation_loop` | Bounded Android build-install-Appium-verify loop. |
+
+## Critical Tool Contracts
+
+### `appium.tap_by_text`
+
+Input:
+
+```json
+{
+  "sessionId": "string",
+  "serverUrl": "string optional",
+  "text": "string",
+  "matchMode": "auto | exact | contains"
+}
+```
+
+Output:
+
+```json
+{
+  "tapped": true,
+  "sessionId": "APPIUM_SESSION_ID",
+  "text": "Giriş Yap",
+  "target": {
+    "elementId": "element-id",
+    "matchType": "exact:content-desc:clickable",
+    "matchedAttribute": "content-desc",
+    "matchedText": "Giriş Yap"
+  }
+}
+```
+
+Failure cases: session not reachable, text not visible, Appium element lookup failure, click failure.
+
+### `flow.run_script`
+
+Input:
+
+```json
+{
+  "sessionId": "string",
+  "serverUrl": "string optional",
+  "testName": "login-smoke",
+  "stopOnFailure": true,
+  "steps": [
+    { "action": "waitText", "text": "Giriş Yap" },
+    { "action": "tapText", "text": "Giriş Yap", "matchMode": "exact" },
+    { "action": "assertText", "text": "Ana Sayfa" },
+    { "action": "collectEvidence", "label": "login-result" }
+  ]
+}
+```
+
+Output:
+
+```json
+{
+  "passed": true,
+  "sessionId": "APPIUM_SESSION_ID",
+  "executed": [{ "index": 0, "passed": true }],
+  "evidence": [{ "label": "login-result", "screenshotPath": "...", "sourcePath": "..." }]
+}
+```
+
+Failure cases: unsupported action, missing locator/text, visibility timeout, assertion failure, evidence collection failure.
+
+### `verify.collect_evidence`
+
+Input:
+
+```json
+{
+  "sessionId": "string optional",
+  "serverUrl": "string optional",
+  "serial": "string optional",
+  "packageName": "string optional",
+  "prefix": "login-result"
+}
+```
+
+Output:
+
+```json
+{
+  "evidence": {
+    "label": "login-result",
+    "timestamp": "ISO-8601",
+    "screenshotPath": ".mobiloop/screenshots/...",
+    "sourcePath": ".mobiloop/sources/...",
+    "logPath": ".mobiloop/logs/..."
+  },
+  "status": "passed | app_bug | automation_error | environment_missing | remote_rules_not_deployed | test_data_missing | external_dependency | unknown_failure",
+  "likelyRootCause": "string",
+  "nextSuggestedAction": "string"
+}
+```
+
+Text artifacts are redacted when `redactArtifacts` is enabled.
+
+### `orchestrator.run_android_validation_loop`
+
+Input:
+
+```json
+{
+  "goal": "Validate login flow",
+  "kind": "flutter",
+  "apkPath": "build/app/outputs/flutter-apk/app-debug.apk",
+  "packageName": "com.example.app",
+  "runLint": false,
+  "runUnitTests": false,
+  "buildDebugApk": false,
+  "appiumCapabilities": {
+    "platformName": "Android",
+    "appium:automationName": "UiAutomator2"
+  },
+  "appiumSteps": [
+    {
+      "tool": "appium.wait_for_visible",
+      "args": { "locator": { "strategy": "text", "value": "Login" } }
+    }
+  ],
+  "expectedTexts": ["Home"],
+  "approval": {
+    "approved": true,
+    "approvedBy": "human-or-ci",
+    "reason": "Run Android validation on emulator"
+  }
+}
+```
+
+Output:
+
+```json
+{
+  "passed": true,
+  "status": "passed",
+  "iterations": [],
+  "likelyRootCause": "",
+  "nextSuggestedAction": "",
+  "blockingExternalDependency": false,
+  "durationMs": 12345
+}
+```
+
+Failure cases: build failure, APK not found, install failure, Appium session failure, failed assertion, classified external dependency.

@@ -17,7 +17,7 @@ Current unit tests cover:
 
 ## Integration
 
-Expected integration fixtures:
+Current mock integration tests:
 
 ```text
 test/integration/
@@ -26,7 +26,7 @@ test/integration/
   orchestrator.mock.test.ts
 ```
 
-These should use mock Appium and adb/xcrun responses, not real devices.
+These use a mock Appium HTTP server and verify exact-first text tapping, high-level flow script execution, and the Android orchestrator happy path without real device mutation.
 
 ## E2E
 
@@ -40,6 +40,14 @@ test/e2e/
 ```
 
 Hosted GitHub Linux runners are good for package correctness. They are not enough to prove emulator/Appium behavior for every host.
+
+The self-hosted proof workflow is:
+
+```text
+.github/workflows/android-fixture-e2e.yml
+```
+
+It prepares the Flutter login fixture, builds a debug APK, starts Appium, runs `orchestrator.run_android_validation_loop`, and uploads `.mobiloop` artifacts.
 
 ## Required Evidence For A Passing Loop
 
@@ -59,9 +67,8 @@ A loop is not considered proven unless the run captures:
 
 Add fixtures in this order:
 
-1. Mock Appium client tests.
-2. Orchestrator happy/failure path tests.
-3. Flutter login demo on self-hosted Android.
-4. React Native login demo on self-hosted Android.
-5. Native Android login demo on self-hosted Android.
-6. iOS simulator smoke on macOS runner.
+1. Add an orchestrator failure-path mock integration test.
+2. Run Flutter login demo on self-hosted Android and publish real artifacts.
+3. Add React Native login demo on self-hosted Android.
+4. Add native Android login demo on self-hosted Android.
+5. Add iOS simulator smoke on macOS runner.

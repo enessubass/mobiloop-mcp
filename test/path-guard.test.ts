@@ -21,7 +21,9 @@ const config: ServerConfig = {
   sqlitePath: "sqlite3",
   apiAllowlist: ["http://127.0.0.1:*", "http://localhost:*"],
   forbiddenPathGlobs: [".env", "**/*.jks", "**/*secret*"],
-  toolPolicies: {}
+  toolPolicies: {},
+  requireApproval: false,
+  redactArtifacts: true
 };
 
 test("resolveWorkspacePath allows normal workspace files", () => {

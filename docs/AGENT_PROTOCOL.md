@@ -51,6 +51,20 @@ Ask before tools whose policy has `requiresApproval: true`. Typical examples:
 - commits and PRs
 - orchestrator loops that mutate device state
 
+When server-side enforcement is enabled, include:
+
+```json
+{
+  "approval": {
+    "approved": true,
+    "approvedBy": "human-or-ci",
+    "reason": "Specific reason for this high-impact action"
+  }
+}
+```
+
+Use `policy.list_tools` or `mobiloop list-tools --json` before planning a run so the agent knows which actions need approval.
+
 ## Stop Conditions
 
 Stop and report when:

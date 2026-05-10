@@ -9,24 +9,26 @@ import { flowTools } from "./flow.js";
 import { iosTools } from "./ios.js";
 import { loopTools } from "./loop.js";
 import { orchestratorTools } from "./orchestrator.js";
+import { policyTools } from "./policy.js";
 import { verifyTools } from "./verify.js";
 import { attachToolPolicies } from "../utils/tool-policy.js";
 
 export function allTools(policyOverrides: Record<string, Partial<ToolPolicy>> = {}): McpTool[] {
-  return attachToolPolicies(
-    [
-      ...codeTools(),
-      ...envTools(),
-      ...buildTools(),
-      ...deviceTools(),
-      ...iosTools(),
-      ...appiumTools(),
-      ...verifyTools(),
-      ...flowTools(),
-      ...loopTools(),
-      ...ciTools(),
-      ...orchestratorTools()
-    ],
-    policyOverrides
-  );
+  let configuredTools: McpTool[] = [];
+  const baseTools = [
+    ...codeTools(),
+    ...envTools(),
+    ...buildTools(),
+    ...deviceTools(),
+    ...iosTools(),
+    ...appiumTools(),
+    ...verifyTools(),
+    ...flowTools(),
+    ...loopTools(),
+    ...ciTools(),
+    ...orchestratorTools(),
+    ...policyTools(() => configuredTools)
+  ];
+  configuredTools = attachToolPolicies(baseTools, policyOverrides);
+  return configuredTools;
 }

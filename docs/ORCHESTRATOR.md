@@ -2,6 +2,8 @@
 
 `orchestrator.run_android_validation_loop` coordinates Android validation.
 
+It is currently a build-test-verify-classify loop, not an autonomous patch writer. Patch-and-retest should be layered on top by an agent only after approval, diff review, and rollback rules are configured.
+
 ## Responsibilities
 
 - optionally run lint
@@ -28,6 +30,10 @@ Important fields include:
 - `nextSuggestedAction`
 - `blockingExternalDependency`
 - `reportPath`
+
+## Approval
+
+When `MOBILOOP_REQUIRE_APPROVAL=true`, the orchestrator requires an approval payload because it can install apps, clear data, create Appium sessions, and drive UI flows.
 
 ## Bounded Loop Contract
 

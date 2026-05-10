@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { ServerConfig } from "../types.js";
+import { redactText } from "./redaction.js";
 
 export async function ensureArtifactsDir(config: ServerConfig, group?: string): Promise<string> {
   const dir = group ? path.join(config.artifactsDir, group) : config.artifactsDir;
@@ -17,7 +18,7 @@ export async function writeArtifactText(
 ): Promise<string> {
   const filePath = artifactPath(config, group, prefix, extension);
   await fs.mkdir(path.dirname(filePath), { recursive: true });
-  await fs.writeFile(filePath, text, "utf8");
+  await fs.writeFile(filePath, config.redactArtifacts ? redactText(text) : text, "utf8");
   return filePath;
 }
 

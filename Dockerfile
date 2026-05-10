@@ -8,6 +8,7 @@ FROM deps AS build
 COPY tsconfig.json ./
 COPY src ./src
 COPY test ./test
+COPY schema ./schema
 RUN npm test
 RUN npm prune --omit=dev
 

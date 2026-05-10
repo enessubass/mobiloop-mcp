@@ -74,6 +74,14 @@ export function asOptionalNumber(input: Record<string, unknown>, key: string): n
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
+export function asOptionalBoolean(
+  input: Record<string, unknown>,
+  key: string
+): boolean | undefined {
+  const value = input[key];
+  return typeof value === "boolean" ? value : undefined;
+}
+
 export function asOptionalStringArray(
   input: Record<string, unknown>,
   key: string

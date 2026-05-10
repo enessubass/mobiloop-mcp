@@ -71,6 +71,14 @@
         "type": "string"
       }
     },
+    "requireApproval": {
+      "type": "boolean",
+      "description": "When true, tools marked requiresApproval need an approval payload in the tool input."
+    },
+    "redactArtifacts": {
+      "type": "boolean",
+      "description": "When true, text artifacts and command text output are redacted for common secrets and PII."
+    },
     "toolPolicies": {
       "type": "object",
       "additionalProperties": {

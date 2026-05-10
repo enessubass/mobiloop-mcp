@@ -12,6 +12,8 @@ The name reflects the core contract: mobile work should run through a measurable
 
 It is built for the workflow where the agent does not just write code. It builds, runs, tests, observes, fixes, and repeats.
 
+Today, MobiLoop provides guarded build-test-verify loops and evidence-based failure classification. Fully automated patch-and-retest is intentionally kept outside the default orchestrator until stricter approval, rollback, and review controls are enabled.
+
 ## Highlights
 
 - **Evidence-first mobile loops**: build logs, screenshots, Appium XML source, logcat/simulator logs, API responses, screenshot diffs, and iteration records.
@@ -21,6 +23,8 @@ It is built for the workflow where the agent does not just write code. It builds
 - **Scenario generation and flow DSL**: scan source for candidate E2E scenarios, then run high-level JSON flows with wait/tap/type/assert/evidence steps.
 - **Source-flow analysis**: scan Flutter, React Native, Android, and iOS source for screen, route, transition, and visible-text candidates.
 - **Root-cause classification**: classify logcat evidence into app bugs, automation errors, missing environment, remote rules, and test-data issues.
+- **Server-side approval gate**: optionally block high-impact tools unless input includes a valid approval payload.
+- **Artifact redaction**: redact common secrets, bearer tokens, API keys, emails, and phone numbers from text artifacts and command output.
 - **Guarded code tools**: workspace-only reads/searches/patches, forbidden secret paths, guarded branches, commits, and PR creation.
 - **Docker-ready MCP runtime**: package the Node MCP server in Docker while keeping mobile SDKs, emulators, devices, and Appium on the host or runner.
 - **Composable binaries**: run everything as one server or split each responsibility into its own MCP server.
@@ -128,6 +132,8 @@ Inspect tool policy metadata:
 MOBILOOP_WORKSPACE_ROOT=/absolute/path/to/mobile/app \
 node dist/src/cli.js list-tools --json
 ```
+
+The same metadata is available inside MCP through `policy.list_tools`.
 
 Call any tool directly:
 
@@ -281,15 +287,31 @@ Common fields:
 | `apiAllowlist`         | localhost only                  | URLs allowed for API verification                 |
 | `forbiddenPathGlobs`   | secret-like defaults            | Files blocked from read/write operations          |
 | `toolPolicies`         | built-in defaults               | Per-tool risk and approval metadata overrides     |
+| `requireApproval`      | `false`                         | Require approval payloads for high-impact tools   |
+| `redactArtifacts`      | `true`                          | Redact common secrets and PII from text artifacts |
 
 Environment variables override selected fields:
 
 ```bash
 export MOBILOOP_WORKSPACE_ROOT=/absolute/path/to/mobile/app
 export APPIUM_SERVER_URL=http://127.0.0.1:4723
+export MOBILOOP_REQUIRE_APPROVAL=true
 ```
 
 The config schema is available at [schema/mobiloop.config.schema.json](schema/mobiloop.config.schema.json). See [docs/CONFIGURATION.md](docs/CONFIGURATION.md).
+
+Approval payloads use this shape:
+
+```json
+{
+  "approval": {
+    "approved": true,
+    "approvedBy": "human-or-ci",
+    "reason": "Run Android validation on emulator",
+    "expiresAt": "2026-05-11T12:00:00Z"
+  }
+}
+```
 
 ## Recommended First Run
 
@@ -718,6 +740,10 @@ Typical contents:
 - `ci.comment_pr`
 - `ci.create_github_annotations`
 
+### Policy
+
+- `policy.list_tools`
+
 ### Orchestrator
 
 - `orchestrator.run_android_validation_loop`
@@ -803,6 +829,7 @@ The Dockerfile also runs the test suite during image build.
 - [docs/DOCKER.md](docs/DOCKER.md)
 - [docs/SECURITY.md](docs/SECURITY.md)
 - [docs/demo/flutter-login-loop.md](docs/demo/flutter-login-loop.md)
+- [.github/workflows/android-fixture-e2e.yml](.github/workflows/android-fixture-e2e.yml)
 - [examples/android-validation-loop.json](examples/android-validation-loop.json)
 - [examples/flow-memory-replay.json](examples/flow-memory-replay.json)
 - [examples/github-actions-mobiloop.yml](examples/github-actions-mobiloop.yml)

@@ -37,7 +37,7 @@ Use it in config files:
 | `forbiddenPathGlobs`   | Keep secret, keystore, provisioning, and service-config patterns blocked.     |
 | `toolPolicies`         | Override risk metadata for local policy engines or MCP clients.               |
 | `requireApproval`      | Set true in production to enforce approval payloads server-side.              |
-| `redactArtifacts`      | Keep true unless another artifact sanitizer runs after MobiLoop.              |
+| `redactArtifacts`      | Keep true unless another artifact/response sanitizer runs after MobiLoop.     |
 
 MobiLoop validates `mobiloop.config.json` against the JSON schema at startup. Invalid fields fail early with a path-specific error.
 

@@ -220,7 +220,7 @@ Output:
 }
 ```
 
-Text artifacts are redacted when `redactArtifacts` is enabled.
+Text artifacts and MCP/CLI text responses are redacted when `redactArtifacts` is enabled.
 
 ### `orchestrator.run_android_validation_loop`
 

@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import test from "node:test";
+import { textResponse } from "../src/types.js";
 import { writeArtifactText } from "../src/utils/artifacts.js";
-import { redactText } from "../src/utils/redaction.js";
+import { redactText, redactToolResponse } from "../src/utils/redaction.js";
 import { createTestConfig } from "./helpers.js";
 
 test("redactText removes common tokens and PII", () => {
@@ -29,4 +30,22 @@ test("writeArtifactText redacts text artifacts by default", async () => {
   const content = await fs.readFile(artifactPath, "utf8");
   assert.match(content, /token: \[REDACTED_SECRET\]/);
   assert.match(content, /\[REDACTED_EMAIL\]/);
+});
+
+test("redactToolResponse redacts MCP text response content", () => {
+  const response = redactToolResponse(
+    textResponse("source contains root@example.com and Authorization: Bearer abc.def.ghi"),
+    true
+  );
+  const text = response.content.map((entry) => ("text" in entry ? entry.text : "")).join("\n");
+  assert.match(text, /\[REDACTED_EMAIL\]/);
+  assert.match(text, /Bearer \[REDACTED_TOKEN\]/);
+  assert.doesNotMatch(text, /root@example.com/);
+  assert.doesNotMatch(text, /abc\.def\.ghi/);
+});
+
+test("redactToolResponse preserves MCP text response content when disabled", () => {
+  const response = redactToolResponse(textResponse("root@example.com"), false);
+  const text = response.content.map((entry) => ("text" in entry ? entry.text : "")).join("\n");
+  assert.equal(text, "root@example.com");
 });

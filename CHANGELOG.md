@@ -9,7 +9,7 @@ Initial release candidate.
 - Improved Appium exact-first text tapping, Flutter-friendly text input modes, readiness waits, and clicked-target reporting.
 - Added Appium server bootstrap helper, session health assertion, common evidence schema, and logcat root-cause classification.
 - Added machine-readable tool policy metadata, config schema, CLI policy listing, lint/format checks, and expanded production documentation.
-- Added server-side approval enforcement, `policy.list_tools`, runtime config schema validation, and default text artifact redaction.
+- Added server-side approval enforcement, `policy.list_tools`, runtime config schema validation, and default redaction for text artifacts, command output, and MCP/CLI text responses.
 - Added mock Appium integration tests for Appium client, flow script execution, and Android orchestrator happy path.
 - Added a self-hosted Android fixture E2E workflow for the Flutter login demo.
 - Added sample artifacts and a minimal Flutter login fixture for local MobiLoop trials.

@@ -1,3 +1,5 @@
+import { ToolResponse } from "../types.js";
+
 const REDACTION_PATTERNS: Array<{ pattern: RegExp; replacement: string }> = [
   { pattern: /Bearer\s+[A-Za-z0-9._~+/=-]+/g, replacement: "Bearer [REDACTED_TOKEN]" },
   { pattern: /AIza[0-9A-Za-z_-]{35}/g, replacement: "[REDACTED_GOOGLE_API_KEY]" },
@@ -46,4 +48,16 @@ export function redactJsonValue<T>(value: T): T {
     ) as T;
   }
   return value;
+}
+
+export function redactToolResponse(response: ToolResponse, redact: boolean): ToolResponse {
+  if (!redact) return response;
+  return {
+    ...response,
+    content: response.content.map((entry) =>
+      "text" in entry && typeof entry.text === "string"
+        ? { ...entry, text: redactText(entry.text) }
+        : entry
+    )
+  };
 }

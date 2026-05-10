@@ -34,7 +34,7 @@ MobiLoop is not a sandbox by itself. Production deployments should also use:
 
 ## Redaction Policy
 
-Text artifacts and command text output are redacted by default for common bearer tokens, JWTs, API keys, GitHub/Slack/OpenAI tokens, password/token key-value pairs, emails, and phone numbers.
+Text artifacts, command text output, and MCP/CLI text responses are redacted by default for common bearer tokens, JWTs, API keys, GitHub/Slack/OpenAI tokens, password/token key-value pairs, emails, and phone numbers.
 
 Limitations:
 

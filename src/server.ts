@@ -4,6 +4,7 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprot
 import { loadConfig } from "./config.js";
 import { McpTool, errorResponse } from "./types.js";
 import { enforceToolApproval, stripApproval } from "./utils/approval.js";
+import { redactToolResponse } from "./utils/redaction.js";
 import { attachToolPolicies } from "./utils/tool-policy.js";
 
 export async function runMcpServer(name: string, tools: McpTool[]): Promise<void> {
@@ -39,9 +40,12 @@ export async function runMcpServer(name: string, tools: McpTool[]): Promise<void
     try {
       const input = request.params.arguments ?? {};
       enforceToolApproval(tool, input, config);
-      return await tool.handler(stripApproval(input), { config });
+      return redactToolResponse(
+        await tool.handler(stripApproval(input), { config }),
+        config.redactArtifacts
+      );
     } catch (error) {
-      return errorResponse(error);
+      return redactToolResponse(errorResponse(error), config.redactArtifacts);
     }
   });
 

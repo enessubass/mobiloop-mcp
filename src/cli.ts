@@ -2,6 +2,7 @@
 import { loadConfig } from "./config.js";
 import { allTools } from "./tools/index.js";
 import { enforceToolApproval, stripApproval } from "./utils/approval.js";
+import { redactToolResponse } from "./utils/redaction.js";
 
 async function main(): Promise<void> {
   const [command, ...args] = process.argv.slice(2);
@@ -41,7 +42,10 @@ async function main(): Promise<void> {
     if (!tool) throw new Error(`Unknown tool: ${toolName}`);
     const input = JSON.parse(rawJson);
     enforceToolApproval(tool, input, config);
-    const response = await tool.handler(stripApproval(input), { config });
+    const response = redactToolResponse(
+      await tool.handler(stripApproval(input), { config }),
+      config.redactArtifacts
+    );
     if (response.isError) {
       const message = response.content
         .map((entry) => ("text" in entry ? entry.text : ""))
@@ -61,7 +65,10 @@ async function main(): Promise<void> {
       (entry) => entry.name === "flow.generate_test_scenarios"
     );
     if (!tool) throw new Error("flow.generate_test_scenarios is not registered");
-    const response = await tool.handler({ goal: goal || undefined }, { config });
+    const response = redactToolResponse(
+      await tool.handler({ goal: goal || undefined }, { config }),
+      config.redactArtifacts
+    );
     for (const entry of response.content) {
       if ("text" in entry) process.stdout.write(`${entry.text}\n`);
     }

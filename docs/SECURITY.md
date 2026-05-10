@@ -52,7 +52,7 @@ Verification tools produce evidence rather than relying on model claims:
 - accessibility label findings
 - sqlite read-only query results
 
-Text artifacts and command text output are redacted by default for common bearer tokens, JWTs, API keys, secret-like key-value pairs, emails, and phone numbers. Screenshot redaction still requires external OCR/sanitization if screenshots can contain sensitive values.
+Text artifacts, command text output, and MCP/CLI text responses are redacted by default for common bearer tokens, JWTs, API keys, secret-like key-value pairs, emails, and phone numbers. Screenshot redaction still requires external OCR/sanitization if screenshots can contain sensitive values.
 
 ## Human Approval Layer
 

@@ -24,7 +24,7 @@ Today, MobiLoop provides guarded build-test-verify loops and evidence-based fail
 - **Source-flow analysis**: scan Flutter, React Native, Android, and iOS source for screen, route, transition, and visible-text candidates.
 - **Root-cause classification**: classify logcat evidence into app bugs, automation errors, missing environment, remote rules, and test-data issues.
 - **Server-side approval gate**: optionally block high-impact tools unless input includes a valid approval payload.
-- **Artifact redaction**: redact common secrets, bearer tokens, API keys, emails, and phone numbers from text artifacts and command output.
+- **Redaction by default**: redact common secrets, bearer tokens, API keys, emails, and phone numbers from text artifacts, command output, and MCP/CLI text responses.
 - **Guarded code tools**: workspace-only reads/searches/patches, forbidden secret paths, guarded branches, commits, and PR creation.
 - **Docker-ready MCP runtime**: package the Node MCP server in Docker while keeping mobile SDKs, emulators, devices, and Appium on the host or runner.
 - **Composable binaries**: run everything as one server or split each responsibility into its own MCP server.
@@ -268,27 +268,27 @@ export MOBILOOP_CONFIG=/absolute/path/to/mobiloop.config.json
 
 Common fields:
 
-| Field                  | Default                         | Purpose                                           |
-| ---------------------- | ------------------------------- | ------------------------------------------------- |
-| `workspaceRoot`        | current working directory       | Mobile app workspace the MCP server may access    |
-| `artifactsDir`         | `.mobiloop`                     | Evidence, logs, screenshots, reports, flow memory |
-| `maxCommandMs`         | `120000`                        | Default command timeout                           |
-| `maxOutputBytes`       | `1048576`                       | Output cap for command tools                      |
-| `maxFixAttempts`       | `3`                             | Suggested fix-loop limit                          |
-| `maxTestIterations`    | `5`                             | Orchestrator loop limit                           |
-| `maxRuntimeMinutes`    | `30`                            | Suggested total runtime limit                     |
-| `allowedBranchPattern` | `^feature/ai-[A-Za-z0-9._/-]+$` | Branches where commit tools are allowed           |
-| `appiumServerUrl`      | `http://127.0.0.1:4723`         | Appium server endpoint                            |
-| `adbPath`              | `adb`                           | Android Debug Bridge path                         |
-| `emulatorPath`         | `emulator`                      | Android emulator CLI path                         |
-| `xcrunPath`            | `xcrun`                         | iOS simulator CLI path                            |
-| `xcodebuildPath`       | `xcodebuild`                    | Xcode build CLI path                              |
-| `sqlitePath`           | `sqlite3`                       | SQLite CLI path for read-only assertions          |
-| `apiAllowlist`         | localhost only                  | URLs allowed for API verification                 |
-| `forbiddenPathGlobs`   | secret-like defaults            | Files blocked from read/write operations          |
-| `toolPolicies`         | built-in defaults               | Per-tool risk and approval metadata overrides     |
-| `requireApproval`      | `false`                         | Require approval payloads for high-impact tools   |
-| `redactArtifacts`      | `true`                          | Redact common secrets and PII from text artifacts |
+| Field                  | Default                         | Purpose                                                              |
+| ---------------------- | ------------------------------- | -------------------------------------------------------------------- |
+| `workspaceRoot`        | current working directory       | Mobile app workspace the MCP server may access                       |
+| `artifactsDir`         | `.mobiloop`                     | Evidence, logs, screenshots, reports, flow memory                    |
+| `maxCommandMs`         | `120000`                        | Default command timeout                                              |
+| `maxOutputBytes`       | `1048576`                       | Output cap for command tools                                         |
+| `maxFixAttempts`       | `3`                             | Suggested fix-loop limit                                             |
+| `maxTestIterations`    | `5`                             | Orchestrator loop limit                                              |
+| `maxRuntimeMinutes`    | `30`                            | Suggested total runtime limit                                        |
+| `allowedBranchPattern` | `^feature/ai-[A-Za-z0-9._/-]+$` | Branches where commit tools are allowed                              |
+| `appiumServerUrl`      | `http://127.0.0.1:4723`         | Appium server endpoint                                               |
+| `adbPath`              | `adb`                           | Android Debug Bridge path                                            |
+| `emulatorPath`         | `emulator`                      | Android emulator CLI path                                            |
+| `xcrunPath`            | `xcrun`                         | iOS simulator CLI path                                               |
+| `xcodebuildPath`       | `xcodebuild`                    | Xcode build CLI path                                                 |
+| `sqlitePath`           | `sqlite3`                       | SQLite CLI path for read-only assertions                             |
+| `apiAllowlist`         | localhost only                  | URLs allowed for API verification                                    |
+| `forbiddenPathGlobs`   | secret-like defaults            | Files blocked from read/write operations                             |
+| `toolPolicies`         | built-in defaults               | Per-tool risk and approval metadata overrides                        |
+| `requireApproval`      | `false`                         | Require approval payloads for high-impact tools                      |
+| `redactArtifacts`      | `true`                          | Redact common secrets and PII from text artifacts and text responses |
 
 Environment variables override selected fields:
 

@@ -830,12 +830,14 @@ The Dockerfile also runs the test suite during image build.
 - [docs/SECURITY.md](docs/SECURITY.md)
 - [docs/demo/flutter-login-loop.md](docs/demo/flutter-login-loop.md)
 - [docs/releases/v0.1.0-alpha.1.md](docs/releases/v0.1.0-alpha.1.md)
+- [docs/releases/v0.1.0-alpha.2.md](docs/releases/v0.1.0-alpha.2.md)
 - [.github/workflows/android-fixture-e2e.yml](.github/workflows/android-fixture-e2e.yml)
 - [examples/android-validation-loop.json](examples/android-validation-loop.json)
 - [examples/flow-memory-replay.json](examples/flow-memory-replay.json)
 - [examples/github-actions-mobiloop.yml](examples/github-actions-mobiloop.yml)
 - [examples/mobile-fixtures/flutter-login-demo](examples/mobile-fixtures/flutter-login-demo)
 - [examples/artifacts/successful-loop-report.md](examples/artifacts/successful-loop-report.md)
+- [examples/artifacts/real-runs/flutter-login-android](examples/artifacts/real-runs/flutter-login-android)
 
 ## License
 

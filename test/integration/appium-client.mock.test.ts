@@ -15,3 +15,18 @@ test("AppiumClient uses exact-first tap matching before contains fallback", asyn
     await mock.close();
   }
 });
+
+test("AppiumClient maps native mobile locator strategy names to WebDriver strategy names", async () => {
+  const mock = await startMockAppium();
+  try {
+    const client = new AppiumClient({ serverUrl: mock.serverUrl });
+    await client.findElement("s1", {
+      strategy: "android uiautomator",
+      value: 'new UiSelector().className("android.widget.EditText").instance(0)'
+    });
+    const request = mock.requests.at(-1);
+    assert.equal(request?.body.using, "-android uiautomator");
+  } finally {
+    await mock.close();
+  }
+});

@@ -36,3 +36,4 @@ See:
 - `examples/artifacts/failed-loop-report.md`
 - `examples/artifacts/appium-page-source.xml`
 - `examples/artifacts/logcat-firestore-permission.log`
+- `examples/artifacts/real-runs/flutter-login-android/`

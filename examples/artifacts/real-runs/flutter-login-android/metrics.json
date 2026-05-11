@@ -1,0 +1,31 @@
+{
+  "runId": "flutter-login-android-2026-05-11-genymotion",
+  "fixture": "examples/mobile-fixtures/flutter-login-demo",
+  "status": "passed",
+  "durationMs": 26911,
+  "iterations": 1,
+  "device": "Genymotion Samsung Galaxy S24 Android 15 API 35",
+  "serial": "127.0.0.1:6555",
+  "appium": {
+    "version": "3.4.2",
+    "driver": "uiautomator2@7.2.2",
+    "serverUrl": "http://127.0.0.1:4723"
+  },
+  "app": {
+    "kind": "flutter",
+    "packageName": "com.example.mobiloop_flutter_login_demo",
+    "apk": "build/app/outputs/flutter-apk/app-debug.apk"
+  },
+  "checks": {
+    "screenContainsAnaSayfa": true,
+    "screenContainsHosGeldiniz": true,
+    "appiumSessionHealthy": true,
+    "noCrashInLogcat": true
+  },
+  "artifacts": {
+    "screenshot": "screenshot-home.png",
+    "pageSource": "appium-page-source.xml",
+    "logcat": "logcat.log",
+    "iterationRecord": "iterations.jsonl"
+  }
+}

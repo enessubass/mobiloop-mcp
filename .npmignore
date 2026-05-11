@@ -1,0 +1,5 @@
+examples/mobile-fixtures/*/.dart_tool/
+examples/mobile-fixtures/*/build/
+examples/mobile-fixtures/*/pubspec.lock
+npm-debug.log
+*.tgz

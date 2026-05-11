@@ -1,0 +1,2 @@
+05-10 15:31:12.000  1234  5678 W Firestore: Listen for Query(target=Query(users/test order by __name__);limitType=LIMIT_TO_FIRST) failed: Status{code=PERMISSION_DENIED, description=Missing or insufficient permissions., cause=null}
+05-10 15:31:12.010  1234  5678 I flutter : Login failed: [cloud_firestore/permission-denied] The caller does not have permission to execute the specified operation.

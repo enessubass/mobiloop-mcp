@@ -8,14 +8,16 @@ import { createTestConfig } from "./helpers.js";
 
 test("redactText removes common tokens and PII", () => {
   const googleLikeKey = `AIza${"12345678901234567890123456789012345"}`;
-  const input = `Authorization: Bearer abc.def.ghi email root@example.com password=supersecret ${googleLikeKey}`;
+  const input = `Authorization: Bearer abc.def.ghi email root@example.com password=supersecret phone=+905551112233 ${googleLikeKey}`;
   const output = redactText(input);
   assert.match(output, /Bearer \[REDACTED_TOKEN\]/);
   assert.match(output, /\[REDACTED_EMAIL\]/);
   assert.match(output, /password=\[REDACTED_SECRET\]/);
+  assert.match(output, /phone=\[REDACTED_PHONE\]/);
   assert.match(output, /\[REDACTED_GOOGLE_API_KEY\]/);
   assert.doesNotMatch(output, /root@example.com/);
   assert.doesNotMatch(output, /supersecret/);
+  assert.doesNotMatch(output, /\+905551112233/);
 });
 
 test("writeArtifactText redacts text artifacts by default", async () => {
@@ -48,4 +50,20 @@ test("redactToolResponse preserves MCP text response content when disabled", () 
   const response = redactToolResponse(textResponse("root@example.com"), false);
   const text = response.content.map((entry) => ("text" in entry ? entry.text : "")).join("\n");
   assert.equal(text, "root@example.com");
+});
+
+test("redactText does not treat hostnames, package names, or class names as JWTs", () => {
+  const output = redactText(
+    "http://127.0.0.1:4723 com.example.mobiloop_flutter_login_demo android.widget.EditText"
+  );
+  assert.match(output, /127\.0\.0\.1/);
+  assert.match(output, /com\.example\.mobiloop_flutter_login_demo/);
+  assert.match(output, /android\.widget\.EditText/);
+  assert.doesNotMatch(output, /\[REDACTED_JWT\]/);
+});
+
+test("redactText preserves logcat timestamps while redacting labeled phone numbers", () => {
+  const output = redactText("05-11 08:40:48.414 I flutter : phone: +905551112233");
+  assert.match(output, /05-11 08:40:48\.414/);
+  assert.match(output, /phone: \[REDACTED_PHONE\]/);
 });

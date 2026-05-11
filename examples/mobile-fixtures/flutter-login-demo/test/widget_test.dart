@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobiloop_flutter_login_demo/main.dart';
 
@@ -12,4 +13,3 @@ void main() {
     expect(find.text('Hoş geldiniz'), findsOneWidget);
   });
 }
-

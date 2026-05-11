@@ -9,7 +9,7 @@ const REDACTION_PATTERNS: Array<{ pattern: RegExp; replacement: string }> = [
   { pattern: /sk-[A-Za-z0-9]{20,}/g, replacement: "[REDACTED_OPENAI_KEY]" },
   { pattern: /xox[baprs]-[A-Za-z0-9-]{10,}/g, replacement: "[REDACTED_SLACK_TOKEN]" },
   {
-    pattern: /\b[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g,
+    pattern: /\b[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/g,
     replacement: "[REDACTED_JWT]"
   },
   {
@@ -22,7 +22,11 @@ const REDACTION_PATTERNS: Array<{ pattern: RegExp; replacement: string }> = [
     replacement: "[REDACTED_EMAIL]"
   },
   {
-    pattern: /\b(?:\+?\d[\s.-]?){9,15}\b/g,
+    pattern: /\b(phone|mobile|tel|telephone)(["'\s:=]+)(\+?[0-9][0-9\s().-]{7,}[0-9])/gi,
+    replacement: "$1$2[REDACTED_PHONE]"
+  },
+  {
+    pattern: /\B\+[1-9]\d{7,14}\b/g,
     replacement: "[REDACTED_PHONE]"
   }
 ];

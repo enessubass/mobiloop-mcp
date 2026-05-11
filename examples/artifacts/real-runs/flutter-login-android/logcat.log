@@ -1,0 +1,84 @@
+--------- beginning of main
+05-11 08:41:51.768 19108 19108 I Zygote  : seccomp disabled by setenforce 0
+05-11 08:41:51.770 19108 19108 I tter_login_demo: Late-enabling -Xcheck:jni
+05-11 08:41:51.783 19108 19108 I tter_login_demo: Using CollectorTypeCMC GC.
+05-11 08:41:51.805 19108 19108 D nativeloader: Load libframework-connectivity-tiramisu-jni.so using APEX ns com_android_tethering for caller /apex/com.android.tethering/javalib/framework-connectivity-t.jar: ok
+05-11 08:41:51.861 19108 19108 D nativeloader: Load libstats_jni.so using APEX ns com_android_os_statsd for caller /apex/com.android.os.statsd/javalib/framework-statsd.jar: ok
+05-11 08:41:51.878 19108 19108 D ApplicationLoaders: Returning zygote-cached class loader: /system_ext/framework/androidx.window.extensions.jar
+05-11 08:41:51.879 19108 19108 D ApplicationLoaders: Returning zygote-cached class loader: /system_ext/framework/androidx.window.sidecar.jar
+05-11 08:41:51.880 19108 19108 W ziparchive: Unable to open '/data/app/~~-mEJinVowc8X14O9OKojxg==/com.example.mobiloop_flutter_login_demo-5ZOQfJAe0ur5h8WNKJHwhw==/base.dm': No such file or directory
+05-11 08:41:51.880 19108 19108 W ziparchive: Unable to open '/data/app/~~-mEJinVowc8X14O9OKojxg==/com.example.mobiloop_flutter_login_demo-5ZOQfJAe0ur5h8WNKJHwhw==/base.dm': No such file or directory
+05-11 08:41:51.956 19108 19108 D nativeloader: Configuring clns-7 for other apk /data/app/~~-mEJinVowc8X14O9OKojxg==/com.example.mobiloop_flutter_login_demo-5ZOQfJAe0ur5h8WNKJHwhw==/base.apk. target_sdk_version=36, uses_libraries=, library_path=/data/app/~~-mEJinVowc8X14O9OKojxg==/com.example.mobiloop_flutter_login_demo-5ZOQfJAe0ur5h8WNKJHwhw==/lib/arm64:/data/app/~~-mEJinVowc8X14O9OKojxg==/com.example.mobiloop_flutter_login_demo-5ZOQfJAe0ur5h8WNKJHwhw==/base.apk!/lib/arm64-v8a, permitted_path=/data:/mnt/expand:/data/user/0/com.example.mobiloop_flutter_login_demo
+05-11 08:41:51.977 19108 19108 V GraphicsEnvironment: Currently set values for:
+05-11 08:41:51.977 19108 19108 V GraphicsEnvironment:   angle_gl_driver_selection_pkgs=[]
+05-11 08:41:51.977 19108 19108 V GraphicsEnvironment:   angle_gl_driver_selection_values=[]
+05-11 08:41:51.977 19108 19108 V GraphicsEnvironment: Global.Settings values are invalid: number of packages: 0, number of values: 0
+05-11 08:41:51.977 19108 19108 V GraphicsEnvironment: Neither updatable production driver nor prerelease driver is supported.
+05-11 08:41:52.088 19108 19126 D FlutterJNI: Beginning load of flutter...
+05-11 08:41:52.042 19108 19108 I RenderThread: type=1400 audit(0.0:3552): avc:  denied  { read } for  name="libandroidemu.so" dev="vda3" ino=4459 scontext=u:r:untrusted_app:s0:c102,c256,c512,c768 tcontext=u:object_r:vendor_file:s0 tclass=file permissive=1 app=com.example.mobiloop_flutter_login_demo
+05-11 08:41:52.100 19108 19127 I ResourceExtractor: Resource version mismatch res_timestamp-1-1778488908059
+05-11 08:41:52.139 19108 19126 D nativeloader: Load /data/app/~~-mEJinVowc8X14O9OKojxg==/com.example.mobiloop_flutter_login_demo-5ZOQfJAe0ur5h8WNKJHwhw==/base.apk!/lib/arm64-v8a/libflutter.so using ns clns-7 from class loader (caller=/data/app/~~-mEJinVowc8X14O9OKojxg==/com.example.mobiloop_flutter_login_demo-5ZOQfJAe0ur5h8WNKJHwhw==/base.apk): ok
+05-11 08:41:52.140 19108 19126 D FlutterJNI: flutter (null) was loaded normally!
+05-11 08:41:52.078 19108 19108 I RenderThread: type=1400 audit(0.0:3553): avc:  denied  { open } for  path="/system/vendor/lib64/libandroidemu.so" dev="vda3" ino=4459 scontext=u:r:untrusted_app:s0:c102,c256,c512,c768 tcontext=u:object_r:vendor_file:s0 tclass=file permissive=1 app=com.example.mobiloop_flutter_login_demo
+05-11 08:41:52.078 19108 19108 I RenderThread: type=1400 audit(0.0:3554): avc:  denied  { getattr } for  path="/system/vendor/lib64/libandroidemu.so" dev="vda3" ino=4459 scontext=u:r:untrusted_app:s0:c102,c256,c512,c768 tcontext=u:object_r:vendor_file:s0 tclass=file permissive=1 app=com.example.mobiloop_flutter_login_demo
+05-11 08:41:52.082 19108 19108 I RenderThread: type=1400 audit(0.0:3555): avc:  denied  { map } for  path="/system/vendor/lib64/libandroidemu.so" dev="vda3" ino=4459 scontext=u:r:untrusted_app:s0:c102,c256,c512,c768 tcontext=u:object_r:vendor_file:s0 tclass=file permissive=1 app=com.example.mobiloop_flutter_login_demo
+05-11 08:41:52.082 19108 19108 I RenderThread: type=1400 audit(0.0:3556): avc:  denied  { execute } for  path="/system/vendor/lib64/libandroidemu.so" dev="vda3" ino=4459 scontext=u:r:untrusted_app:s0:c102,c256,c512,c768 tcontext=u:object_r:vendor_file:s0 tclass=file permissive=1 app=com.example.mobiloop_flutter_login_demo
+05-11 08:41:52.725 19108 19127 I ResourceExtractor: Extracted baseline resource assets/flutter_assets/kernel_blob.bin
+05-11 08:41:52.729 19108 19127 I ResourceExtractor: Extracted baseline resource assets/flutter_assets/vm_snapshot_data
+05-11 08:41:52.951 19108 19127 I ResourceExtractor: Extracted baseline resource assets/flutter_assets/isolate_snapshot_data
+05-11 08:41:53.046 19108 19108 I tter_login_demo: type=1400 audit(0.0:3558): avc:  denied  { open } for  path="/proc/sys/vm/max_map_count" dev="proc" ino=58821 scontext=u:r:untrusted_app:s0:c102,c256,c512,c768 tcontext=u:object_r:proc_max_map_count:s0 tclass=file permissive=1 app=com.example.mobiloop_flutter_login_demo
+05-11 08:41:53.046 19108 19108 I tter_login_demo: type=1400 audit(0.0:3559): avc:  denied  { getattr } for  path="/proc/sys/vm/max_map_count" dev="proc" ino=58821 scontext=u:r:untrusted_app:s0:c102,c256,c512,c768 tcontext=u:object_r:proc_max_map_count:s0 tclass=file permissive=1 app=com.example.mobiloop_flutter_login_demo
+05-11 08:41:53.110 19108 19129 E vndksupport: Could not load vulkan.vbox86.so from sphal namespace: dlopen failed: library "vulkan.vbox86.so" not found.
+05-11 08:41:53.111 19108 19129 D vulkan  : searching for layers in '/data/app/~~-mEJinVowc8X14O9OKojxg==/com.example.mobiloop_flutter_login_demo-5ZOQfJAe0ur5h8WNKJHwhw==/lib/arm64'
+05-11 08:41:53.111 19108 19129 D vulkan  : searching for layers in '/data/app/~~-mEJinVowc8X14O9OKojxg==/com.example.mobiloop_flutter_login_demo-5ZOQfJAe0ur5h8WNKJHwhw==/base.apk!/lib/arm64-v8a'
+05-11 08:41:53.133 19108 19129 D vulkan  : added global layer 'VK_LAYER_KHRONOS_validation' from library '/data/app/~~-mEJinVowc8X14O9OKojxg==/com.example.mobiloop_flutter_login_demo-5ZOQfJAe0ur5h8WNKJHwhw==/base.apk!/lib/arm64-v8a/libVkLayer_khronos_validation.so'
+05-11 08:41:53.162 19108 19129 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+05-11 08:41:53.162 19108 19129 I EGL_emulation: Opening libGLESv1_CM_emulation.so
+05-11 08:41:53.164 19108 19129 I EGL_emulation: Opening libGLESv2_emulation.so
+05-11 08:41:53.165 19108 19129 E tter_login_demo: open_verbose_path:56: Could not open '/dev/goldfish_pipe_dprctd': No such file or directory
+05-11 08:41:53.165 19108 19129 E tter_login_demo: open_verbose:128: both vsock and goldfish_pipe paths failed
+05-11 08:41:53.165 19108 19129 W tter_login_demo: Process pipe failed
+05-11 08:41:53.165 19108 19129 D HostConnection: New host connection established 0xb400007857092650, pid 19108, tid 19129
+05-11 08:41:53.213 19108 19129 E tter_login_demo: open_verbose_path:56: Could not open '/dev/goldfish_pipe_dprctd': No such file or directory
+05-11 08:41:53.213 19108 19129 E tter_login_demo: open_verbose:128: both vsock and goldfish_pipe paths failed
+05-11 08:41:53.222 19108 19140 I flutter : The Dart VM service is listening on http://127.0.0.1:33433/P2zLlBtHnrE=/
+05-11 08:41:53.328 19108 19108 W tter_login_demo: Accessing hidden method Landroid/view/accessibility/AccessibilityNodeInfo;->getSourceNodeId()J (unsupported,test-api, reflection, allowed)
+05-11 08:41:53.328 19108 19108 W tter_login_demo: Accessing hidden method Landroid/view/accessibility/AccessibilityRecord;->getSourceNodeId()J (unsupported, reflection, allowed)
+05-11 08:41:53.328 19108 19108 W tter_login_demo: Accessing hidden field Landroid/view/accessibility/AccessibilityNodeInfo;->mChildNodeIds:Landroid/util/LongArray; (unsupported, reflection, allowed)
+05-11 08:41:53.328 19108 19108 W tter_login_demo: Accessing hidden method Landroid/util/LongArray;->get(I)J (unsupported, reflection, allowed)
+05-11 08:41:53.334 19108 19129 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_gl_impeller.cc(104)] Using the Impeller rendering backend (OpenGLES).
+05-11 08:41:53.339 19108 19129 E tter_login_demo: open_verbose_path:56: Could not open '/dev/goldfish_pipe_dprctd': No such file or directory
+05-11 08:41:53.340 19108 19129 E tter_login_demo: open_verbose:128: both vsock and goldfish_pipe paths failed
+05-11 08:41:53.341 19108 19130 D HostConnection: New host connection established 0xb400007857091990, pid 19108, tid 19130
+05-11 08:41:53.386 19108 19108 W HWUI    : Unknown dataspace 0
+05-11 08:41:54.765 19108 19108 I Choreographer: Skipped 82 frames!  The application may be doing too much work on its main thread.
+05-11 08:41:54.774 19108 19108 I WindowExtensionsImpl: Initializing Window Extensions, vendor API level=6, activity embedding enabled=true
+05-11 08:41:54.797 19108 19112 I tter_login_demo: Compiler allocated 5250KB to compile void android.view.ViewRootImpl.performTraversals()
+05-11 08:41:54.828 19108 19123 D HostConnection: New host connection established 0xb400007857092350, pid 19108, tid 19123
+05-11 08:41:54.847 19108 19123 W HWUI    : Failed to choose config with EGL_SWAP_BEHAVIOR_PRESERVED, retrying without...
+05-11 08:41:54.851 19108 19123 W HWUI    : Failed to initialize 101010-2 format, error = EGL_SUCCESS
+05-11 08:41:54.862 19108 19123 E tter_login_demo: open_verbose_path:56: Could not open '/dev/goldfish_pipe_dprctd': No such file or directory
+05-11 08:41:54.862 19108 19123 E tter_login_demo: open_verbose:128: both vsock and goldfish_pipe paths failed
+05-11 08:41:54.916 19108 19129 I Gralloc4: mapper 4.x is not supported
+05-11 08:41:54.917 19108 19129 W Gralloc3: mapper 3.x is not supported
+05-11 08:41:54.936 19108 19129 D HostConnection: New host connection established 0xb400007857095590, pid 19108, tid 19129
+05-11 08:42:04.637 19108 19108 I Choreographer: Skipped 589 frames!  The application may be doing too much work on its main thread.
+05-11 08:42:04.691 19108 19150 D ProfileInstaller: Installing profile for com.example.mobiloop_flutter_login_demo
+05-11 08:42:06.207 19108 19129 D EGL_emulation: app_time_stats: avg=438.28ms min=25.67ms max=1098.56ms count=3
+05-11 08:42:06.305 19108 19108 I ImeTracker: com.example.mobiloop_flutter_login_demo:42340e95: onRequestShow at ORIGIN_CLIENT reason SHOW_SOFT_INPUT fromUser false
+05-11 08:42:06.309 19108 19108 D InputMethodManager: showSoftInput() view=io.flutter.embedding.android.FlutterView{14deb27 VFED..... .F....ID 0,0-1080,2340 #1 aid=1073741824} flags=0 reason=SHOW_SOFT_INPUT
+05-11 08:42:06.673 19108 19108 D InsetsController: show(ime(), fromIme=true)
+05-11 08:42:06.713 19108 19108 W InteractionJankMonitor: Initializing without READ_DEVICE_CONFIG permission. enabled=false, interval=1, missedFrameThreshold=3, frameTimeThreshold=64, package=com.example.mobiloop_flutter_login_demo
+05-11 08:42:07.049 19108 19108 I ImeTracker: com.example.mobiloop_flutter_login_demo:42340e95: onShown
+05-11 08:42:07.214 19108 19129 D EGL_emulation: app_time_stats: avg=77.27ms min=25.38ms max=273.28ms count=13
+05-11 08:42:08.023 19108 19108 I ImeTracker: com.example.mobiloop_flutter_login_demo:578fada9: onRequestShow at ORIGIN_CLIENT reason SHOW_SOFT_INPUT fromUser false
+05-11 08:42:08.024 19108 19108 D InputMethodManager: showSoftInput() view=io.flutter.embedding.android.FlutterView{14deb27 VFED..... .F...... 0,0-1080,2340 #1 aid=1073741824} flags=0 reason=SHOW_SOFT_INPUT
+05-11 08:42:08.042 19108 19108 D InsetsController: show(ime(), fromIme=true)
+05-11 08:42:08.042 19108 19108 I ImeTracker: com.example.mobiloop_flutter_login_demo:578fada9: onCancelled at PHASE_CLIENT_APPLY_ANIMATION
+05-11 08:42:08.510 19108 19129 D EGL_emulation: app_time_stats: avg=74.55ms min=10.31ms max=495.00ms count=17
+05-11 08:42:09.456 19108 19108 I ImeTracker: com.example.mobiloop_flutter_login_demo:4ff7abd7: onRequestHide at ORIGIN_CLIENT reason HIDE_SOFT_INPUT fromUser false
+05-11 08:42:09.462 19108 19108 D InsetsController: hide(ime(), fromIme=true)
+05-11 08:42:09.489 19108 19123 D EGL_emulation: app_time_stats: avg=230.58ms min=8.84ms max=2416.47ms count=19
+05-11 08:42:09.619 19108 19129 D EGL_emulation: app_time_stats: avg=184.80ms min=45.48ms max=501.30ms count=6
+05-11 08:42:09.803 19108 19108 I ImeTracker: com.example.mobiloop_flutter_login_demo:d6546e2f: onRequestHide at ORIGIN_CLIENT reason HIDE_SOFT_INPUT_ON_ANIMATION_STATE_CHANGED fromUser false
+05-11 08:42:09.807 19108 19108 I ImeTracker: com.example.mobiloop_flutter_login_demo:4ff7abd7: onHidden

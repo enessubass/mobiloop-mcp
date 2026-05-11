@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.0-alpha.2
+
+Follow-up alpha hardening release.
+
+- Fixed native Appium locator translation so `android uiautomator` and `ios predicate string` inputs are sent to WebDriver as `-android uiautomator` and `-ios predicate string`.
+- Added regression coverage for native mobile locator strategy mapping.
+- Narrowed JWT redaction to avoid masking normal hostnames, package names, class names, and localhost URLs in evidence.
+- Narrowed phone redaction to avoid masking logcat timestamps while still redacting labeled phone values.
+- Added sanitized real-run Android evidence for the Flutter login fixture under `examples/artifacts/real-runs/flutter-login-android`.
+- Fixed the Flutter login fixture widget test import for `ValueKey`.
+- Tightened npm and Docker package contents so generated Flutter `.dart_tool`, `build`, and `pubspec.lock` outputs are excluded while example evidence logs remain included.
+- Added the Firestore permission sample log artifact referenced by the examples documentation.
+
 ## 0.1.0-alpha.1
 
 Initial alpha release.

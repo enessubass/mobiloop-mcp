@@ -450,6 +450,12 @@ function locatorUsing(locator: Locator): { using: string; value: string } {
       value: `//*[@text=${value} or @label=${value} or @name=${value} or contains(@content-desc, ${value})]`
     };
   }
+  if (locator.strategy === "android uiautomator") {
+    return { using: "-android uiautomator", value: locator.value };
+  }
+  if (locator.strategy === "ios predicate string") {
+    return { using: "-ios predicate string", value: locator.value };
+  }
   return { using: locator.strategy, value: locator.value };
 }
 

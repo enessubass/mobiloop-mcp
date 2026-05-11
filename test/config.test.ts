@@ -145,23 +145,27 @@ test("loadConfig supports approval and redaction env overrides", async () => {
   const originalRoot = process.env.MOBILOOP_WORKSPACE_ROOT;
   const originalRequireApproval = process.env.MOBILOOP_REQUIRE_APPROVAL;
   const originalRedactArtifacts = process.env.MOBILOOP_REDACT_ARTIFACTS;
+  const originalRunId = process.env.MOBILOOP_RUN_ID;
   const configPath = path.join(dir, "mobiloop.config.json");
   await fs.writeFile(configPath, JSON.stringify({ workspaceRoot: dir }), "utf8");
   process.env.MOBILOOP_CONFIG = configPath;
   process.env.MOBILOOP_REQUIRE_APPROVAL = "true";
   process.env.MOBILOOP_REDACT_ARTIFACTS = "false";
+  process.env.MOBILOOP_RUN_ID = "ci-login-smoke";
   delete process.env.MOBILOOP_WORKSPACE_ROOT;
   process.chdir(dir);
   try {
     const config = await loadConfig();
     assert.equal(config.requireApproval, true);
     assert.equal(config.redactArtifacts, false);
+    assert.equal(config.runId, "ci-login-smoke");
   } finally {
     process.chdir(originalCwd);
     restoreEnv("MOBILOOP_CONFIG", originalConfig);
     restoreEnv("MOBILOOP_WORKSPACE_ROOT", originalRoot);
     restoreEnv("MOBILOOP_REQUIRE_APPROVAL", originalRequireApproval);
     restoreEnv("MOBILOOP_REDACT_ARTIFACTS", originalRedactArtifacts);
+    restoreEnv("MOBILOOP_RUN_ID", originalRunId);
   }
 });
 

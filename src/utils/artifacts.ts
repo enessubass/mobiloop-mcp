@@ -4,7 +4,8 @@ import { ServerConfig } from "../types.js";
 import { redactText } from "./redaction.js";
 
 export async function ensureArtifactsDir(config: ServerConfig, group?: string): Promise<string> {
-  const dir = group ? path.join(config.artifactsDir, group) : config.artifactsDir;
+  const root = artifactRoot(config);
+  const dir = group ? path.join(root, group) : root;
   await fs.mkdir(dir, { recursive: true });
   return dir;
 }
@@ -43,5 +44,15 @@ export function artifactPath(
 ): string {
   const safePrefix = prefix.replace(/[^A-Za-z0-9._-]/g, "_");
   const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-  return path.join(config.artifactsDir, group, `${stamp}-${safePrefix}.${extension}`);
+  return path.join(artifactRoot(config), group, `${stamp}-${safePrefix}.${extension}`);
+}
+
+export function artifactRoot(config: ServerConfig): string {
+  return config.runId
+    ? path.join(config.artifactsDir, "runs", safeRunId(config.runId))
+    : config.artifactsDir;
+}
+
+export function safeRunId(runId: string): string {
+  return runId.replace(/[^A-Za-z0-9._-]/g, "_").slice(0, 120) || "run";
 }

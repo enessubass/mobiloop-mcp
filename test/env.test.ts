@@ -36,6 +36,7 @@ function config(root: string, appiumServerUrl: string): ServerConfig {
   return {
     workspaceRoot: root,
     artifactsDir: path.join(root, ".mobiloop"),
+    runId: undefined,
     maxCommandMs: 120_000,
     maxOutputBytes: 1_048_576,
     maxFixAttempts: 3,

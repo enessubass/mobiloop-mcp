@@ -15,14 +15,14 @@ AI agent
 
 ## Trust Boundaries
 
-| Boundary          | Rule                                                                         |
-| ----------------- | ---------------------------------------------------------------------------- |
-| Agent to MCP      | Tools are structured; no generic shell tool is exposed.                      |
-| MCP to filesystem | Paths resolve inside `workspaceRoot`; forbidden globs block secrets.         |
-| MCP to git        | Commit tools require branches matching `allowedBranchPattern`.               |
-| MCP to network    | API assertions use `apiAllowlist`; package installs require policy approval. |
-| MCP to device     | Device mutation tools carry policy metadata and should be approval-gated.    |
-| MCP to evidence   | Artifacts are written under `.mobiloop` and referenced in reports.           |
+| Boundary          | Rule                                                                                              |
+| ----------------- | ------------------------------------------------------------------------------------------------- |
+| Agent to MCP      | Tools are structured; no generic shell tool is exposed.                                           |
+| MCP to filesystem | Paths resolve inside `workspaceRoot`; forbidden globs block secrets.                              |
+| MCP to git        | Commit tools require branches matching `allowedBranchPattern`.                                    |
+| MCP to network    | API assertions use `apiAllowlist`; package installs require policy approval.                      |
+| MCP to device     | Device mutation tools carry policy metadata and should be approval-gated.                         |
+| MCP to evidence   | Artifacts are written under `.mobiloop`, optionally scoped by `runId`, and referenced in reports. |
 
 ## Orchestrator State Machine
 
@@ -41,7 +41,7 @@ preflight
 
 ## Artifact Lifecycle
 
-1. Tool creates an artifact under `.mobiloop`.
+1. Tool creates an artifact under `.mobiloop`, or under `.mobiloop/runs/<runId>` when a run id is configured.
 2. Tool returns a unified evidence object when possible.
 3. Loop records reference artifact paths.
 4. CI manifest uploads the artifact directory.
@@ -56,4 +56,4 @@ Run one orchestrator loop per device/session. Parallel device execution should u
 - device serials
 - runner workspaces
 
-Do not share `.mobiloop/flow/memory.json` between unrelated app versions without review.
+Do not share flow memory between unrelated app versions without review, including run-scoped memory under `.mobiloop/runs/<runId>/flow/memory.json`.

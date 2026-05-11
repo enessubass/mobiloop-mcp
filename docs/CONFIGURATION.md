@@ -6,7 +6,7 @@ MobiLoop reads config from `mobiloop.config.json` in the current working directo
 MOBILOOP_CONFIG=/absolute/path/to/mobiloop.config.json
 ```
 
-`MOBILOOP_WORKSPACE_ROOT`, `APPIUM_SERVER_URL`, `MOBILOOP_REQUIRE_APPROVAL`, and `MOBILOOP_REDACT_ARTIFACTS` override their matching config values.
+`MOBILOOP_WORKSPACE_ROOT`, `APPIUM_SERVER_URL`, `MOBILOOP_RUN_ID`, `MOBILOOP_REQUIRE_APPROVAL`, and `MOBILOOP_REDACT_ARTIFACTS` override their matching config values.
 
 ## Schema
 
@@ -32,6 +32,7 @@ Use it in config files:
 | ---------------------- | ----------------------------------------------------------------------------- |
 | `workspaceRoot`        | Set this to the mobile app root, not a broad home or projects directory.      |
 | `artifactsDir`         | Keep it inside `workspaceRoot`; MobiLoop rejects paths outside the workspace. |
+| `runId`                | Set per CI/job/test run to isolate evidence under `.mobiloop/runs/<runId>`.   |
 | `allowedBranchPattern` | Keep the default `feature/ai-*` pattern for automated commits.                |
 | `apiAllowlist`         | Keep it narrow. Prefer localhost and explicit staging hosts.                  |
 | `forbiddenPathGlobs`   | Keep secret, keystore, provisioning, and service-config patterns blocked.     |
@@ -40,6 +41,22 @@ Use it in config files:
 | `redactArtifacts`      | Keep true unless another artifact/response sanitizer runs after MobiLoop.     |
 
 MobiLoop validates `mobiloop.config.json` against the JSON schema at startup. Invalid fields fail early with a path-specific error.
+
+## Run-Scoped Artifacts
+
+Without `runId`, tools use the legacy artifact root:
+
+```text
+.mobiloop/
+```
+
+With `runId` or `MOBILOOP_RUN_ID`, artifact-producing tools write under:
+
+```text
+.mobiloop/runs/<runId>/
+```
+
+This keeps parallel CI jobs, nightly runs, and local investigations from mixing evidence. Unsafe characters in environment-supplied run ids are normalized before path use.
 
 ## Approval Enforcement
 

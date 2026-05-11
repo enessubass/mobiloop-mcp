@@ -71,6 +71,7 @@ The MCP server does not claim success by itself. Success must be represented by 
 - secret-like paths are blocked
 - commits are allowed only on branches matching `feature/ai-*`
 - artifacts are written under `.mobiloop`
+- when `runId` is set, artifacts are isolated under `.mobiloop/runs/<runId>`
 - command output is capped
 - API checks are restricted by `apiAllowlist`
 - loop defaults are bounded by `maxFixAttempts`, `maxTestIterations`, and `maxRuntimeMinutes`

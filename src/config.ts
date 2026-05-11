@@ -44,10 +44,12 @@ export async function loadConfig(): Promise<ServerConfig> {
   const artifactsValue = asOptionalString(rawConfig, "artifactsDir") ?? ".mobiloop";
   const artifactsDir = path.resolve(workspaceRoot, artifactsValue);
   assertInside(workspaceRoot, artifactsDir, "artifactsDir");
+  const runId = process.env.MOBILOOP_RUN_ID ?? asOptionalString(rawConfig, "runId");
 
   return {
     workspaceRoot,
     artifactsDir,
+    runId,
     maxCommandMs: asOptionalNumber(rawConfig, "maxCommandMs") ?? 120_000,
     maxOutputBytes: asOptionalNumber(rawConfig, "maxOutputBytes") ?? 1_048_576,
     maxFixAttempts: asOptionalNumber(rawConfig, "maxFixAttempts") ?? 3,

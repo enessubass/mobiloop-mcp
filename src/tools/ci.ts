@@ -10,7 +10,8 @@ import {
 } from "../utils/validation.js";
 import { resolveWorkspacePathAllowArtifacts } from "../utils/path-guard.js";
 import { runCommand } from "../utils/shell.js";
-import { ensureArtifactsDir, writeArtifactText } from "../utils/artifacts.js";
+import { artifactRoot, ensureArtifactsDir, writeArtifactText } from "../utils/artifacts.js";
+import { redactText } from "../utils/redaction.js";
 
 export function ciTools(): McpTool[] {
   return [
@@ -19,10 +20,13 @@ export function ciTools(): McpTool[] {
       description: "Create a JSON manifest of files under the MCP artifacts directory.",
       inputSchema: objectSchema({}),
       async handler(_input, { config }) {
-        const files = await listFiles(config.artifactsDir);
+        const root = artifactRoot(config);
+        const files = await listFiles(root);
         const manifest = {
           generatedAt: new Date().toISOString(),
           artifactsDir: config.artifactsDir,
+          artifactRoot: root,
+          runId: config.runId,
           files
         };
         const manifestPath = await writeArtifactText(
@@ -48,9 +52,10 @@ export function ciTools(): McpTool[] {
       async handler(input, { config }) {
         const args = asObject(input ?? {});
         const sourcePath = optionalString(args, "sourcePath");
-        const markdown = sourcePath
+        const rawMarkdown = sourcePath
           ? await fs.readFile(resolveWorkspacePathAllowArtifacts(config, sourcePath), "utf8")
           : requireString(args, "markdown");
+        const markdown = config.redactArtifacts ? redactText(rawMarkdown) : rawMarkdown;
         const summaryPath = process.env.GITHUB_STEP_SUMMARY
           ? process.env.GITHUB_STEP_SUMMARY
           : path.join(await ensureArtifactsDir(config, "reports"), "github-step-summary.md");
@@ -73,9 +78,10 @@ export function ciTools(): McpTool[] {
       async handler(input, { config }) {
         const args = asObject(input ?? {});
         const bodyPath = optionalString(args, "bodyPath");
-        const body = bodyPath
+        const rawBody = bodyPath
           ? await fs.readFile(resolveWorkspacePathAllowArtifacts(config, bodyPath), "utf8")
           : requireString(args, "body");
+        const body = config.redactArtifacts ? redactText(rawBody) : rawBody;
         const prNumber = optionalString(args, "prNumber");
         const ghArgs = ["pr", "comment", ...(prNumber ? [prNumber] : []), "--body", body];
         const result = await runCommand("gh", ghArgs, {

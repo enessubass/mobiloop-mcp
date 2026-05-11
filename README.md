@@ -268,33 +268,35 @@ export MOBILOOP_CONFIG=/absolute/path/to/mobiloop.config.json
 
 Common fields:
 
-| Field                  | Default                         | Purpose                                                              |
-| ---------------------- | ------------------------------- | -------------------------------------------------------------------- |
-| `workspaceRoot`        | current working directory       | Mobile app workspace the MCP server may access                       |
-| `artifactsDir`         | `.mobiloop`                     | Evidence, logs, screenshots, reports, flow memory                    |
-| `maxCommandMs`         | `120000`                        | Default command timeout                                              |
-| `maxOutputBytes`       | `1048576`                       | Output cap for command tools                                         |
-| `maxFixAttempts`       | `3`                             | Suggested fix-loop limit                                             |
-| `maxTestIterations`    | `5`                             | Orchestrator loop limit                                              |
-| `maxRuntimeMinutes`    | `30`                            | Suggested total runtime limit                                        |
-| `allowedBranchPattern` | `^feature/ai-[A-Za-z0-9._/-]+$` | Branches where commit tools are allowed                              |
-| `appiumServerUrl`      | `http://127.0.0.1:4723`         | Appium server endpoint                                               |
-| `adbPath`              | `adb`                           | Android Debug Bridge path                                            |
-| `emulatorPath`         | `emulator`                      | Android emulator CLI path                                            |
-| `xcrunPath`            | `xcrun`                         | iOS simulator CLI path                                               |
-| `xcodebuildPath`       | `xcodebuild`                    | Xcode build CLI path                                                 |
-| `sqlitePath`           | `sqlite3`                       | SQLite CLI path for read-only assertions                             |
-| `apiAllowlist`         | localhost only                  | URLs allowed for API verification                                    |
-| `forbiddenPathGlobs`   | secret-like defaults            | Files blocked from read/write operations                             |
-| `toolPolicies`         | built-in defaults               | Per-tool risk and approval metadata overrides                        |
-| `requireApproval`      | `false`                         | Require approval payloads for high-impact tools                      |
-| `redactArtifacts`      | `true`                          | Redact common secrets and PII from text artifacts and text responses |
+| Field                  | Default                         | Purpose                                                               |
+| ---------------------- | ------------------------------- | --------------------------------------------------------------------- |
+| `workspaceRoot`        | current working directory       | Mobile app workspace the MCP server may access                        |
+| `artifactsDir`         | `.mobiloop`                     | Evidence, logs, screenshots, reports, flow memory                     |
+| `runId`                | unset                           | Optional run identifier; writes artifacts under `.mobiloop/runs/<id>` |
+| `maxCommandMs`         | `120000`                        | Default command timeout                                               |
+| `maxOutputBytes`       | `1048576`                       | Output cap for command tools                                          |
+| `maxFixAttempts`       | `3`                             | Suggested fix-loop limit                                              |
+| `maxTestIterations`    | `5`                             | Orchestrator loop limit                                               |
+| `maxRuntimeMinutes`    | `30`                            | Suggested total runtime limit                                         |
+| `allowedBranchPattern` | `^feature/ai-[A-Za-z0-9._/-]+$` | Branches where commit tools are allowed                               |
+| `appiumServerUrl`      | `http://127.0.0.1:4723`         | Appium server endpoint                                                |
+| `adbPath`              | `adb`                           | Android Debug Bridge path                                             |
+| `emulatorPath`         | `emulator`                      | Android emulator CLI path                                             |
+| `xcrunPath`            | `xcrun`                         | iOS simulator CLI path                                                |
+| `xcodebuildPath`       | `xcodebuild`                    | Xcode build CLI path                                                  |
+| `sqlitePath`           | `sqlite3`                       | SQLite CLI path for read-only assertions                              |
+| `apiAllowlist`         | localhost only                  | URLs allowed for API verification                                     |
+| `forbiddenPathGlobs`   | secret-like defaults            | Files blocked from read/write operations                              |
+| `toolPolicies`         | built-in defaults               | Per-tool risk and approval metadata overrides                         |
+| `requireApproval`      | `false`                         | Require approval payloads for high-impact tools                       |
+| `redactArtifacts`      | `true`                          | Redact common secrets and PII from text artifacts and text responses  |
 
 Environment variables override selected fields:
 
 ```bash
 export MOBILOOP_WORKSPACE_ROOT=/absolute/path/to/mobile/app
 export APPIUM_SERVER_URL=http://127.0.0.1:4723
+export MOBILOOP_RUN_ID=local-login-smoke
 export MOBILOOP_REQUIRE_APPROVAL=true
 ```
 
@@ -455,6 +457,8 @@ This data is persisted under:
 ```text
 .mobiloop/flow/memory.json
 ```
+
+With `runId` enabled, the same file lives under `.mobiloop/runs/<runId>/flow/memory.json`.
 
 ### Record Checkpoints
 
@@ -617,6 +621,12 @@ The default artifact directory is:
 
 ```text
 .mobiloop
+```
+
+When `runId` or `MOBILOOP_RUN_ID` is set, artifact writers use a run-scoped root:
+
+```text
+.mobiloop/runs/<runId>
 ```
 
 Typical contents:
@@ -831,11 +841,13 @@ The Dockerfile also runs the test suite during image build.
 - [docs/demo/flutter-login-loop.md](docs/demo/flutter-login-loop.md)
 - [docs/releases/v0.1.0-alpha.1.md](docs/releases/v0.1.0-alpha.1.md)
 - [docs/releases/v0.1.0-alpha.2.md](docs/releases/v0.1.0-alpha.2.md)
+- [docs/releases/v0.1.0-alpha.3.md](docs/releases/v0.1.0-alpha.3.md)
 - [.github/workflows/android-fixture-e2e.yml](.github/workflows/android-fixture-e2e.yml)
 - [examples/android-validation-loop.json](examples/android-validation-loop.json)
 - [examples/flow-memory-replay.json](examples/flow-memory-replay.json)
 - [examples/github-actions-mobiloop.yml](examples/github-actions-mobiloop.yml)
 - [examples/mobile-fixtures/flutter-login-demo](examples/mobile-fixtures/flutter-login-demo)
+- [examples/mobile-fixtures/android-kotlin-login-demo](examples/mobile-fixtures/android-kotlin-login-demo)
 - [examples/artifacts/successful-loop-report.md](examples/artifacts/successful-loop-report.md)
 - [examples/artifacts/real-runs/flutter-login-android](examples/artifacts/real-runs/flutter-login-android)
 

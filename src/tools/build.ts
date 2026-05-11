@@ -4,7 +4,7 @@ import path from "node:path";
 import { McpTool, jsonResponse } from "../types.js";
 import { enumSchema, objectSchema } from "../schema.js";
 import { asObject, optionalString, stringEnum } from "../utils/validation.js";
-import { writeArtifactText } from "../utils/artifacts.js";
+import { artifactRoot, writeArtifactText } from "../utils/artifacts.js";
 import { runCommand } from "../utils/shell.js";
 
 type ProjectKind = "flutter" | "react-native" | "android" | "unknown";
@@ -171,7 +171,7 @@ export function buildTools(): McpTool[] {
       description: "List build log artifacts emitted by this MCP server.",
       inputSchema: objectSchema({}),
       async handler(_input, { config }) {
-        const dir = path.join(config.artifactsDir, "build");
+        const dir = path.join(artifactRoot(config), "build");
         const entries = await fs.readdir(dir).catch(() => []);
         return jsonResponse({ logDir: dir, logs: entries.map((entry) => path.join(dir, entry)) });
       }
@@ -264,8 +264,15 @@ function releaseCandidateCommand(root: string, kind: ProjectKind): CommandSpec {
 }
 
 function gradle(root: string, args: string[]): CommandSpec {
-  const wrapper = process.platform === "win32" ? "gradlew.bat" : "./gradlew";
-  return { command: wrapper, args, cwd: root };
+  const wrapperName = process.platform === "win32" ? "gradlew.bat" : "gradlew";
+  const wrapperPath = path.join(root, wrapperName);
+  const command =
+    fsSync.existsSync(wrapperPath) && process.platform !== "win32"
+      ? "./gradlew"
+      : fsSync.existsSync(wrapperPath)
+        ? "gradlew.bat"
+        : "gradle";
+  return { command, args, cwd: root };
 }
 
 async function findDebugApks(root: string, kind: ProjectKind): Promise<string[]> {

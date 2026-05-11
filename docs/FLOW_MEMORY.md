@@ -8,6 +8,12 @@ Flow memory stores stable screen checkpoints so later test runs can skip already
 .mobiloop/flow/memory.json
 ```
 
+When `runId` or `MOBILOOP_RUN_ID` is set, storage is scoped to:
+
+```text
+.mobiloop/runs/<runId>/flow/memory.json
+```
+
 ## Signature Inputs
 
 - visible text

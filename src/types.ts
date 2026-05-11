@@ -42,6 +42,7 @@ export interface ApprovalPayload {
 export interface ServerConfig {
   workspaceRoot: string;
   artifactsDir: string;
+  runId?: string;
   maxCommandMs: number;
   maxOutputBytes: number;
   maxFixAttempts: number;

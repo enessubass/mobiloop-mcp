@@ -16,6 +16,11 @@
       "type": "string",
       "description": "Artifact directory relative to workspaceRoot, or an absolute path inside workspaceRoot."
     },
+    "runId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._-]+$",
+      "description": "Optional run identifier. When set, evidence artifacts are written under artifactsDir/runs/runId."
+    },
     "maxCommandMs": {
       "type": "integer",
       "minimum": 1000

@@ -106,6 +106,33 @@ test("code-flow analysis detects common Flutter screens, routes, and visible tex
   assert.ok(analysis.visibleTexts.some((entry) => entry.text === "Giriş Yap"));
 });
 
+test("code-flow analysis detects native Android Gradle projects", async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "agentic-flow-android-"));
+  await fs.writeFile(path.join(root, "settings.gradle.kts"), 'include(":app")\n', "utf8");
+  await fs.mkdir(path.join(root, "app", "src", "main", "java", "com", "example"), {
+    recursive: true
+  });
+  await fs.writeFile(
+    path.join(root, "app", "src", "main", "java", "com", "example", "MainActivity.kt"),
+    `
+      class MainActivity : Activity() {
+        fun render() {
+          loginButton.contentDescription = "Giriş Yap"
+          startActivity(Intent(this, HomeActivity::class.java))
+        }
+      }
+    `,
+    "utf8"
+  );
+
+  const analysis = await analyzeCodeFlow(config(root), { maxFiles: 20 });
+
+  assert.equal(analysis.framework, "android");
+  assert.ok(analysis.screens.some((screen) => screen.name === "MainActivity"));
+  assert.ok(analysis.transitions.some((transition) => transition.to === "HomeActivity"));
+  assert.ok(analysis.visibleTexts.some((entry) => entry.text === "Giriş Yap"));
+});
+
 function checkpoint(
   id: string,
   testName: string,
@@ -130,6 +157,7 @@ function config(root: string): ServerConfig {
   return {
     workspaceRoot: root,
     artifactsDir: path.join(root, ".mobiloop"),
+    runId: undefined,
     maxCommandMs: 120_000,
     maxOutputBytes: 1_048_576,
     maxFixAttempts: 3,

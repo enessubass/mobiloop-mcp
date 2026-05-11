@@ -28,6 +28,15 @@ mobiloop call flow.run_script '{
 mobiloop list-tools --json
 ```
 
+## Fixture Apps
+
+Use the fixtures as known-small targets for local validation and CI smoke tests:
+
+- `examples/mobile-fixtures/flutter-login-demo`
+- `examples/mobile-fixtures/android-kotlin-login-demo`
+
+The native Android fixture exercises resource-id and accessibility based locators that differ from Flutter semantics.
+
 ## Example Artifacts
 
 See:

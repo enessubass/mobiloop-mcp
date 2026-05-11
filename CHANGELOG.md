@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.0-alpha.3
+
+Alpha fixture and artifact layout release.
+
+- Added a native Android Kotlin login fixture with stable resource ids, accessibility labels, and validation/home screens.
+- Added run-scoped artifact roots through `runId` and `MOBILOOP_RUN_ID`, writing evidence under `.mobiloop/runs/<runId>`.
+- Updated artifact readers, manifests, reports, build log collection, env preflight, and flow memory to use the same run-scoped root.
+- Added artifact pathing tests for legacy and run-scoped layouts.
+- Improved static source-flow detection for native Android projects without an `android/` wrapper directory.
+- Added native Android fixture packaging entries for npm/GHCR distribution.
+- Sanitized GitHub step summaries and PR comment bodies when redaction is enabled.
+- Clarified documentation for run-scoped artifacts and current fixture coverage.
+
 ## 0.1.0-alpha.2
 
 Follow-up alpha hardening release.

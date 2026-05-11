@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { XMLParser } from "fast-xml-parser";
 import { ServerConfig } from "../types.js";
-import { ensureArtifactsDir, writeArtifactText } from "./artifacts.js";
+import { artifactRoot, ensureArtifactsDir, writeArtifactText } from "./artifacts.js";
 
 export interface FlowAction {
   tool: string;
@@ -119,7 +119,7 @@ export async function writeFlowMemory(config: ServerConfig, memory: FlowMemory):
 }
 
 export function flowMemoryPath(config: ServerConfig): string {
-  return path.join(config.artifactsDir, "flow", "memory.json");
+  return path.join(artifactRoot(config), "flow", "memory.json");
 }
 
 export function createScreenSignature(source: string): ScreenSignature {
@@ -553,9 +553,24 @@ async function detectFramework(root: string): Promise<string> {
   if (hasPubspec) return "flutter";
   const packageJson = await fs.readFile(path.join(root, "package.json"), "utf8").catch(() => "");
   if (/react-native/.test(packageJson)) return "react-native";
-  if (await exists(path.join(root, "android"))) return "android";
+  if (await isAndroidProject(root)) return "android";
   if (await exists(path.join(root, "ios"))) return "ios";
   return "unknown";
+}
+
+async function isAndroidProject(root: string): Promise<boolean> {
+  if (await exists(path.join(root, "android"))) return true;
+  const androidMarkers = [
+    "settings.gradle",
+    "settings.gradle.kts",
+    "build.gradle",
+    "build.gradle.kts",
+    path.join("app", "src", "main", "AndroidManifest.xml")
+  ];
+  for (const marker of androidMarkers) {
+    if (await exists(path.join(root, marker))) return true;
+  }
+  return false;
 }
 
 async function exists(filePath: string): Promise<boolean> {

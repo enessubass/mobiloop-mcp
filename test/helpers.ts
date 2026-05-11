@@ -17,6 +17,7 @@ export async function createTestConfig(options: Partial<ServerConfig> = {}): Pro
   return {
     workspaceRoot: root,
     artifactsDir: path.join(root, ".mobiloop"),
+    runId: undefined,
     maxCommandMs: 5_000,
     maxOutputBytes: 1_048_576,
     maxFixAttempts: 3,

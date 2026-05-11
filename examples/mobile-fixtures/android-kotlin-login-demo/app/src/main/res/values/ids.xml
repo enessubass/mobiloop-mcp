@@ -1,0 +1,9 @@
+<resources>
+    <item name="email_field" type="id" />
+    <item name="password_field" type="id" />
+    <item name="error_text" type="id" />
+    <item name="login_button" type="id" />
+    <item name="home_title" type="id" />
+    <item name="welcome_text" type="id" />
+</resources>
+

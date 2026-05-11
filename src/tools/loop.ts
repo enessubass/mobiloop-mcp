@@ -9,13 +9,13 @@ import {
   optionalStringArray,
   requireString
 } from "../utils/validation.js";
-import { ensureArtifactsDir, writeArtifactText } from "../utils/artifacts.js";
+import { artifactRoot, ensureArtifactsDir, writeArtifactText } from "../utils/artifacts.js";
 
 export function loopTools(): McpTool[] {
   return [
     {
       name: "loop.record_iteration",
-      description: "Append one build-test-fix loop iteration as JSONL evidence.",
+      description: "Append one build-test-verify loop iteration as JSONL evidence.",
       inputSchema: objectSchema(
         {
           iteration: numberSchema,
@@ -70,7 +70,7 @@ export function loopTools(): McpTool[] {
         const title = optionalString(args, "title") ?? "MobiLoop Development Report";
         const finalStatus = optionalString(args, "finalStatus") ?? "unknown";
         const summary = optionalString(args, "summary") ?? "";
-        const records = await readIterations(config.artifactsDir);
+        const records = await readIterations(artifactRoot(config));
         const markdown = renderReport(title, finalStatus, summary, records);
         const reportPath = await writeArtifactText(
           config,
@@ -87,7 +87,7 @@ export function loopTools(): McpTool[] {
       description: "Read recorded loop iterations.",
       inputSchema: objectSchema({}),
       async handler(_input, { config }) {
-        const records = await readIterations(config.artifactsDir);
+        const records = await readIterations(artifactRoot(config));
         return jsonResponse({ iterations: records as never });
       }
     }

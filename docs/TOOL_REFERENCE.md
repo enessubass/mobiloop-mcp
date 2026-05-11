@@ -60,7 +60,7 @@ Failure cases include path escape, forbidden path match, invalid branch pattern,
 | `build.run_unit_tests`          | Run unit tests.                                                | `read`      | Usually no                    |
 | `build.build_debug_apk`         | Build Android debug APK.                                       | `write`     | Usually no in CI, ask locally |
 | `build.build_release_candidate` | Build release-candidate artifacts.                             | `dangerous` | Yes                           |
-| `build.collect_build_logs`      | Read build logs from `.mobiloop/build`.                        | `read`      | No                            |
+| `build.collect_build_logs`      | Read build logs from the current artifact root.                | `read`      | No                            |
 
 ## Device And iOS Tools
 

@@ -5,6 +5,7 @@ import { McpTool, ServerConfig, jsonResponse } from "../types.js";
 import { booleanSchema, numberSchema, objectSchema, stringSchema } from "../schema.js";
 import { asObject, optionalBoolean, optionalNumber, optionalString } from "../utils/validation.js";
 import { runCommand, startDetachedCommand } from "../utils/shell.js";
+import { artifactRoot } from "../utils/artifacts.js";
 
 type PreflightTarget = "all" | "android" | "ios" | "flutter" | "react-native" | "ci";
 
@@ -107,6 +108,8 @@ export function envTools(): McpTool[] {
           target,
           workspaceRoot: config.workspaceRoot,
           artifactsDir: config.artifactsDir,
+          artifactRoot: artifactRoot(config),
+          runId: config.runId,
           requiredFailures,
           checks
         });

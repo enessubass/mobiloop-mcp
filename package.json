@@ -1,6 +1,6 @@
 {
   "name": "mobiloop-mcp",
-  "version": "0.1.0-alpha.2",
+  "version": "0.1.0-alpha.3",
   "description": "A guarded MCP server for build, device, Appium, verification, and agentic mobile development loops.",
   "type": "module",
   "repository": {
@@ -42,6 +42,11 @@
     "examples/mobile-fixtures/flutter-login-demo/lib",
     "examples/mobile-fixtures/flutter-login-demo/test",
     "examples/mobile-fixtures/flutter-login-demo/pubspec.yaml",
+    "examples/mobile-fixtures/android-kotlin-login-demo/README.md",
+    "examples/mobile-fixtures/android-kotlin-login-demo/settings.gradle.kts",
+    "examples/mobile-fixtures/android-kotlin-login-demo/build.gradle.kts",
+    "examples/mobile-fixtures/android-kotlin-login-demo/app/build.gradle.kts",
+    "examples/mobile-fixtures/android-kotlin-login-demo/app/src",
     "Dockerfile",
     ".dockerignore",
     "docker-compose.example.yml",

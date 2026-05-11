@@ -2,6 +2,7 @@
   "$schema": "schema/mobiloop.config.schema.json",
   "workspaceRoot": ".",
   "artifactsDir": ".mobiloop",
+  "runId": "local-login-smoke",
   "maxCommandMs": 120000,
   "maxOutputBytes": 1048576,
   "maxFixAttempts": 3,

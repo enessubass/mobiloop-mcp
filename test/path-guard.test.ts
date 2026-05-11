@@ -7,6 +7,7 @@ import { ServerConfig } from "../src/types.js";
 const config: ServerConfig = {
   workspaceRoot: path.resolve("/tmp/mobile-app"),
   artifactsDir: path.resolve("/tmp/mobile-app/.mobiloop"),
+  runId: undefined,
   maxCommandMs: 1000,
   maxOutputBytes: 1000,
   maxFixAttempts: 3,

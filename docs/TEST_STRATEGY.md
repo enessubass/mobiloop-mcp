@@ -13,6 +13,7 @@ Current unit tests cover:
 - env preflight behavior
 - flow-memory matching
 - logcat classification
+- run-scoped artifact pathing
 - tool registration
 
 ## Integration
@@ -68,7 +69,11 @@ A loop is not considered proven unless the run captures:
 Add fixtures in this order:
 
 1. Add an orchestrator failure-path mock integration test.
-2. Run Flutter login demo on self-hosted Android and publish real artifacts.
+2. Expand the native Android login fixture into a self-hosted Android E2E workflow.
 3. Add React Native login demo on self-hosted Android.
-4. Add native Android login demo on self-hosted Android.
-5. Add iOS simulator smoke on macOS runner.
+4. Add iOS simulator smoke on macOS runner.
+
+Current fixture roots:
+
+- `examples/mobile-fixtures/flutter-login-demo`
+- `examples/mobile-fixtures/android-kotlin-login-demo`

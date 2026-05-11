@@ -2,10 +2,14 @@
 
 ## Unreleased
 
+## 0.1.0-alpha.5
+
 - Added a real Genymotion/Appium run artifact for the native Android Kotlin login fixture.
 - Fixed native fixture JVM target configuration so it builds under Android Studio JBR/JDK 21 hosts.
 - Kept renderer-only logcat warnings non-blocking in log classification while preserving the warning findings.
 - Added Dependabot and CodeQL workflows for dependency and static security scanning.
+- Merged the npm development dependency update group after CI and CodeQL passed.
+- Left the Docker Node 26 runtime bump and GitHub Actions major-version bump open pending explicit runtime/self-hosted runner validation.
 
 ## 0.1.0-alpha.4
 

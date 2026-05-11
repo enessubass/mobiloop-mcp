@@ -11,6 +11,7 @@ Alpha fixture and artifact layout release.
 - Improved static source-flow detection for native Android projects without an `android/` wrapper directory.
 - Added native Android fixture packaging entries for npm/GHCR distribution.
 - Sanitized GitHub step summaries and PR comment bodies when redaction is enabled.
+- Disabled automatic SBOM release-asset uploads in the GHCR workflow; the SBOM is still uploaded as a workflow artifact.
 - Clarified documentation for run-scoped artifacts and current fixture coverage.
 
 ## 0.1.0-alpha.2

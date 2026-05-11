@@ -55,6 +55,7 @@ jobs:
           image: ${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
           format: spdx-json
           output-file: mobiloop-mcp.spdx.json
+          upload-release-assets: false
 
       - name: Upload SBOM artifact
         uses: actions/upload-artifact@v4

@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 name: Android Fixture E2E
 
 on:
@@ -30,6 +31,7 @@ jobs:
       APPIUM_SERVER_URL: http://127.0.0.1:4723
       MOBILOOP_REQUIRE_APPROVAL: "true"
       MOBILOOP_ANDROID_AVD_NAME: ${{ github.event.inputs.avd_name || vars.MOBILOOP_ANDROID_AVD_NAME || 'Pixel_7_API_35' }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v5

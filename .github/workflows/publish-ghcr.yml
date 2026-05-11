@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 name: Publish GHCR Image
 
 on:
@@ -17,6 +18,7 @@ jobs:
   publish:
     name: Build And Publish Image
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v5

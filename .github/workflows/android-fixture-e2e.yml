@@ -117,7 +117,7 @@ jobs:
               {
                 "tool": "appium.wait_for_visible",
                 "args": {
-                  "locator": { "strategy": "text", "value": "Giriş Yap" },
+                  "locator": { "strategy": "text", "value": "Giri\u015f Yap" },
                   "timeoutMs": 15000
                 }
               },
@@ -132,14 +132,14 @@ jobs:
               {
                 "tool": "appium.type_text",
                 "args": {
-                  "locator": { "strategy": "text", "value": "Şifre" },
+                  "locator": { "strategy": "text", "value": "\u015eifre" },
                   "text": "123456",
                   "mode": "sendKeys"
                 }
               },
               {
                 "tool": "appium.tap_by_text",
-                "args": { "text": "Giriş Yap", "matchMode": "exact" }
+                "args": { "text": "Giri\u015f Yap", "matchMode": "exact" }
               }
             ],
             "expectedTexts": ["Ana Sayfa"],

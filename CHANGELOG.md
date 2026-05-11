@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Added a real Genymotion/Appium run artifact for the native Android Kotlin login fixture.
+- Fixed native fixture JVM target configuration so it builds under Android Studio JBR/JDK 21 hosts.
+- Kept renderer-only logcat warnings non-blocking in log classification while preserving the warning findings.
+
 ## 0.1.0-alpha.4
 
 Release pipeline correction.

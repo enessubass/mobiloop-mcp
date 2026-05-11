@@ -1,0 +1,28 @@
+{
+  "runId": "native-android-login-genymotion",
+  "fixture": "examples/mobile-fixtures/android-kotlin-login-demo",
+  "goal": "Validate native Android Kotlin login fixture on Genymotion.",
+  "status": "passed",
+  "device": {
+    "serial": "127.0.0.1:6555",
+    "model": "Genymotion Galaxy S24"
+  },
+  "app": {
+    "packageName": "com.example.mobiloopnative",
+    "activity": "com.example.mobiloopnative.MainActivity",
+    "apkPath": "examples/mobile-fixtures/android-kotlin-login-demo/app/build/outputs/apk/debug/app-debug.apk"
+  },
+  "durationMs": 10945,
+  "iterations": 1,
+  "expectedTexts": ["Ana Sayfa", "Hoş geldiniz"],
+  "checks": {
+    "screenContainsText": "passed",
+    "appiumSessionHealthy": "passed",
+    "noCrashInLogcat": "passed"
+  },
+  "artifacts": {
+    "screenshotPath": "examples/artifacts/real-runs/native-android-login/screenshot-home.png",
+    "sourcePath": "examples/artifacts/real-runs/native-android-login/appium-page-source.xml",
+    "logPath": "examples/artifacts/real-runs/native-android-login/logcat.log"
+  }
+}

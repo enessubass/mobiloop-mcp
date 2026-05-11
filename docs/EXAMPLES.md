@@ -46,3 +46,4 @@ See:
 - `examples/artifacts/appium-page-source.xml`
 - `examples/artifacts/logcat-firestore-permission.log`
 - `examples/artifacts/real-runs/flutter-login-android/`
+- `examples/artifacts/real-runs/native-android-login/`

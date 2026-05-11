@@ -1,0 +1,47 @@
+--------- beginning of main
+05-11 12:20:05.105 20114 20114 I Zygote  : seccomp disabled by setenforce 0
+05-11 12:20:05.109 20114 20114 I .mobiloopnative: Late-enabling -Xcheck:jni
+05-11 12:20:05.125 20114 20114 I .mobiloopnative: Using CollectorTypeCMC GC.
+05-11 12:20:05.147 20114 20114 D nativeloader: Load libframework-connectivity-tiramisu-jni.so using APEX ns com_android_tethering for caller /apex/com.android.tethering/javalib/framework-connectivity-t.jar: ok
+05-11 12:20:05.199 20114 20114 D nativeloader: Load libstats_jni.so using APEX ns com_android_os_statsd for caller /apex/com.android.os.statsd/javalib/framework-statsd.jar: ok
+05-11 12:20:05.243 20114 20114 W ziparchive: Unable to open '/data/app/~~CNdqquKxj4RVQoeNjhBwpg==/com.example.mobiloopnative-Ehw_6NpbCKLar4GryG80NA==/base.dm': No such file or directory
+05-11 12:20:05.243 20114 20114 W ziparchive: Unable to open '/data/app/~~CNdqquKxj4RVQoeNjhBwpg==/com.example.mobiloopnative-Ehw_6NpbCKLar4GryG80NA==/base.dm': No such file or directory
+05-11 12:20:05.293 20114 20114 D nativeloader: Configuring clns-7 for other apk /data/app/~~CNdqquKxj4RVQoeNjhBwpg==/com.example.mobiloopnative-Ehw_6NpbCKLar4GryG80NA==/base.apk. target_sdk_version=35, uses_libraries=, library_path=/data/app/~~CNdqquKxj4RVQoeNjhBwpg==/com.example.mobiloopnative-Ehw_6NpbCKLar4GryG80NA==/lib/arm64, permitted_path=/data:/mnt/expand:/data/user/0/com.example.mobiloopnative
+05-11 12:20:05.300 20114 20114 D CompatChangeReporter: Compat change id reported: 202956589; UID 10103; state: ENABLED
+05-11 12:20:05.316 20114 20114 V GraphicsEnvironment: Currently set values for:
+05-11 12:20:05.317 20114 20114 V GraphicsEnvironment:   angle_gl_driver_selection_pkgs=[]
+05-11 12:20:05.317 20114 20114 V GraphicsEnvironment:   angle_gl_driver_selection_values=[]
+05-11 12:20:05.317 20114 20114 V GraphicsEnvironment: Global.Settings values are invalid: number of packages: 0, number of values: 0
+05-11 12:20:05.317 20114 20114 V GraphicsEnvironment: Neither updatable production driver nor prerelease driver is supported.
+05-11 12:20:05.362 20114 20114 I RenderThread: type=1400 audit(0.0:5380): avc:  denied  { read } for  name="libandroidemu.so" dev="vda3" ino=4459 scontext=u:r:untrusted_app:s0:c103,c256,c512,c768 tcontext=u:object_r:vendor_file:s0 tclass=file permissive=1 app=com.example.mobiloopnative
+05-11 12:20:05.362 20114 20114 I RenderThread: type=1400 audit(0.0:5381): avc:  denied  { open } for  path="/system/vendor/lib64/libandroidemu.so" dev="vda3" ino=4459 scontext=u:r:untrusted_app:s0:c103,c256,c512,c768 tcontext=u:object_r:vendor_file:s0 tclass=file permissive=1 app=com.example.mobiloopnative
+05-11 12:20:05.362 20114 20114 I RenderThread: type=1400 audit(0.0:5382): avc:  denied  { getattr } for  path="/system/vendor/lib64/libandroidemu.so" dev="vda3" ino=4459 scontext=u:r:untrusted_app:s0:c103,c256,c512,c768 tcontext=u:object_r:vendor_file:s0 tclass=file permissive=1 app=com.example.mobiloopnative
+05-11 12:20:05.362 20114 20114 I RenderThread: type=1400 audit(0.0:5383): avc:  denied  { map } for  path="/system/vendor/lib64/libandroidemu.so" dev="vda3" ino=4459 scontext=u:r:untrusted_app:s0:c103,c256,c512,c768 tcontext=u:object_r:vendor_file:s0 tclass=file permissive=1 app=com.example.mobiloopnative
+05-11 12:20:05.366 20114 20114 I RenderThread: type=1400 audit(0.0:5384): avc:  denied  { execute } for  path="/system/vendor/lib64/libandroidemu.so" dev="vda3" ino=4459 scontext=u:r:untrusted_app:s0:c103,c256,c512,c768 tcontext=u:object_r:vendor_file:s0 tclass=file permissive=1 app=com.example.mobiloopnative
+05-11 12:20:05.409 20114 20114 D CompatChangeReporter: Compat change id reported: 279646685; UID 10103; state: ENABLED
+05-11 12:20:05.414 20114 20114 D CompatChangeReporter: Compat change id reported: 63938206; UID 10103; state: ENABLED
+05-11 12:20:05.485 20114 20114 D CompatChangeReporter: Compat change id reported: 303326708; UID 10103; state: ENABLED
+05-11 12:20:05.549 20114 20114 D CompatChangeReporter: Compat change id reported: 309578419; UID 10103; state: ENABLED
+05-11 12:20:05.593 20114 20114 W HWUI    : Unknown dataspace 0
+05-11 12:20:05.685 20114 20130 I EGL_emulation: Opening libGLESv1_CM_emulation.so
+05-11 12:20:05.688 20114 20130 I EGL_emulation: Opening libGLESv2_emulation.so
+05-11 12:20:05.690 20114 20130 E .mobiloopnative: open_verbose_path:56: Could not open '/dev/goldfish_pipe_dprctd': No such file or directory
+05-11 12:20:05.690 20114 20130 E .mobiloopnative: open_verbose:128: both vsock and goldfish_pipe paths failed
+05-11 12:20:05.690 20114 20130 W .mobiloopnative: Process pipe failed
+05-11 12:20:05.690 20114 20130 D HostConnection: New host connection established 0xb40000785707ecd0, pid 20114, tid 20130
+05-11 12:20:05.737 20114 20130 W HWUI    : Failed to choose config with EGL_SWAP_BEHAVIOR_PRESERVED, retrying without...
+05-11 12:20:05.743 20114 20130 W HWUI    : Failed to initialize 101010-2 format, error = EGL_SUCCESS
+05-11 12:20:05.753 20114 20130 E .mobiloopnative: open_verbose_path:56: Could not open '/dev/goldfish_pipe_dprctd': No such file or directory
+05-11 12:20:05.753 20114 20130 E .mobiloopnative: open_verbose:128: both vsock and goldfish_pipe paths failed
+05-11 12:20:05.912 20114 20119 I .mobiloopnative: Compiler allocated 4206KB to compile void android.widget.TextView.<init>(android.content.Context, android.util.AttributeSet, int, int)
+05-11 12:20:05.936 20114 20130 I Gralloc4: mapper 4.x is not supported
+05-11 12:20:05.937 20114 20130 W Gralloc3: mapper 3.x is not supported
+05-11 12:20:05.958 20114 20130 D HostConnection: New host connection established 0xb40000785707f390, pid 20114, tid 20130
+05-11 12:20:06.196 20114 20119 I .mobiloopnative: Compiler allocated 5250KB to compile void android.view.ViewRootImpl.performTraversals()
+05-11 12:20:06.395 20114 20114 I Choreographer: Skipped 44 frames!  The application may be doing too much work on its main thread.
+05-11 12:20:06.401 20114 20128 I HWUI    : Davey! duration=773ms; Flags=1, FrameTimelineVsyncId=292628, IntendedVsync=34449402301122, Vsync=34449418967788, InputEventId=0, HandleInputStart=34449429074257, AnimationStart=34449429079674, PerformTraversalsStart=34449429081507, DrawStart=34449767958257, FrameDeadline=34449418967788, FrameInterval=34449428896132, FrameStartTime=16666666, SyncQueued=34449772643049, SyncStart=34449775027132, IssueDrawCommandsStart=34449780410591, SwapBuffers=34450166639966, FrameCompleted=34450177902383, DequeueBufferDuration=56125, QueueBufferDuration=1947000, GpuCompleted=34450166639966, SwapBuffersCompleted=34450177902383, DisplayPresentTime=72904454231359566, CommandSubmissionCompleted=34450166639966,
+05-11 12:20:06.434 20114 20127 I HWUI    : Davey! duration=758ms; Flags=0, FrameTimelineVsyncId=292680, IntendedVsync=34449452301120, Vsync=34450185634424, InputEventId=0, HandleInputStart=34450190549049, AnimationStart=34450190550049, PerformTraversalsStart=34450193548799, DrawStart=34450193640424, FrameDeadline=34450185634424, FrameInterval=34450187726216, FrameStartTime=16666666, SyncQueued=34450193821258, SyncStart=34450194115049, IssueDrawCommandsStart=34450194141883, SwapBuffers=34450206724591, FrameCompleted=34450210889799, DequeueBufferDuration=1584, QueueBufferDuration=164875, GpuCompleted=34450206724591, SwapBuffersCompleted=34450210889799, DisplayPresentTime=144115222452437076, CommandSubmissionCompleted=34450206724591,
+05-11 12:20:07.457 20114 20130 D EGL_emulation: app_time_stats: avg=104.81ms min=14.54ms max=880.38ms count=10
+05-11 12:20:08.510 20114 20130 D EGL_emulation: app_time_stats: avg=526.69ms min=501.44ms max=551.94ms count=2
+05-11 12:20:09.576 20114 20130 D EGL_emulation: app_time_stats: avg=532.79ms min=499.36ms max=566.22ms count=2
+05-11 12:20:10.898 20114 20130 D EGL_emulation: app_time_stats: avg=661.00ms min=516.01ms max=806.00ms count=2

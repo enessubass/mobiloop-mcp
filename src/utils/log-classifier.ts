@@ -128,10 +128,11 @@ export function classifyLogcat(logText: string): LogClassification {
       "test_data_missing"
     ].includes(finding.status)
   );
-  const status = highestStatus(trimmed);
+  const errorFindings = trimmed.filter((finding) => finding.severity === "error");
+  const status = highestStatus(errorFindings);
   return {
     status,
-    likelyRootCause: likelyRootCause(status, trimmed),
+    likelyRootCause: likelyRootCause(status, status === "passed" ? [] : trimmed),
     nextSuggestedAction: nextSuggestedAction(status),
     appCrashFindings,
     automationFindings,
@@ -156,6 +157,7 @@ function highestStatus(findings: LogFinding[]): EvidenceStatus {
 }
 
 function likelyRootCause(status: EvidenceStatus, findings: LogFinding[]): string {
+  if (status === "passed") return "";
   const first = findings.find((finding) => finding.status === status) ?? findings[0];
   if (!first) return "No known crash or dependency signature found in collected logs.";
   return `${first.summary} First matching line ${first.lineNumber}: ${first.line}`;
@@ -163,6 +165,8 @@ function likelyRootCause(status: EvidenceStatus, findings: LogFinding[]): string
 
 function nextSuggestedAction(status: EvidenceStatus): string {
   switch (status) {
+    case "passed":
+      return "";
     case "app_bug":
       return "Inspect the app stack trace and fix the app code path before rerunning the flow.";
     case "automation_error":

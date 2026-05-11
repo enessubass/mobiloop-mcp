@@ -25,3 +25,16 @@ test("classifyLogcat detects app crash signatures", () => {
   assert.equal(result.status, "app_bug");
   assert.equal(result.appCrashFindings.length, 1);
 });
+
+test("classifyLogcat keeps renderer-only warnings non-blocking", () => {
+  const result = classifyLogcat(
+    [
+      "I/EGL_emulation: Opening libGLESv2_emulation.so",
+      "W/HWUI: Failed to choose config with EGL_SWAP_BEHAVIOR_PRESERVED"
+    ].join("\n")
+  );
+  assert.equal(result.status, "passed");
+  assert.equal(result.likelyRootCause, "");
+  assert.equal(result.nextSuggestedAction, "");
+  assert.equal(result.findings.length, 2);
+});

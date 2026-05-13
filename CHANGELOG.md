@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.1.0-alpha.7
+
+- Merged GitHub Actions major-version updates for `actions/checkout`, `actions/setup-node`, and `actions/upload-artifact`.
+- Resolved the release workflow Node.js 20 action deprecation warning by moving to newer action majors.
+- Accepted GitHub-hosted CI/CodeQL validation for the action update while the Android self-hosted runner remains unavailable.
+
 ## 0.1.0-alpha.6
 
 - Added a source-only React Native login fixture with `testID`, `accessibilityLabel`, placeholder, and visible-text locator examples.

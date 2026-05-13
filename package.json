@@ -1,6 +1,6 @@
 {
   "name": "mobiloop-mcp",
-  "version": "0.1.0-alpha.5",
+  "version": "0.1.0-alpha.6",
   "description": "A guarded MCP server for build, device, Appium, verification, and agentic mobile development loops.",
   "type": "module",
   "repository": {

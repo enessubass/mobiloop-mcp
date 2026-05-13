@@ -2,8 +2,12 @@
 
 ## Unreleased
 
+## 0.1.0-alpha.6
+
 - Added a source-only React Native login fixture with `testID`, `accessibilityLabel`, placeholder, and visible-text locator examples.
 - Added React Native source-flow analysis coverage for screen, route, transition, and visible-text detection.
+- Merged the Docker runtime update to `node:26-bookworm-slim` after local Docker smoke validation and main CI/CodeQL passed.
+- Kept the GitHub Actions major-version bump open pending self-hosted Android runner validation.
 
 ## 0.1.0-alpha.5
 

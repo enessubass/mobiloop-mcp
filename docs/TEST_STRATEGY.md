@@ -27,7 +27,7 @@ test/integration/
   orchestrator.mock.test.ts
 ```
 
-These use a mock Appium HTTP server and verify exact-first text tapping, high-level flow script execution, and the Android orchestrator happy path without real device mutation.
+These use a mock Appium HTTP server and verify exact-first text tapping, high-level flow script execution, and Android/iOS orchestrator happy paths without real device mutation.
 
 ## E2E
 
@@ -38,6 +38,7 @@ test/e2e/
   android-emulator.smoke.test.ts
   flutter-login.loop.test.ts
   react-native-login.loop.test.ts
+  ios-simulator.smoke.test.ts
 ```
 
 Hosted GitHub Linux runners are good for package correctness. They are not enough to prove emulator/Appium behavior for every host.
@@ -71,7 +72,7 @@ Add fixtures in this order:
 1. Add an orchestrator failure-path mock integration test.
 2. Expand the native Android login fixture into a self-hosted Android E2E workflow.
 3. Add React Native login demo on self-hosted Android.
-4. Add iOS simulator smoke on macOS runner.
+4. Add iOS simulator smoke on macOS runner using `orchestrator.run_ios_validation_loop`.
 
 Current fixture roots:
 

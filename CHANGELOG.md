@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.1.0-alpha.8
+
+- Added `orchestrator.run_ios_validation_loop` for iOS simulator build-install-launch-Appium validation loops.
+- Updated `ios.build_app` to discover generated `.app` bundles under DerivedData and prioritize the scheme app over test runner apps.
+- Added Flutter Android/iOS quickstart documentation and a Flutter iOS validation-loop example payload.
+- Added mock Appium integration coverage for the iOS orchestrator path.
+
 ## 0.1.0-alpha.7
 
 - Merged GitHub Actions major-version updates for `actions/checkout`, `actions/setup-node`, and `actions/upload-artifact`.

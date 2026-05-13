@@ -105,24 +105,25 @@ Verification tools should produce evidence instead of model claims.
 
 ## Flow, Loop, CI, And Orchestrator
 
-| Tool                                       | Purpose                                           |
-| ------------------------------------------ | ------------------------------------------------- |
-| `flow.analyze_from_code`                   | Static source-flow discovery.                     |
-| `flow.generate_test_scenarios`             | AI-ready scenario candidates from source.         |
-| `flow.run_script`                          | High-level flow DSL runner.                       |
-| `flow.record_checkpoint`                   | Persist a stable runtime checkpoint.              |
-| `flow.record_test_run`                     | Mark a checkpoint path as passed or failed.       |
-| `flow.plan_replay`                         | Plan replay to a checkpoint without executing.    |
-| `flow.replay_to_checkpoint`                | Replay remembered semantic actions.               |
-| `flow.read_memory`, `flow.clear_memory`    | Inspect or reset flow memory.                     |
-| `loop.record_iteration`                    | Append structured loop iteration JSONL.           |
-| `loop.read_iterations`                     | Read loop history.                                |
-| `loop.generate_report`                     | Generate Markdown report.                         |
-| `ci.collect_artifact_manifest`             | Build CI artifact manifest.                       |
-| `ci.write_github_step_summary`             | Write GitHub step summary.                        |
-| `ci.comment_pr`                            | Comment on a PR.                                  |
-| `ci.create_github_annotations`             | Create GitHub annotation JSON.                    |
-| `orchestrator.run_android_validation_loop` | Bounded Android build-install-Appium-verify loop. |
+| Tool                                       | Purpose                                                 |
+| ------------------------------------------ | ------------------------------------------------------- |
+| `flow.analyze_from_code`                   | Static source-flow discovery.                           |
+| `flow.generate_test_scenarios`             | AI-ready scenario candidates from source.               |
+| `flow.run_script`                          | High-level flow DSL runner.                             |
+| `flow.record_checkpoint`                   | Persist a stable runtime checkpoint.                    |
+| `flow.record_test_run`                     | Mark a checkpoint path as passed or failed.             |
+| `flow.plan_replay`                         | Plan replay to a checkpoint without executing.          |
+| `flow.replay_to_checkpoint`                | Replay remembered semantic actions.                     |
+| `flow.read_memory`, `flow.clear_memory`    | Inspect or reset flow memory.                           |
+| `loop.record_iteration`                    | Append structured loop iteration JSONL.                 |
+| `loop.read_iterations`                     | Read loop history.                                      |
+| `loop.generate_report`                     | Generate Markdown report.                               |
+| `ci.collect_artifact_manifest`             | Build CI artifact manifest.                             |
+| `ci.write_github_step_summary`             | Write GitHub step summary.                              |
+| `ci.comment_pr`                            | Comment on a PR.                                        |
+| `ci.create_github_annotations`             | Create GitHub annotation JSON.                          |
+| `orchestrator.run_android_validation_loop` | Bounded Android build-install-Appium-verify loop.       |
+| `orchestrator.run_ios_validation_loop`     | Bounded iOS simulator build-install-Appium-verify loop. |
 
 ## Critical Tool Contracts
 
@@ -269,3 +270,58 @@ Output:
 ```
 
 Failure cases: build failure, APK not found, install failure, Appium session failure, failed assertion, classified external dependency.
+
+### `orchestrator.run_ios_validation_loop`
+
+Input:
+
+```json
+{
+  "goal": "Validate login flow on iOS",
+  "kind": "flutter",
+  "workspace": "ios/Runner.xcworkspace",
+  "scheme": "Runner",
+  "simulatorDevice": "iPhone 15",
+  "bundleId": "com.example.app",
+  "runLint": true,
+  "runUnitTests": true,
+  "buildIosApp": true,
+  "bootSimulator": true,
+  "installApp": true,
+  "launchApp": true,
+  "appiumCapabilities": {
+    "platformName": "iOS",
+    "appium:automationName": "XCUITest",
+    "appium:deviceName": "iPhone 15",
+    "appium:bundleId": "com.example.app"
+  },
+  "appiumSteps": [
+    {
+      "tool": "appium.wait_for_visible",
+      "args": { "locator": { "strategy": "text", "value": "Login" } }
+    }
+  ],
+  "expectedTexts": ["Home"],
+  "approval": {
+    "approved": true,
+    "approvedBy": "human-or-ci",
+    "reason": "Run iOS validation on simulator"
+  }
+}
+```
+
+Output:
+
+```json
+{
+  "passed": true,
+  "status": "passed",
+  "iterations": [],
+  "likelyRootCause": "",
+  "nextSuggestedAction": "",
+  "blockingExternalDependency": false,
+  "durationMs": 12345
+}
+```
+
+Failure cases: `xcodebuild` failure, `.app` bundle not found, simulator boot/install/launch failure, Appium XCUITest session failure, failed assertion, missing Xcode/Appium/XCUITest host setup.

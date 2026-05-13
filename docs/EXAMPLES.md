@@ -28,6 +28,17 @@ mobiloop call flow.run_script '{
 mobiloop list-tools --json
 ```
 
+## Flutter iOS Validation Loop
+
+Use this from a Flutter project on macOS after starting Appium with the XCUITest driver:
+
+```bash
+MOBILOOP_WORKSPACE_ROOT=/path/to/flutter-app \
+mobiloop call orchestrator.run_ios_validation_loop "$(cat examples/flutter-ios-validation-loop.json)"
+```
+
+Update the bundle id, simulator name, and expected text before running against a real app.
+
 ## Fixture Apps
 
 Use the fixtures as known-small targets for local validation and CI smoke tests:

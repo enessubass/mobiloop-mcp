@@ -154,6 +154,7 @@ function explicitPolicy(toolName: string): PolicyOverride {
     case "flow.run_script":
     case "flow.replay_to_checkpoint":
     case "orchestrator.run_android_validation_loop":
+    case "orchestrator.run_ios_validation_loop":
       return {
         ...approval("Runs a multi-step automation loop that can mutate app and device state."),
         writesDevice: true

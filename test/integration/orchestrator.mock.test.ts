@@ -46,3 +46,52 @@ test("orchestrator.run_android_validation_loop can pass against mock Appium with
     await mock.close();
   }
 });
+
+test("orchestrator.run_ios_validation_loop can pass against mock Appium without simulator mutation", async () => {
+  const mock = await startMockAppium();
+  const config = await createTestConfig({
+    appiumServerUrl: mock.serverUrl,
+    maxTestIterations: 1
+  });
+  try {
+    const tool = orchestratorTools().find(
+      (entry) => entry.name === "orchestrator.run_ios_validation_loop"
+    );
+    assert.ok(tool);
+    const result = await tool.handler(
+      {
+        goal: "Mock iOS login validation",
+        runLint: false,
+        runUnitTests: false,
+        buildIosApp: false,
+        bootSimulator: false,
+        installApp: false,
+        launchApp: false,
+        collectEvidence: false,
+        maxTestIterations: 1,
+        appiumCapabilities: {
+          platformName: "iOS",
+          "appium:automationName": "XCUITest",
+          "appium:deviceName": "iPhone 15",
+          "appium:bundleId": "com.example.app"
+        },
+        appiumSteps: [
+          {
+            tool: "appium.wait_for_visible",
+            args: { locator: { strategy: "text", value: "Giriş Yap" }, timeoutMs: 1000 }
+          }
+        ],
+        expectedTexts: ["Ana Sayfa"]
+      },
+      { config }
+    );
+    const payload = JSON.parse(
+      result.content.map((entry) => ("text" in entry ? entry.text : "")).join("\n")
+    );
+    assert.equal(payload.passed, true);
+    assert.equal(payload.status, "passed");
+    assert.equal(payload.iterations.length, 1);
+  } finally {
+    await mock.close();
+  }
+});

@@ -49,7 +49,7 @@ MobiLoop MCP
   |-- flow-memory replay tools
   |-- loop/report tools
   |-- CI publication tools
-  |-- Android orchestrator
+  |-- Android/iOS orchestrators
   |
   v
 mobile repo + emulator/device + Appium + build toolchain
@@ -248,7 +248,7 @@ All binaries are listed below.
 | `mobiloop-flow-mcp`         | Source-flow analysis and checkpoint replay                             |
 | `mobiloop-loop-mcp`         | Iteration records and reports                                          |
 | `mobiloop-ci-mcp`           | Artifact manifests, GitHub summaries, PR comments                      |
-| `mobiloop-orchestrator-mcp` | Android build-install-test-verify loop                                 |
+| `mobiloop-orchestrator-mcp` | Android and iOS build-install-test-verify loops                        |
 
 ## Configuration
 
@@ -390,6 +390,53 @@ Minimal shape:
 ```
 
 See [examples/android-validation-loop.json](examples/android-validation-loop.json).
+
+## iOS Orchestrator
+
+`orchestrator.run_ios_validation_loop` runs a bounded iOS simulator loop across `xcodebuild`, simulator boot, app install/launch, Appium XCUITest, verification, evidence, and iteration records.
+
+Minimal Flutter shape:
+
+```json
+{
+  "goal": "Build and verify login flow on iOS.",
+  "kind": "flutter",
+  "workspace": "ios/Runner.xcworkspace",
+  "scheme": "Runner",
+  "configuration": "Debug",
+  "sdk": "iphonesimulator",
+  "destination": "platform=iOS Simulator,name=iPhone 15",
+  "simulatorDevice": "iPhone 15",
+  "bundleId": "com.example.app",
+  "runLint": true,
+  "runUnitTests": true,
+  "buildIosApp": true,
+  "bootSimulator": true,
+  "installApp": true,
+  "launchApp": true,
+  "collectEvidence": true,
+  "maxTestIterations": 2,
+  "appiumCapabilities": {
+    "platformName": "iOS",
+    "appium:automationName": "XCUITest",
+    "appium:deviceName": "iPhone 15",
+    "appium:bundleId": "com.example.app",
+    "appium:noReset": false
+  },
+  "appiumSteps": [
+    {
+      "tool": "appium.wait_for_visible",
+      "args": {
+        "locator": { "strategy": "text", "value": "Login" },
+        "timeoutMs": 15000
+      }
+    }
+  ],
+  "expectedTexts": ["Home"]
+}
+```
+
+See [examples/flutter-ios-validation-loop.json](examples/flutter-ios-validation-loop.json) and [docs/QUICKSTART_FLUTTER.md](docs/QUICKSTART_FLUTTER.md).
 
 ## AI-Generated Scenario Candidates
 
@@ -757,6 +804,7 @@ Typical contents:
 ### Orchestrator
 
 - `orchestrator.run_android_validation_loop`
+- `orchestrator.run_ios_validation_loop`
 
 ## Troubleshooting
 
@@ -836,6 +884,7 @@ The Dockerfile also runs the test suite during image build.
 - [docs/RELEASE_PROCESS.md](docs/RELEASE_PROCESS.md)
 - [docs/LIMITATIONS.md](docs/LIMITATIONS.md)
 - [docs/EXAMPLES.md](docs/EXAMPLES.md)
+- [docs/QUICKSTART_FLUTTER.md](docs/QUICKSTART_FLUTTER.md)
 - [docs/DOCKER.md](docs/DOCKER.md)
 - [docs/SECURITY.md](docs/SECURITY.md)
 - [docs/demo/flutter-login-loop.md](docs/demo/flutter-login-loop.md)
@@ -845,6 +894,7 @@ The Dockerfile also runs the test suite during image build.
 - [docs/releases/v0.1.0-alpha.4.md](docs/releases/v0.1.0-alpha.4.md)
 - [.github/workflows/android-fixture-e2e.yml](.github/workflows/android-fixture-e2e.yml)
 - [examples/android-validation-loop.json](examples/android-validation-loop.json)
+- [examples/flutter-ios-validation-loop.json](examples/flutter-ios-validation-loop.json)
 - [examples/flow-memory-replay.json](examples/flow-memory-replay.json)
 - [examples/github-actions-mobiloop.yml](examples/github-actions-mobiloop.yml)
 - [examples/mobile-fixtures/flutter-login-demo](examples/mobile-fixtures/flutter-login-demo)

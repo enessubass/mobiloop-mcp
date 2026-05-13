@@ -21,7 +21,8 @@ test("all tool names are unique and include core release groups", () => {
     "loop.generate_report",
     "ci.collect_artifact_manifest",
     "policy.list_tools",
-    "orchestrator.run_android_validation_loop"
+    "orchestrator.run_android_validation_loop",
+    "orchestrator.run_ios_validation_loop"
   ]) {
     assert.ok(names.includes(required), `${required} should be registered`);
   }
@@ -39,7 +40,8 @@ test("all tools expose policy metadata and high-impact tools require approval", 
     "device.clear_app_data",
     "appium.tap_coordinates",
     "flow.run_script",
-    "orchestrator.run_android_validation_loop"
+    "orchestrator.run_android_validation_loop",
+    "orchestrator.run_ios_validation_loop"
   ]) {
     assert.equal(
       byName.get(requiredApproval)?.policy?.requiresApproval,

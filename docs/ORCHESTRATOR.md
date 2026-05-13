@@ -1,10 +1,13 @@
 # Orchestrator
 
-`orchestrator.run_android_validation_loop` coordinates Android validation.
+MobiLoop provides bounded platform validation loops:
+
+- `orchestrator.run_android_validation_loop`
+- `orchestrator.run_ios_validation_loop`
 
 It is currently a build-test-verify-classify loop, not an autonomous patch writer. Patch-and-retest should be layered on top by an agent only after approval, diff review, and rollback rules are configured.
 
-## Responsibilities
+## Android Responsibilities
 
 - optionally run lint
 - optionally run unit tests
@@ -16,6 +19,20 @@ It is currently a build-test-verify-classify loop, not an autonomous patch write
 - run expected text checks
 - collect evidence
 - classify failures
+- record iterations
+
+## iOS Responsibilities
+
+- optionally run Flutter dependency, lint, and unit-test checks
+- build an iOS simulator `.app` with `xcodebuild`
+- discover the generated `.app` bundle under DerivedData
+- optionally boot a simulator and wait for boot completion
+- optionally install and launch the app by bundle id
+- create an Appium XCUITest session
+- optionally replay flow memory
+- run Appium steps
+- run expected text checks
+- collect Appium screenshot/source, simulator screenshot, and simulator logs
 - record iterations
 
 ## Output Fields
@@ -33,7 +50,7 @@ Important fields include:
 
 ## Approval
 
-When `MOBILOOP_REQUIRE_APPROVAL=true`, the orchestrator requires an approval payload because it can install apps, clear data, create Appium sessions, and drive UI flows.
+When `MOBILOOP_REQUIRE_APPROVAL=true`, orchestrator tools require an approval payload because they can install apps, clear data, boot simulators/emulators, create Appium sessions, and drive UI flows.
 
 ## Bounded Loop Contract
 
@@ -45,6 +62,34 @@ The orchestrator should not loop forever. Respect:
 
 If the likely cause is environment, remote rules, credentials, or missing test data, stop and report instead of patching blindly.
 
-## iOS Parity Gap
+## Flutter iOS Example
 
-iOS has lower-level tools today, but no equivalent `orchestrator.run_ios_validation_loop` yet. That is a planned parity item.
+Use this shape from the Flutter project root on a macOS host:
+
+```json
+{
+  "goal": "Build and verify login flow on iOS.",
+  "kind": "flutter",
+  "workspace": "ios/Runner.xcworkspace",
+  "scheme": "Runner",
+  "destination": "platform=iOS Simulator,name=iPhone 15",
+  "simulatorDevice": "iPhone 15",
+  "bundleId": "com.example.app",
+  "runLint": true,
+  "runUnitTests": true,
+  "buildIosApp": true,
+  "bootSimulator": true,
+  "installApp": true,
+  "launchApp": true,
+  "collectEvidence": true,
+  "appiumCapabilities": {
+    "platformName": "iOS",
+    "appium:automationName": "XCUITest",
+    "appium:deviceName": "iPhone 15",
+    "appium:bundleId": "com.example.app"
+  },
+  "expectedTexts": ["Home"]
+}
+```
+
+See `examples/flutter-ios-validation-loop.json`.

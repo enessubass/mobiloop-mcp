@@ -1,6 +1,6 @@
 {
   "name": "mobiloop-mcp",
-  "version": "0.1.0-alpha.7",
+  "version": "0.1.0-alpha.8",
   "description": "A guarded MCP server for build, device, Appium, verification, and agentic mobile development loops.",
   "type": "module",
   "repository": {
@@ -35,6 +35,7 @@
     "docs",
     "schema",
     "examples/android-validation-loop.json",
+    "examples/flutter-ios-validation-loop.json",
     "examples/flow-memory-replay.json",
     "examples/github-actions-mobiloop.yml",
     "examples/mobile-goal.json",

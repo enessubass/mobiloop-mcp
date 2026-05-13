@@ -1,3 +1,4 @@
+import fs from "node:fs/promises";
 import path from "node:path";
 import { McpTool, jsonResponse } from "../types.js";
 import { booleanSchema, numberSchema, objectSchema, stringSchema } from "../schema.js";
@@ -146,7 +147,16 @@ export function iosTools(): McpTool[] {
           "log",
           result.stdout + result.stderr
         );
-        return jsonResponse({ scheme, configuration, sdk, destination, derivedDataPath, logPath });
+        const appPaths = await findAppBundles(derivedDataPath, scheme);
+        return jsonResponse({
+          scheme,
+          configuration,
+          sdk,
+          destination,
+          derivedDataPath,
+          appPaths,
+          logPath
+        });
       }
     },
     {
@@ -276,4 +286,30 @@ export function iosTools(): McpTool[] {
       }
     }
   ];
+}
+
+async function findAppBundles(derivedDataPath: string, scheme: string): Promise<string[]> {
+  const productsRoot = path.join(derivedDataPath, "Build", "Products");
+  const output: string[] = [];
+  await walk(productsRoot).catch(() => undefined);
+  return output.sort((left, right) => score(right) - score(left));
+
+  async function walk(dir: string): Promise<void> {
+    const entries = await fs.readdir(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const child = path.join(dir, entry.name);
+      if (entry.isDirectory() && entry.name.endsWith(".app")) {
+        output.push(child);
+      } else if (entry.isDirectory()) {
+        await walk(child);
+      }
+    }
+  }
+
+  function score(appPath: string): number {
+    const name = path.basename(appPath);
+    if (name === `${scheme}.app`) return 3;
+    if (/test/i.test(name)) return 0;
+    return 1;
+  }
 }

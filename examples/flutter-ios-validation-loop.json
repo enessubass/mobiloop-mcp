@@ -1,0 +1,37 @@
+{
+  "goal": "Build and verify Flutter login flow on iOS simulator.",
+  "kind": "flutter",
+  "workspace": "ios/Runner.xcworkspace",
+  "scheme": "Runner",
+  "configuration": "Debug",
+  "sdk": "iphonesimulator",
+  "destination": "platform=iOS Simulator,name=iPhone 15",
+  "simulatorDevice": "iPhone 15",
+  "bundleId": "com.example.app",
+  "installDependencies": false,
+  "runLint": true,
+  "runUnitTests": true,
+  "buildIosApp": true,
+  "bootSimulator": true,
+  "installApp": true,
+  "launchApp": true,
+  "collectEvidence": true,
+  "maxTestIterations": 2,
+  "appiumCapabilities": {
+    "platformName": "iOS",
+    "appium:automationName": "XCUITest",
+    "appium:deviceName": "iPhone 15",
+    "appium:bundleId": "com.example.app",
+    "appium:noReset": false
+  },
+  "appiumSteps": [
+    {
+      "tool": "appium.wait_for_visible",
+      "args": {
+        "locator": { "strategy": "text", "value": "Login" },
+        "timeoutMs": 15000
+      }
+    }
+  ],
+  "expectedTexts": ["Home"]
+}

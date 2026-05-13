@@ -4,6 +4,7 @@ import { appiumTools } from "./appium.js";
 import { buildTools } from "./build.js";
 import { deviceTools } from "./device.js";
 import { flowTools } from "./flow.js";
+import { iosTools } from "./ios.js";
 import { loopTools } from "./loop.js";
 import { verifyTools } from "./verify.js";
 import {
@@ -18,6 +19,7 @@ export function orchestratorTools(): McpTool[] {
   const callableTools = [
     ...buildTools(),
     ...deviceTools(),
+    ...iosTools(),
     ...appiumTools(),
     ...verifyTools(),
     ...flowTools(),
@@ -295,6 +297,317 @@ export function orchestratorTools(): McpTool[] {
           }
         }
       }
+    },
+    {
+      name: "orchestrator.run_ios_validation_loop",
+      description:
+        "Run iOS simulator build -> install/launch -> Appium XCUITest scripted test -> verification -> evidence -> loop record.",
+      inputSchema: objectSchema(
+        {
+          goal: stringSchema,
+          kind: stringSchema,
+          workspace: stringSchema,
+          project: stringSchema,
+          scheme: stringSchema,
+          configuration: stringSchema,
+          sdk: stringSchema,
+          destination: stringSchema,
+          derivedDataPath: stringSchema,
+          appPath: stringSchema,
+          bundleId: stringSchema,
+          simulatorDevice: stringSchema,
+          device: stringSchema,
+          appiumCapabilities: { type: "object", additionalProperties: true },
+          appiumSteps: arraySchema({ type: "object", additionalProperties: true }),
+          expectedTexts: arraySchema(stringSchema),
+          installDependencies: booleanSchema,
+          runLint: booleanSchema,
+          runUnitTests: booleanSchema,
+          buildIosApp: booleanSchema,
+          bootSimulator: booleanSchema,
+          installApp: booleanSchema,
+          launchApp: booleanSchema,
+          collectEvidence: booleanSchema,
+          captureSimulatorScreenshot: booleanSchema,
+          collectSimulatorLogs: booleanSchema,
+          simulatorLogLast: stringSchema,
+          simulatorLogPredicate: stringSchema,
+          evidenceTimeoutMs: numberSchema,
+          flowReplayBeforeSteps: booleanSchema,
+          flowReplayTestName: stringSchema,
+          flowReplayTargetCheckpointId: stringSchema,
+          flowReplayMinimumScore: numberSchema,
+          maxTestIterations: numberSchema,
+          iterationOffset: numberSchema
+        },
+        ["goal"]
+      ),
+      async handler(input, context) {
+        const args = asObject(input);
+        const goal = requireString(args, "goal");
+        const started = Date.now();
+        const maxIterations = Math.max(
+          1,
+          Math.min(
+            optionalNumber(args, "maxTestIterations") ?? context.config.maxTestIterations,
+            20
+          )
+        );
+        const iterationOffset = optionalNumber(args, "iterationOffset") ?? 0;
+        const results: Array<Record<string, unknown>> = [];
+        let sessionId: string | undefined;
+        let appPath = optionalString(args, "appPath");
+        let lastFailure: string | undefined;
+        const simulatorDevice =
+          optionalString(args, "simulatorDevice") ?? optionalString(args, "device");
+        const device = simulatorDevice ?? "booted";
+        const bundleId = optionalString(args, "bundleId");
+
+        try {
+          const kind = optionalString(args, "kind");
+          if (optionalBoolean(args, "installDependencies") ?? false) {
+            await callJson(byName, "build.install_dependencies", { kind }, context);
+          }
+          if (optionalBoolean(args, "runLint") ?? false) {
+            await callJson(byName, "build.run_lint", { kind }, context);
+          }
+          if (optionalBoolean(args, "runUnitTests") ?? false) {
+            await callJson(byName, "build.run_unit_tests", { kind }, context);
+          }
+          if (!appPath && (optionalBoolean(args, "buildIosApp") ?? true)) {
+            const build = await callJson(
+              byName,
+              "ios.build_app",
+              {
+                workspace: optionalString(args, "workspace"),
+                project: optionalString(args, "project"),
+                scheme: optionalString(args, "scheme"),
+                configuration: optionalString(args, "configuration"),
+                sdk: optionalString(args, "sdk"),
+                destination: optionalString(args, "destination"),
+                derivedDataPath: optionalString(args, "derivedDataPath")
+              },
+              context
+            );
+            const appPaths = Array.isArray(build.appPaths)
+              ? build.appPaths.filter((entry) => typeof entry === "string")
+              : [];
+            appPath = appPaths[0] as string | undefined;
+            if (!appPath) {
+              throw new Error("iOS build succeeded but no .app bundle was discovered");
+            }
+          }
+
+          if (simulatorDevice && (optionalBoolean(args, "bootSimulator") ?? true)) {
+            await callJson(
+              byName,
+              "ios.boot_simulator",
+              { device: simulatorDevice, waitForBoot: true },
+              context
+            );
+          }
+          if (appPath && (optionalBoolean(args, "installApp") ?? true)) {
+            await callJson(byName, "ios.install_app", { device, appPath }, context);
+          }
+          if (bundleId && (optionalBoolean(args, "launchApp") ?? true)) {
+            await callJson(
+              byName,
+              "ios.launch_app",
+              { device, bundleId, terminateRunning: true },
+              context
+            );
+          }
+
+          for (let index = 1; index <= maxIterations; index += 1) {
+            const iteration = iterationOffset + index;
+            const artifacts: string[] = [];
+            const checks: Array<Record<string, unknown>> = [];
+            try {
+              if (shouldCreateAppiumSession(args)) {
+                const session = await callJson(
+                  byName,
+                  "appium.create_session",
+                  { capabilities: iosAppiumCapabilities(args, appPath, bundleId, simulatorDevice) },
+                  context
+                );
+                sessionId = typeof session.sessionId === "string" ? session.sessionId : undefined;
+              }
+              if (
+                sessionId &&
+                (optionalBoolean(args, "flowReplayBeforeSteps") ??
+                  Boolean(optionalString(args, "flowReplayTestName")))
+              ) {
+                await callJson(
+                  byName,
+                  "flow.replay_to_checkpoint",
+                  {
+                    sessionId,
+                    testName: optionalString(args, "flowReplayTestName"),
+                    targetCheckpointId: optionalString(args, "flowReplayTargetCheckpointId"),
+                    minimumScore: optionalNumber(args, "flowReplayMinimumScore")
+                  },
+                  context
+                );
+              }
+              await runAppiumSteps(byName, objectArray(args.appiumSteps), sessionId, context);
+
+              for (const expectedText of stringArray(args.expectedTexts)) {
+                if (!sessionId)
+                  throw new Error("expectedTexts requires appiumCapabilities/sessionId");
+                const check = await callJson(
+                  byName,
+                  "verify.assert_screen_contains_text",
+                  { sessionId, text: expectedText },
+                  context
+                );
+                checks.push({
+                  tool: "verify.assert_screen_contains_text",
+                  expectedText,
+                  result: check
+                });
+              }
+              if (sessionId) {
+                const check = await callJson(
+                  byName,
+                  "verify.assert_appium_session_healthy",
+                  { sessionId },
+                  context
+                );
+                checks.push({ tool: "verify.assert_appium_session_healthy", result: check });
+              }
+
+              const failed = checks.filter((check) => resultFailed(check.result));
+              if (optionalBoolean(args, "collectEvidence") ?? true) {
+                const evidence = await collectIosEvidence(
+                  byName,
+                  args,
+                  sessionId,
+                  device,
+                  `iteration-${iteration}`,
+                  context
+                );
+                artifacts.push(...evidence.artifacts);
+                checks.push({
+                  tool: "orchestrator.collect_ios_evidence",
+                  result: {
+                    passed: evidence.errors.length === 0,
+                    evidenceErrors: evidence.errors
+                  }
+                });
+              }
+              const evidenceFailed = checks.filter((check) => resultFailed(check.result));
+              const failureAnalysis = analyzeFailedChecks(
+                evidenceFailed.length ? evidenceFailed : failed
+              );
+              const passed = evidenceFailed.length === 0;
+              const record = await callJson(
+                byName,
+                "loop.record_iteration",
+                {
+                  iteration,
+                  goal,
+                  build: appPath ? "success" : "not_run",
+                  device,
+                  test_result: passed ? "passed" : "failed",
+                  failure: passed ? "" : JSON.stringify(evidenceFailed),
+                  root_cause: passed ? "" : failureAnalysis.likelyRootCause,
+                  fix: passed ? "" : failureAnalysis.nextSuggestedAction,
+                  retest: passed ? "passed" : "pending",
+                  artifacts
+                },
+                context
+              );
+              results.push({
+                iteration,
+                passed,
+                checks,
+                artifacts,
+                record,
+                failureAnalysis,
+                appPath,
+                bundleId
+              });
+              if (passed) {
+                return jsonResponse({
+                  passed: true,
+                  goal,
+                  iterations: results,
+                  status: "passed",
+                  likelyRootCause: "",
+                  nextSuggestedAction: "",
+                  blockingExternalDependency: false,
+                  durationMs: Date.now() - started
+                });
+              }
+              lastFailure = JSON.stringify(evidenceFailed);
+            } catch (error) {
+              lastFailure = error instanceof Error ? error.message : String(error);
+              const failureAnalysis = analyzeErrorMessage(lastFailure);
+              const evidence =
+                (optionalBoolean(args, "collectEvidence") ?? true)
+                  ? await collectIosEvidence(
+                      byName,
+                      args,
+                      sessionId,
+                      device,
+                      `iteration-${iteration}-failure`,
+                      context
+                    ).catch((e) => ({
+                      artifacts: [],
+                      errors: [e instanceof Error ? e.message : String(e)]
+                    }))
+                  : { artifacts: [], errors: [] };
+              await callJson(
+                byName,
+                "loop.record_iteration",
+                {
+                  iteration,
+                  goal,
+                  build: appPath ? "success" : "unknown",
+                  device,
+                  test_result: "failed",
+                  failure: lastFailure,
+                  root_cause: failureAnalysis.likelyRootCause,
+                  fix: failureAnalysis.nextSuggestedAction,
+                  retest: "pending",
+                  artifacts: evidence.artifacts
+                },
+                context
+              ).catch(() => undefined);
+              results.push({
+                iteration,
+                passed: false,
+                failure: lastFailure,
+                evidence,
+                failureAnalysis,
+                appPath,
+                bundleId
+              });
+            } finally {
+              if (sessionId) {
+                await callJson(byName, "appium.delete_session", { sessionId }, context).catch(
+                  () => undefined
+                );
+                sessionId = undefined;
+              }
+            }
+          }
+          return jsonResponse({
+            passed: false,
+            goal,
+            failure: lastFailure,
+            iterations: results,
+            ...summarizeIterations(results),
+            durationMs: Date.now() - started
+          });
+        } finally {
+          if (sessionId) {
+            await callJson(byName, "appium.delete_session", { sessionId }, context).catch(
+              () => undefined
+            );
+          }
+        }
+      }
     }
   ];
 }
@@ -357,6 +670,96 @@ function objectArray(value: unknown): Record<string, unknown>[] {
 function stringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   return value.filter((entry): entry is string => typeof entry === "string");
+}
+
+function shouldCreateAppiumSession(args: Record<string, unknown>): boolean {
+  return Boolean(
+    objectValue(args.appiumCapabilities) ||
+    objectArray(args.appiumSteps).length > 0 ||
+    stringArray(args.expectedTexts).length > 0 ||
+    optionalBoolean(args, "flowReplayBeforeSteps") ||
+    optionalString(args, "flowReplayTestName")
+  );
+}
+
+function iosAppiumCapabilities(
+  args: Record<string, unknown>,
+  appPath: string | undefined,
+  bundleId: string | undefined,
+  simulatorDevice: string | undefined
+): Record<string, unknown> {
+  const supplied = objectValue(args.appiumCapabilities) ?? {};
+  const capabilities: Record<string, unknown> = {
+    platformName: "iOS",
+    "appium:automationName": "XCUITest",
+    ...supplied
+  };
+  if (
+    simulatorDevice &&
+    !("appium:deviceName" in capabilities) &&
+    !("deviceName" in capabilities)
+  ) {
+    capabilities["appium:deviceName"] = simulatorDevice;
+  }
+  if (bundleId && !("appium:bundleId" in capabilities) && !("bundleId" in capabilities)) {
+    capabilities["appium:bundleId"] = bundleId;
+  }
+  if (appPath && !bundleId && !("appium:app" in capabilities) && !("app" in capabilities)) {
+    capabilities["appium:app"] = appPath;
+  }
+  return capabilities;
+}
+
+async function collectIosEvidence(
+  byName: Map<string, McpTool>,
+  args: Record<string, unknown>,
+  sessionId: string | undefined,
+  device: string,
+  prefix: string,
+  context: ToolContext
+): Promise<{ artifacts: string[]; errors: string[] }> {
+  const artifacts: string[] = [];
+  const errors: string[] = [];
+  if (sessionId) {
+    await callJson(
+      byName,
+      "appium.observe_screen",
+      {
+        sessionId,
+        prefix,
+        waitForAnyText: stringArray(args.expectedTexts),
+        timeoutMs: optionalNumber(args, "evidenceTimeoutMs")
+      },
+      context
+    )
+      .then((evidence) => artifacts.push(...artifactValues(evidence)))
+      .catch((error) => errors.push(`appium evidence: ${errorMessage(error)}`));
+  }
+  if (optionalBoolean(args, "captureSimulatorScreenshot") ?? true) {
+    await callJson(byName, "ios.capture_screenshot", { device, prefix }, context)
+      .then((evidence) => artifacts.push(...artifactValues(evidence)))
+      .catch((error) => errors.push(`simulator screenshot: ${errorMessage(error)}`));
+  }
+  if (optionalBoolean(args, "collectSimulatorLogs") ?? true) {
+    await callJson(
+      byName,
+      "ios.collect_logs",
+      {
+        device,
+        last: optionalString(args, "simulatorLogLast"),
+        predicate: optionalString(args, "simulatorLogPredicate"),
+        prefix: `${prefix}-ios-sim`
+      },
+      context
+    )
+      .then((evidence) => artifacts.push(...artifactValues(evidence)))
+      .catch((error) => errors.push(`simulator logs: ${errorMessage(error)}`));
+  }
+  return { artifacts, errors };
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }
 
 function resultFailed(value: unknown): boolean {

@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.1.0-alpha.9
+
+- Added `buildSettings` and `xcodebuildArgs` pass-through support for `ios.build_app` and `orchestrator.run_ios_validation_loop`.
+- Made iOS setup/build failures return structured orchestrator results instead of uncaught tool errors.
+- Persisted failed iOS xcodebuild output to build artifacts before returning the classified setup failure.
+- Changed command output limiting to keep the tail of long outputs, preserving the actual build failure lines for large Xcode/Gradle logs.
+- Documented Apple Silicon simulator build settings for Flutter iOS validation loops.
+
 ## 0.1.0-alpha.8
 
 - Added `orchestrator.run_ios_validation_loop` for iOS simulator build-install-launch-Appium validation loops.

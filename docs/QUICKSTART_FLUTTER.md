@@ -109,6 +109,10 @@ node dist/src/cli.js call orchestrator.run_ios_validation_loop '{
   "configuration": "Debug",
   "sdk": "iphonesimulator",
   "destination": "platform=iOS Simulator,name=iPhone 15",
+  "buildSettings": {
+    "ARCHS": "arm64",
+    "EXCLUDED_ARCHS": ""
+  },
   "simulatorDevice": "iPhone 15",
   "bundleId": "com.example.app",
   "runLint": true,
@@ -140,6 +144,8 @@ node dist/src/cli.js call orchestrator.run_ios_validation_loop '{
 ```
 
 The iOS loop builds the simulator app with `xcodebuild`, discovers the generated `.app`, boots the simulator, installs and launches the app, creates an Appium XCUITest session, runs semantic Appium steps, verifies expected text, captures Appium evidence, captures a simulator screenshot, collects simulator logs, and records the iteration.
+
+On Apple Silicon hosts, Flutter/CocoaPods projects sometimes carry simulator arch overrides in generated Xcode settings. Use `buildSettings` to make the simulator build explicit. If a dependency only ships a device slice for arm64 simulator, MobiLoop will surface the xcodebuild linker failure as an app/toolchain blocker rather than hiding it behind Appium.
 
 ## 5. Artifacts
 

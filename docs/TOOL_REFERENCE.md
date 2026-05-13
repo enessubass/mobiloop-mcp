@@ -281,6 +281,10 @@ Input:
   "kind": "flutter",
   "workspace": "ios/Runner.xcworkspace",
   "scheme": "Runner",
+  "buildSettings": {
+    "ARCHS": "arm64",
+    "EXCLUDED_ARCHS": ""
+  },
   "simulatorDevice": "iPhone 15",
   "bundleId": "com.example.app",
   "runLint": true,
@@ -323,5 +327,7 @@ Output:
   "durationMs": 12345
 }
 ```
+
+`buildSettings` is converted to `KEY=value` xcodebuild command-line settings. `xcodebuildArgs` can be used for additional explicit xcodebuild arguments when a host or project needs them.
 
 Failure cases: `xcodebuild` failure, `.app` bundle not found, simulator boot/install/launch failure, Appium XCUITest session failure, failed assertion, missing Xcode/Appium/XCUITest host setup.

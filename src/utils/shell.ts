@@ -51,18 +51,10 @@ export async function runCommand(
   let stderrBytes = 0;
 
   child.stdout.on("data", (chunk: Buffer) => {
-    if (stdoutBytes < maxOutputBytes) {
-      const remaining = maxOutputBytes - stdoutBytes;
-      stdoutChunks.push(chunk.subarray(0, remaining));
-      stdoutBytes += Math.min(chunk.length, remaining);
-    }
+    stdoutBytes = appendTail(stdoutChunks, stdoutBytes, chunk, maxOutputBytes);
   });
   child.stderr.on("data", (chunk: Buffer) => {
-    if (stderrBytes < maxOutputBytes) {
-      const remaining = maxOutputBytes - stderrBytes;
-      stderrChunks.push(chunk.subarray(0, remaining));
-      stderrBytes += Math.min(chunk.length, remaining);
-    }
+    stderrBytes = appendTail(stderrChunks, stderrBytes, chunk, maxOutputBytes);
   });
 
   if (options.input !== undefined) {
@@ -149,4 +141,27 @@ function shellQuote(value: string): string {
 function stripAnsi(value: string): string {
   const escape = String.fromCharCode(27);
   return value.replace(new RegExp(`${escape}\\[[0-9;]*m`, "g"), "");
+}
+
+function appendTail(
+  chunks: Buffer[],
+  currentBytes: number,
+  chunk: Buffer,
+  maxBytes: number
+): number {
+  if (maxBytes <= 0) return 0;
+  chunks.push(chunk);
+  let bytes = currentBytes + chunk.length;
+  while (bytes > maxBytes && chunks.length > 0) {
+    const overflow = bytes - maxBytes;
+    const first = chunks[0];
+    if (first.length <= overflow) {
+      chunks.shift();
+      bytes -= first.length;
+    } else {
+      chunks[0] = first.subarray(overflow);
+      bytes -= overflow;
+    }
+  }
+  return bytes;
 }

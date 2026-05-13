@@ -6,6 +6,10 @@
   "configuration": "Debug",
   "sdk": "iphonesimulator",
   "destination": "platform=iOS Simulator,name=iPhone 15",
+  "buildSettings": {
+    "ARCHS": "arm64",
+    "EXCLUDED_ARCHS": ""
+  },
   "simulatorDevice": "iPhone 15",
   "bundleId": "com.example.app",
   "installDependencies": false,

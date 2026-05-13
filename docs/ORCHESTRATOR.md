@@ -73,6 +73,10 @@ Use this shape from the Flutter project root on a macOS host:
   "workspace": "ios/Runner.xcworkspace",
   "scheme": "Runner",
   "destination": "platform=iOS Simulator,name=iPhone 15",
+  "buildSettings": {
+    "ARCHS": "arm64",
+    "EXCLUDED_ARCHS": ""
+  },
   "simulatorDevice": "iPhone 15",
   "bundleId": "com.example.app",
   "runLint": true,
@@ -93,3 +97,5 @@ Use this shape from the Flutter project root on a macOS host:
 ```
 
 See `examples/flutter-ios-validation-loop.json`.
+
+`buildSettings` and `xcodebuildArgs` are passed through to `ios.build_app` for host-specific simulator build settings.

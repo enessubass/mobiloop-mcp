@@ -406,6 +406,10 @@ Minimal Flutter shape:
   "configuration": "Debug",
   "sdk": "iphonesimulator",
   "destination": "platform=iOS Simulator,name=iPhone 15",
+  "buildSettings": {
+    "ARCHS": "arm64",
+    "EXCLUDED_ARCHS": ""
+  },
   "simulatorDevice": "iPhone 15",
   "bundleId": "com.example.app",
   "runLint": true,
@@ -437,6 +441,8 @@ Minimal Flutter shape:
 ```
 
 See [examples/flutter-ios-validation-loop.json](examples/flutter-ios-validation-loop.json) and [docs/QUICKSTART_FLUTTER.md](docs/QUICKSTART_FLUTTER.md).
+
+`buildSettings` and `xcodebuildArgs` are forwarded to `ios.build_app`, so projects can handle host-specific simulator requirements such as Apple Silicon arm64 simulator builds or custom DerivedData settings without leaving the MCP loop.
 
 ## AI-Generated Scenario Candidates
 

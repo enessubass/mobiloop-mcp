@@ -6,7 +6,9 @@ import {
   asObject,
   optionalBoolean,
   optionalNumber,
+  optionalObject,
   optionalString,
+  optionalStringArray,
   requireString
 } from "../utils/validation.js";
 import { resolveWorkspacePath, resolveWorkspacePathAllowArtifacts } from "../utils/path-guard.js";
@@ -102,7 +104,9 @@ export function iosTools(): McpTool[] {
           configuration: stringSchema,
           sdk: stringSchema,
           destination: stringSchema,
-          derivedDataPath: stringSchema
+          derivedDataPath: stringSchema,
+          buildSettings: { type: "object", additionalProperties: true },
+          xcodebuildArgs: { type: "array", items: stringSchema }
         },
         ["scheme"]
       ),
@@ -117,6 +121,8 @@ export function iosTools(): McpTool[] {
         const configuration = optionalString(args, "configuration") ?? "Debug";
         const sdk = optionalString(args, "sdk") ?? "iphonesimulator";
         const destination = optionalString(args, "destination") ?? "generic/platform=iOS Simulator";
+        const buildSettings = optionalObject(args, "buildSettings") ?? {};
+        const xcodebuildArgs = optionalStringArray(args, "xcodebuildArgs") ?? [];
         const derivedDataPath = optionalString(args, "derivedDataPath")
           ? resolveWorkspacePathAllowArtifacts(config, optionalString(args, "derivedDataPath")!)
           : path.join(await ensureArtifactsDir(config, "ios-derived-data"), scheme);
@@ -133,12 +139,15 @@ export function iosTools(): McpTool[] {
           destination,
           "-derivedDataPath",
           derivedDataPath,
+          ...xcodebuildArgs,
+          ...xcodeBuildSettingArgs(buildSettings),
           "build"
         ];
         const result = await runCommand(config.xcodebuildPath, buildArgs, {
           cwd: config.workspaceRoot,
           config,
-          timeoutMs: 45 * 60_000
+          timeoutMs: 45 * 60_000,
+          allowFailure: true
         });
         const logPath = await writeArtifactText(
           config,
@@ -147,6 +156,17 @@ export function iosTools(): McpTool[] {
           "log",
           result.stdout + result.stderr
         );
+        if (result.exitCode !== 0) {
+          throw new Error(
+            [
+              `iOS build failed with exit code ${result.exitCode}.`,
+              `Build log: ${logPath}`,
+              buildFailureSummary(result.stdout + result.stderr)
+            ]
+              .filter(Boolean)
+              .join("\n")
+          );
+        }
         const appPaths = await findAppBundles(derivedDataPath, scheme);
         return jsonResponse({
           scheme,
@@ -154,6 +174,8 @@ export function iosTools(): McpTool[] {
           sdk,
           destination,
           derivedDataPath,
+          buildSettings,
+          xcodebuildArgs,
           appPaths,
           logPath
         });
@@ -312,4 +334,28 @@ async function findAppBundles(derivedDataPath: string, scheme: string): Promise<
     if (/test/i.test(name)) return 0;
     return 1;
   }
+}
+
+function buildFailureSummary(output: string): string {
+  const lines = output
+    .split(/\r?\n/)
+    .filter((line) =>
+      /BUILD FAILED|error:|ld:|linking in object file|Failed to find matching arch|CocoaPods|pod install|No such module/i.test(
+        line
+      )
+    )
+    .slice(-20);
+  return lines.length > 0 ? `Summary:\n${lines.join("\n")}` : "";
+}
+
+function xcodeBuildSettingArgs(settings: Record<string, unknown>): string[] {
+  return Object.entries(settings).map(([key, value]) => {
+    if (!/^[A-Za-z_][A-Za-z0-9_.$\-[\]*]*$/.test(key)) {
+      throw new Error(`Invalid xcodebuild setting key: ${key}`);
+    }
+    if (!["string", "number", "boolean"].includes(typeof value)) {
+      throw new Error(`xcodebuild setting ${key} must be a string, number, or boolean`);
+    }
+    return `${key}=${String(value)}`;
+  });
 }

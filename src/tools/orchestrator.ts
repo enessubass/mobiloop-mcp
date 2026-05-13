@@ -11,7 +11,9 @@ import {
   asObject,
   optionalBoolean,
   optionalNumber,
+  optionalObject,
   optionalString,
+  optionalStringArray,
   requireString
 } from "../utils/validation.js";
 
@@ -313,6 +315,8 @@ export function orchestratorTools(): McpTool[] {
           sdk: stringSchema,
           destination: stringSchema,
           derivedDataPath: stringSchema,
+          buildSettings: { type: "object", additionalProperties: true },
+          xcodebuildArgs: arraySchema(stringSchema),
           appPath: stringSchema,
           bundleId: stringSchema,
           simulatorDevice: stringSchema,
@@ -385,7 +389,9 @@ export function orchestratorTools(): McpTool[] {
                 configuration: optionalString(args, "configuration"),
                 sdk: optionalString(args, "sdk"),
                 destination: optionalString(args, "destination"),
-                derivedDataPath: optionalString(args, "derivedDataPath")
+                derivedDataPath: optionalString(args, "derivedDataPath"),
+                buildSettings: optionalObject(args, "buildSettings"),
+                xcodebuildArgs: optionalStringArray(args, "xcodebuildArgs")
               },
               context
             );
@@ -598,6 +604,45 @@ export function orchestratorTools(): McpTool[] {
             failure: lastFailure,
             iterations: results,
             ...summarizeIterations(results),
+            durationMs: Date.now() - started
+          });
+        } catch (error) {
+          lastFailure = errorMessage(error);
+          const failureAnalysis = analyzeErrorMessage(lastFailure);
+          const iteration = iterationOffset + 1;
+          await callJson(
+            byName,
+            "loop.record_iteration",
+            {
+              iteration,
+              goal,
+              build: appPath ? "success" : "failed",
+              device,
+              test_result: "failed",
+              failure: lastFailure,
+              root_cause: failureAnalysis.likelyRootCause,
+              fix: failureAnalysis.nextSuggestedAction,
+              retest: "pending",
+              artifacts: artifactValues(lastFailure)
+            },
+            context
+          ).catch(() => undefined);
+          return jsonResponse({
+            passed: false,
+            goal,
+            failure: lastFailure,
+            iterations: [
+              {
+                iteration,
+                passed: false,
+                failure: lastFailure,
+                failureAnalysis,
+                appPath,
+                bundleId
+              }
+            ],
+            ...failureAnalysis,
+            setupFailure: true,
             durationMs: Date.now() - started
           });
         } finally {
@@ -825,6 +870,19 @@ function analyzeFailedChecks(failed: Array<Record<string, unknown>>): Record<str
 }
 
 function analyzeErrorMessage(message: string): Record<string, unknown> {
+  if (
+    /xcodebuild|iOS build failed|BUILD FAILED|linking in object file|Failed to find matching arch|built for 'iOS'|iOS-simulator|CocoaPods|pod install|No such module/i.test(
+      message
+    )
+  ) {
+    return {
+      status: "app_bug",
+      likelyRootCause: message,
+      nextSuggestedAction:
+        "Fix the iOS project build settings, simulator architecture, CocoaPods dependencies, or native binary slices before rerunning the iOS validation loop.",
+      blockingExternalDependency: false
+    };
+  }
   if (/appium|session|uiautomator|instrumentation/i.test(message)) {
     return {
       status: "automation_error",

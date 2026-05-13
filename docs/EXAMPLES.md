@@ -34,8 +34,10 @@ Use the fixtures as known-small targets for local validation and CI smoke tests:
 
 - `examples/mobile-fixtures/flutter-login-demo`
 - `examples/mobile-fixtures/android-kotlin-login-demo`
+- `examples/mobile-fixtures/react-native-login-demo`
 
 The native Android fixture exercises resource-id and accessibility based locators that differ from Flutter semantics.
+The React Native fixture exercises `testID`, `accessibilityLabel`, placeholder, and visible-text conventions used by Appium on RN apps.
 
 ## Example Artifacts
 

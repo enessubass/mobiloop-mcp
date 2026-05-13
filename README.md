@@ -849,6 +849,7 @@ The Dockerfile also runs the test suite during image build.
 - [examples/github-actions-mobiloop.yml](examples/github-actions-mobiloop.yml)
 - [examples/mobile-fixtures/flutter-login-demo](examples/mobile-fixtures/flutter-login-demo)
 - [examples/mobile-fixtures/android-kotlin-login-demo](examples/mobile-fixtures/android-kotlin-login-demo)
+- [examples/mobile-fixtures/react-native-login-demo](examples/mobile-fixtures/react-native-login-demo)
 - [examples/artifacts/successful-loop-report.md](examples/artifacts/successful-loop-report.md)
 - [examples/artifacts/real-runs/flutter-login-android](examples/artifacts/real-runs/flutter-login-android)
 - [examples/artifacts/real-runs/native-android-login](examples/artifacts/real-runs/native-android-login)

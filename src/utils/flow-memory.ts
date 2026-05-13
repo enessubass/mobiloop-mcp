@@ -614,6 +614,7 @@ function detectScreens(
 ): void {
   const patterns = [
     /class\s+([A-Z][A-Za-z0-9_]*(?:Screen|Page|View|Route|Flow)?)\s+extends\s+(?:StatelessWidget|StatefulWidget|ConsumerWidget|HookWidget)/,
+    /(?:export\s+)?function\s+([A-Z][A-Za-z0-9_]*(?:Screen|Page|View))\s*\(/,
     /(?:fun|class)\s+([A-Z][A-Za-z0-9_]*(?:Screen|Activity|Fragment|View))/,
     /struct\s+([A-Z][A-Za-z0-9_]*(?:View|Screen))\s*:\s*View/,
     /const\s+([A-Z][A-Za-z0-9_]*(?:Screen|Page|View))\s*[:=]/
@@ -644,6 +645,18 @@ function detectRoutes(
       confidence: 0.72
     });
   }
+  const objectRoute = line.match(
+    /^\s*([A-Z][A-Za-z0-9_]*)\s*:\s*([A-Z][A-Za-z0-9_]*(?:Screen|Page|View))\s*,?\s*$/
+  );
+  if (objectRoute?.[1] && objectRoute[2]) {
+    analysis.routes.push({
+      route: objectRoute[1],
+      target: objectRoute[2],
+      file,
+      line: lineNumber,
+      confidence: 0.66
+    });
+  }
   const goRoute = line.match(
     /GoRoute\s*\([^)]*path\s*:\s*['"]([^'"]+)['"][^)]*(?:name\s*:\s*['"]([^'"]+)['"])?/
   );
@@ -656,13 +669,12 @@ function detectRoutes(
       confidence: 0.72
     });
   }
-  const rnScreen = line.match(
-    /<Stack\.Screen[^>]*name=['"]([^'"]+)['"][^>]*(?:component=\{([A-Z][A-Za-z0-9_]*)\})?/
-  );
+  const rnScreen = line.match(/<Stack\.Screen[^>]*name=['"]([^'"]+)['"][^>]*>/);
   if (rnScreen?.[1]) {
+    const component = line.match(/component=\{([A-Z][A-Za-z0-9_]*)\}/);
     analysis.routes.push({
       route: rnScreen[1],
-      target: rnScreen[2],
+      target: component?.[1],
       file,
       line: lineNumber,
       confidence: 0.7
@@ -718,7 +730,7 @@ function detectVisibleTexts(
 ): void {
   const patterns = [
     /Text\s*\(\s*['"]([^'"]{2,80})['"]/g,
-    /(?:title|label|hintText|semanticLabel|contentDescription)\s*[:=]\s*['"]([^'"]{2,80})['"]/g,
+    /(?:title|label|hintText|semanticLabel|contentDescription|accessibilityLabel|placeholder)\s*[:=]\s*['"]([^'"]{2,80})['"]/g,
     /<Text[^>]*>\s*([^<>{}]{2,80})\s*<\/Text>/g
   ];
   for (const pattern of patterns) {

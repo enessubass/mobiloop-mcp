@@ -77,3 +77,4 @@ Current fixture roots:
 
 - `examples/mobile-fixtures/flutter-login-demo`
 - `examples/mobile-fixtures/android-kotlin-login-demo`
+- `examples/mobile-fixtures/react-native-login-demo`

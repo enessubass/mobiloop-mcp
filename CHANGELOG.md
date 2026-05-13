@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added a source-only React Native login fixture with `testID`, `accessibilityLabel`, placeholder, and visible-text locator examples.
+- Added React Native source-flow analysis coverage for screen, route, transition, and visible-text detection.
+
 ## 0.1.0-alpha.5
 
 - Added a real Genymotion/Appium run artifact for the native Android Kotlin login fixture.

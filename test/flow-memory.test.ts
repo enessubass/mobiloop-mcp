@@ -133,6 +133,50 @@ test("code-flow analysis detects native Android Gradle projects", async () => {
   assert.ok(analysis.visibleTexts.some((entry) => entry.text === "Giriş Yap"));
 });
 
+test("code-flow analysis detects React Native screens, routes, and visible texts", async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "agentic-flow-rn-"));
+  await fs.writeFile(
+    path.join(root, "package.json"),
+    JSON.stringify({ dependencies: { "react-native": "0.76.5" } }),
+    "utf8"
+  );
+  await fs.mkdir(path.join(root, "src"));
+  await fs.writeFile(
+    path.join(root, "src", "App.tsx"),
+    `
+      const LoginScreen = () => (
+        <>
+          <Text>Giriş Yap</Text>
+          <TextInput accessibilityLabel="E-posta" placeholder="E-posta" testID="login.email" />
+          <Pressable accessibilityLabel="Giriş Yap" testID="login.submit">
+            <Text>Giriş Yap</Text>
+          </Pressable>
+        </>
+      );
+      const HomeScreen = () => <Text>Ana Sayfa</Text>;
+      const Stack = createNativeStackNavigator();
+      function RootNavigator() {
+        return <Stack.Screen name="Login" component={LoginScreen} />;
+      }
+      function submit(navigation) {
+        navigation.navigate("Home");
+      }
+    `,
+    "utf8"
+  );
+
+  const analysis = await analyzeCodeFlow(config(root), { maxFiles: 20 });
+
+  assert.equal(analysis.framework, "react-native");
+  assert.ok(analysis.screens.some((screen) => screen.name === "LoginScreen"));
+  assert.ok(
+    analysis.routes.some((route) => route.route === "Login" && route.target === "LoginScreen")
+  );
+  assert.ok(analysis.transitions.some((transition) => transition.to === "Home"));
+  assert.ok(analysis.visibleTexts.some((entry) => entry.text === "Giriş Yap"));
+  assert.ok(analysis.visibleTexts.some((entry) => entry.text === "E-posta"));
+});
+
 function checkpoint(
   id: string,
   testName: string,

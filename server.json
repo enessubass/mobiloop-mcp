@@ -1,0 +1,37 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.enessubass/mobiloop-mcp",
+  "title": "MobiLoop",
+  "description": "Mobile build, device, Appium, verification, and fix-loop tools.",
+  "repository": {
+    "url": "https://github.com/enessubass/mobiloop-mcp",
+    "source": "github",
+    "id": "1234717726"
+  },
+  "websiteUrl": "https://github.com/enessubass/mobiloop-mcp#readme",
+  "version": "0.1.0-alpha.9",
+  "packages": [
+    {
+      "registryType": "oci",
+      "identifier": "ghcr.io/enessubass/mobiloop-mcp:0.1.0-alpha.9",
+      "runtimeHint": "docker",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "MOBILOOP_WORKSPACE_ROOT",
+          "description": "Workspace path mounted into the container.",
+          "format": "filepath",
+          "default": "/workspace"
+        },
+        {
+          "name": "APPIUM_SERVER_URL",
+          "description": "Appium server URL reachable from the container.",
+          "format": "string",
+          "default": "http://host.docker.internal:4723"
+        }
+      ]
+    }
+  ]
+}

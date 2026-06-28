@@ -99,7 +99,7 @@
     "@types/pngjs": "^6.0.5",
     "eslint": "^10.3.0",
     "prettier": "^3.8.3",
-    "tsx": "^4.20.4",
+    "tsx": "^4.22.4",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.59.3"
   },

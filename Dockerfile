@@ -14,6 +14,8 @@ RUN npm prune --omit=dev
 
 FROM node:26-bookworm-slim AS runtime
 
+LABEL io.modelcontextprotocol.server.name="io.github.enessubass/mobiloop-mcp"
+
 ENV NODE_ENV=production
 WORKDIR /app
 

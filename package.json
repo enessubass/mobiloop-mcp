@@ -2,6 +2,7 @@
   "name": "mobiloop-mcp",
   "version": "0.1.0-alpha.9",
   "description": "A guarded MCP server for build, device, Appium, verification, and agentic mobile development loops.",
+  "mcpName": "io.github.enessubass/mobiloop-mcp",
   "type": "module",
   "repository": {
     "type": "git",
@@ -32,6 +33,7 @@
     "LICENSE",
     "CHANGELOG.md",
     "CONTRIBUTING.md",
+    "server.json",
     "docs",
     "schema",
     "examples/android-validation-loop.json",

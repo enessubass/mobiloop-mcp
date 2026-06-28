@@ -91,7 +91,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.4",
     "ajv": "^8.20.0",
-    "fast-xml-parser": "^5.2.5",
+    "fast-xml-parser": "^5.8.0",
     "pixelmatch": "^7.1.0",
     "pngjs": "^7.0.0"
   },

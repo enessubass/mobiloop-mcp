@@ -1,5 +1,7 @@
 # MobiLoop MCP
 
+[![MCP Toplist](https://mcptoplist.com/badge/pulsemcp%2Fenessubass-mobiloop.svg)](https://mcptoplist.com/server/pulsemcp%2Fenessubass-mobiloop)
+
 Guarded MCP servers for agentic mobile development loops.
 
 ```text

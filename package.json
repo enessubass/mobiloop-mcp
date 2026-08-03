@@ -89,9 +89,9 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.17.4",
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "ajv": "^8.20.0",
-    "fast-xml-parser": "^5.8.0",
+    "fast-xml-parser": "^5.10.1",
     "pixelmatch": "^7.1.0",
     "pngjs": "^7.0.0"
   },

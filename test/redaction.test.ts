@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import test from "node:test";
-import { textResponse } from "../src/types.js";
+import { jsonResponse, textResponse } from "../src/types.js";
 import { writeArtifactJson, writeArtifactText } from "../src/utils/artifacts.js";
 import { redactText, redactToolResponse } from "../src/utils/redaction.js";
 import { createTestConfig } from "./helpers.js";
@@ -55,6 +55,21 @@ test("redactToolResponse redacts MCP text response content", () => {
   assert.match(text, /Bearer \[REDACTED_TOKEN\]/);
   assert.doesNotMatch(text, /root@example.com/);
   assert.doesNotMatch(text, /abc\.def\.ghi/);
+});
+
+test("redactToolResponse preserves JSON tool response structure while redacting XML values", () => {
+  const response = redactToolResponse(
+    jsonResponse({
+      findings: ['<node password="supersecret" content-desc="root@example.com" />']
+    }),
+    true
+  );
+  const text = response.content.map((entry) => ("text" in entry ? entry.text : "")).join("\n");
+  const parsed = JSON.parse(text) as { findings: string[] };
+
+  assert.match(parsed.findings[0], /password="\[REDACTED_SECRET\]"/);
+  assert.match(parsed.findings[0], /\[REDACTED_EMAIL\]/);
+  assert.doesNotMatch(parsed.findings[0], /supersecret|root@example.com/);
 });
 
 test("redactToolResponse preserves MCP text response content when disabled", () => {

@@ -963,6 +963,7 @@ The Dockerfile also runs the test suite during image build.
 - [docs/releases/v0.1.0-alpha.3.md](docs/releases/v0.1.0-alpha.3.md)
 - [docs/releases/v0.1.0-alpha.4.md](docs/releases/v0.1.0-alpha.4.md)
 - [docs/releases/v0.1.0-alpha.10.md](docs/releases/v0.1.0-alpha.10.md)
+- [docs/releases/v0.1.0-alpha.11.md](docs/releases/v0.1.0-alpha.11.md)
 - [.github/workflows/android-fixture-e2e.yml](.github/workflows/android-fixture-e2e.yml)
 - [.github/workflows/deploy-pages.yml](.github/workflows/deploy-pages.yml)
 - [examples/android-validation-loop.json](examples/android-validation-loop.json)

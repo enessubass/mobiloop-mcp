@@ -43,7 +43,7 @@
             "name": "MobiLoop MCP",
             "applicationCategory": "DeveloperApplication",
             "operatingSystem": "macOS, Linux, Windows",
-            "softwareVersion": "0.1.0-alpha.11",
+            "softwareVersion": "0.1.0-alpha.12",
             "description": "Guarded MCP tools for AI-assisted mobile build, device testing, Appium automation, verification, security analysis, and retesting.",
             "codeRepository": "https://github.com/enessubass/mobiloop-mcp",
             "license": "https://opensource.org/licenses/MIT",
@@ -56,7 +56,7 @@
             "codeRepository": "https://github.com/enessubass/mobiloop-mcp",
             "programmingLanguage": "TypeScript",
             "runtimePlatform": "Node.js",
-            "softwareVersion": "0.1.0-alpha.11",
+            "softwareVersion": "0.1.0-alpha.12",
             "license": "https://opensource.org/licenses/MIT",
             "keywords": "Model Context Protocol, Appium, mobile testing, Android, iOS, Flutter, React Native, security testing"
           },
@@ -72,139 +72,214 @@
     </script>
   </head>
   <body>
-    <header class="site-header">
-      <a class="brand" href="#top" aria-label="MobiLoop MCP home">MobiLoop MCP</a>
-      <nav aria-label="Primary navigation">
-        <a href="#workflow">Workflow</a>
-        <a href="#security">Security</a>
-        <a href="#docs">Docs</a>
-        <a href="https://github.com/enessubass/mobiloop-mcp">GitHub</a>
-      </nav>
-    </header>
+    <div class="site-shell">
+      <header class="site-header">
+        <a class="brand" href="#top" aria-label="MobiLoop MCP home">
+          <span class="brand-mark" aria-hidden="true">M</span>
+          <span>MobiLoop <b>MCP</b></span>
+        </a>
+        <nav aria-label="Primary navigation">
+          <a href="#workflow">Loop</a>
+          <a href="#security">Security</a>
+          <a href="#install">Run</a>
+          <a href="#docs">Docs</a>
+        </nav>
+        <a class="header-link" href="https://github.com/enessubass/mobiloop-mcp">GitHub -&gt;</a>
+      </header>
 
-    <main id="top">
-      <section class="hero" aria-labelledby="page-title">
-        <div class="hero-copy">
-          <p class="eyebrow">Evidence-first mobile engineering</p>
-          <h1 id="page-title">MobiLoop MCP</h1>
-          <p class="lead">
-            Guarded tools for AI agents to build, test, inspect, fix, and retest Flutter, React
-            Native, Android, and iOS applications with Appium.
+      <main id="top">
+        <section class="hero" aria-labelledby="page-title">
+          <div class="hero-copy">
+            <p class="kicker">
+              <span class="live-dot" aria-hidden="true"></span> Release alpha.12 is live
+            </p>
+            <h1 id="page-title">MobiLoop <span>MCP</span></h1>
+            <p class="hero-lead">
+              Mobile validation loops that start on a real device and end with evidence your team
+              can inspect.
+            </p>
+            <div class="hero-actions">
+              <a class="button button-primary" href="https://github.com/enessubass/mobiloop-mcp"
+                >Open repository</a
+              >
+              <a class="button button-secondary" href="QUICKSTART_FLUTTER.md">Quickstart -&gt;</a>
+            </div>
+            <dl class="hero-facts">
+              <div>
+                <dt>Platform</dt>
+                <dd>Android / iOS</dd>
+              </div>
+              <div>
+                <dt>Driver</dt>
+                <dd>Appium 3</dd>
+              </div>
+              <div>
+                <dt>Proof</dt>
+                <dd>Logs + source + screen</dd>
+              </div>
+            </dl>
+          </div>
+
+          <div class="run-stage" aria-label="A completed mobile validation run">
+            <div class="stage-topline">
+              <span>RUN / 001</span>
+              <span class="run-pass"><i aria-hidden="true"></i> VERIFIED</span>
+              <span>00:02:14</span>
+            </div>
+            <div class="stage-title">
+              <p>LIVE MOBILE VALIDATION</p>
+              <strong>Flutter login fixture</strong>
+            </div>
+            <figure class="device-proof">
+              <div class="device-label"><span>Captured screen</span><span>Android 15</span></div>
+              <div class="phone-shell">
+                <img
+                  src="assets/mobiloop-appium-evidence.png"
+                  alt="Captured Android application screen from a MobiLoop Appium validation run"
+                  width="1080"
+                  height="2340"
+                />
+              </div>
+              <figcaption>Evidence from the included Appium fixture.</figcaption>
+            </figure>
+            <div class="run-log" aria-label="Validation steps">
+              <div><span>01</span><b>Device attached</b><em>Galaxy S24 / ready</em></div>
+              <div><span>02</span><b>Session created</b><em>UiAutomator2 / healthy</em></div>
+              <div><span>03</span><b>Evidence captured</b><em>screen + XML + logs</em></div>
+              <div><span>04</span><b>Release gate</b><em>approved</em></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="proof-strip" aria-label="MobiLoop validation facts">
+          <p>Actual device automation</p>
+          <p>Approval-gated actions</p>
+          <p>Security scan comparisons</p>
+          <p>Replayable evidence artifacts</p>
+        </section>
+
+        <section id="workflow" class="section workflow-section" aria-labelledby="workflow-title">
+          <div class="section-intro">
+            <p class="kicker">The closed loop</p>
+            <h2 id="workflow-title">A change is not done until the mobile run says so.</h2>
+          </div>
+          <ol class="workflow">
+            <li>
+              <span>01</span>
+              <h3>Map the app</h3>
+              <p>Read the codebase, detect routes and screens, then form runnable scenarios.</p>
+            </li>
+            <li>
+              <span>02</span>
+              <h3>Build with limits</h3>
+              <p>Run only the approved lint, test, build, and install commands.</p>
+            </li>
+            <li>
+              <span>03</span>
+              <h3>Drive the device</h3>
+              <p>Use Appium against a simulator, emulator, or connected physical device.</p>
+            </li>
+            <li>
+              <span>04</span>
+              <h3>Collect proof</h3>
+              <p>Store page source, screenshots, assertions, logs, and run iterations together.</p>
+            </li>
+            <li>
+              <span>05</span>
+              <h3>Fix and retest</h3>
+              <p>Make the approved repair, compare security signals, and rerun the same path.</p>
+            </li>
+          </ol>
+        </section>
+
+        <section id="security" class="security-section" aria-labelledby="security-title">
+          <div class="section-intro security-intro">
+            <p class="kicker">Guarded by default</p>
+            <h2 id="security-title">Give the agent a test loop, not unrestricted access.</h2>
+          </div>
+          <div class="security-list">
+            <article>
+              <span>01</span>
+              <div>
+                <h3>Host-controlled boundaries</h3>
+                <p>
+                  Secure mode keeps endpoints local, ignores untrusted project configuration, blocks
+                  secret paths, and resolves symbolic links before access.
+                </p>
+              </div>
+            </article>
+            <article>
+              <span>02</span>
+              <div>
+                <h3>Useful mobile signals</h3>
+                <p>
+                  <code>security.scan_source</code> reads Android and iOS configuration, credential,
+                  transport, storage, and logging signals without adding a scanner dependency.
+                </p>
+              </div>
+            </article>
+            <article>
+              <span>03</span>
+              <div>
+                <h3>Every fix has a receipt</h3>
+                <p>
+                  Compare scan baselines, retain redacted artifacts, and use the release gate before
+                  calling an AI-generated repair ready.
+                </p>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section id="install" class="section install-section" aria-labelledby="install-title">
+          <div class="section-intro">
+            <p class="kicker">Run the release</p>
+            <h2 id="install-title">The published server speaks MCP over stdio.</h2>
+          </div>
+          <div class="terminal" aria-label="Docker command for the published MobiLoop MCP image">
+            <div class="terminal-bar">
+              <span></span><span></span><span></span><b>release smoke command</b>
+            </div>
+            <pre><code>docker run --rm -i --read-only \
+  --tmpfs /tmp:uid=10001,gid=10001,mode=1777 \
+  ghcr.io/enessubass/mobiloop-mcp:0.1.0-alpha.12</code></pre>
+          </div>
+          <p class="install-note">
+            The image starts as a non-root process with a guarded workspace contract.
           </p>
-          <p class="release-note">
-            v0.1.0-alpha.11: live Genymotion and Appium validation, guarded security scans, and
-            evidence artifacts.
-          </p>
-          <div class="hero-actions">
-            <a class="action action-primary" href="https://github.com/enessubass/mobiloop-mcp"
-              >View repository</a
+          <a class="text-link" href="DOCKER.md">Read the container guide -&gt;</a>
+        </section>
+
+        <section id="docs" class="section docs-section" aria-labelledby="docs-title">
+          <div class="section-intro">
+            <p class="kicker">Operating reference</p>
+            <h2 id="docs-title">The details that keep the loop predictable.</h2>
+          </div>
+          <div class="docs-list">
+            <a href="CONFIGURATION.md"
+              ><strong>Configuration</strong><span>Modes, approvals, endpoints, and artifacts.</span
+              ><b>-&gt;</b></a
             >
-            <a class="action action-secondary" href="QUICKSTART_FLUTTER.md">Read quickstart</a>
+            <a href="SECURITY.md"
+              ><strong>Security model</strong
+              ><span>Threat boundaries and static security checks.</span><b>-&gt;</b></a
+            >
+            <a href="TOOL_REFERENCE.md"
+              ><strong>Tool reference</strong
+              ><span>Policies, inputs, outputs, and supported scopes.</span><b>-&gt;</b></a
+            >
+            <a href="TEST_STRATEGY.md"
+              ><strong>Test strategy</strong
+              ><span>Unit, integration, scan, and real-device coverage.</span><b>-&gt;</b></a
+            >
           </div>
-        </div>
-        <figure class="evidence">
-          <img
-            src="assets/mobiloop-appium-evidence.png"
-            alt="Captured Android login application screen from a MobiLoop Appium validation run"
-            width="1080"
-            height="2340"
-          />
-          <figcaption>Real Appium evidence from the included Flutter login fixture.</figcaption>
-        </figure>
-      </section>
+        </section>
+      </main>
 
-      <section id="workflow" class="band" aria-labelledby="workflow-title">
-        <div class="section-heading">
-          <p class="eyebrow">Controlled loop</p>
-          <h2 id="workflow-title">From change to verified result</h2>
-        </div>
-        <ol class="workflow">
-          <li>
-            <strong>Discover</strong
-            ><span>Inspect project structure and generate scenario candidates.</span>
-          </li>
-          <li>
-            <strong>Build</strong
-            ><span>Run bounded lint, unit-test, and mobile build commands.</span>
-          </li>
-          <li>
-            <strong>Exercise</strong
-            ><span>Drive an emulator, simulator, or device through Appium.</span>
-          </li>
-          <li>
-            <strong>Verify</strong
-            ><span>Capture source, screenshots, logs, assertions, and iteration evidence.</span>
-          </li>
-          <li>
-            <strong>Repair</strong
-            ><span>Let the AI diagnose and patch an approved defect, then retest.</span>
-          </li>
-        </ol>
-      </section>
-
-      <section id="security" class="band security" aria-labelledby="security-title">
-        <div class="section-heading">
-          <p class="eyebrow">Built-in guardrails</p>
-          <h2 id="security-title">Security testing without another scanner dependency</h2>
-        </div>
-        <div class="columns">
-          <div>
-            <h3>Secure defaults</h3>
-            <p>
-              Secure mode ignores project-local configuration by default, requires approvals for
-              high-impact actions, pins Appium to host-controlled loopback endpoints, blocks secret
-              paths, and resolves symbolic links before file access.
-            </p>
-          </div>
-          <div>
-            <h3>Mobile signals</h3>
-            <p>
-              <code>security.scan_source</code> deterministically checks source, Android manifests,
-              and iOS plist settings for credential, transport, storage, logging, and platform
-              configuration risks.
-            </p>
-          </div>
-          <div>
-            <h3>Fix and prove</h3>
-            <p>
-              Generate a test plan, make an approved fix, compare the new scan to its baseline, then
-              apply a release gate at the selected severity threshold.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section id="docs" class="band" aria-labelledby="docs-title">
-        <div class="section-heading">
-          <p class="eyebrow">Reference</p>
-          <h2 id="docs-title">Start with the operating contract</h2>
-        </div>
-        <div class="docs-grid">
-          <a href="CONFIGURATION.md"
-            ><strong>Configuration</strong
-            ><span>Secure and trusted execution modes, approvals, and endpoint rules.</span></a
-          >
-          <a href="SECURITY.md"
-            ><strong>Security model</strong
-            ><span>Threat boundaries, static checks, artifact handling, and host controls.</span></a
-          >
-          <a href="TOOL_REFERENCE.md"
-            ><strong>Tool reference</strong
-            ><span>Inputs, policy metadata, evidence outputs, and supported scopes.</span></a
-          >
-          <a href="TEST_STRATEGY.md"
-            ><strong>Test strategy</strong
-            ><span
-              >Unit, mock integration, security scan, and real-device validation coverage.</span
-            ></a
-          >
-        </div>
-      </section>
-    </main>
-
-    <footer>
-      <span>MIT licensed</span>
-      <a href="https://github.com/enessubass/mobiloop-mcp/issues">Report an issue</a>
-    </footer>
+      <footer>
+        <span><b>MobiLoop MCP</b> / MIT licensed</span>
+        <a href="https://github.com/enessubass/mobiloop-mcp/issues">Report an issue -&gt;</a>
+      </footer>
+    </div>
   </body>
 </html>

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.1.0-alpha.12 - 2026-09-23
+
+- Rebuilt the public documentation site around a real device validation run, release command, security boundaries, and operating reference.
+- Read the MCP server version from the packaged `package.json` and added a regression test so initialize responses cannot drift from release metadata.
+
 ## 0.1.0-alpha.11 - 2026-09-23
 
 - Shortened the MCP Registry description to satisfy its 100-character validation limit after the otherwise successful alpha.10 GHCR publication.

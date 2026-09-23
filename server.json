@@ -9,11 +9,11 @@
     "id": "1234717726"
   },
   "websiteUrl": "https://enessubass.github.io/mobiloop-mcp/",
-  "version": "0.1.0-alpha.11",
+  "version": "0.1.0-alpha.12",
   "packages": [
     {
       "registryType": "oci",
-      "identifier": "ghcr.io/enessubass/mobiloop-mcp:0.1.0-alpha.11",
+      "identifier": "ghcr.io/enessubass/mobiloop-mcp:0.1.0-alpha.12",
       "runtimeHint": "docker",
       "transport": {
         "type": "stdio"

@@ -4,6 +4,8 @@ import path from "node:path";
 const root = process.cwd();
 const docs = path.join(root, "docs");
 const canonical = "https://enessubass.github.io/mobiloop-mcp/";
+const packageJson = JSON.parse(read(path.join(root, "package.json")));
+const serverJson = JSON.parse(read(path.join(root, "server.json")));
 const html = read(path.join(docs, "index.html"));
 const robots = read(path.join(docs, "robots.txt"));
 const sitemap = read(path.join(docs, "sitemap.xml"));
@@ -39,6 +41,17 @@ if (!robots.includes(`Sitemap: ${canonical}sitemap.xml`)) {
 }
 if (!fs.existsSync(path.join(docs, "assets", "mobiloop-appium-evidence.png"))) {
   errors.push("docs/assets/mobiloop-appium-evidence.png is missing");
+}
+if (serverJson.version !== packageJson.version) {
+  errors.push("server.json version does not match package.json");
+}
+if (
+  serverJson.packages?.[0]?.identifier !== `ghcr.io/enessubass/mobiloop-mcp:${packageJson.version}`
+) {
+  errors.push("server.json OCI image identifier does not match package.json");
+}
+if (!html.includes(`"softwareVersion": "${packageJson.version}"`)) {
+  errors.push("docs/index.html JSON-LD does not match package.json version");
 }
 
 if (errors.length > 0) {

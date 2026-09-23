@@ -30,3 +30,22 @@ test("AppiumClient maps native mobile locator strategy names to WebDriver strate
     await mock.close();
   }
 });
+
+test("AppiumClient wraps direct W3C capabilities in the capabilities envelope", async () => {
+  const mock = await startMockAppium();
+  try {
+    const client = new AppiumClient({ serverUrl: mock.serverUrl });
+    await client.createSession({
+      alwaysMatch: { platformName: "Android", "appium:automationName": "UiAutomator2" },
+      firstMatch: [{}]
+    });
+    assert.deepEqual(mock.requests.at(-1)?.body, {
+      capabilities: {
+        alwaysMatch: { platformName: "Android", "appium:automationName": "UiAutomator2" },
+        firstMatch: [{}]
+      }
+    });
+  } finally {
+    await mock.close();
+  }
+});

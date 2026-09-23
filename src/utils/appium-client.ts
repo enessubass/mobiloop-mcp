@@ -49,7 +49,9 @@ export class AppiumClient {
   ): Promise<{ sessionId: string; value: unknown }> {
     const body = capabilities.capabilities
       ? capabilities
-      : { capabilities: { alwaysMatch: capabilities, firstMatch: [{}] } };
+      : capabilities.alwaysMatch || capabilities.firstMatch
+        ? { capabilities }
+        : { capabilities: { alwaysMatch: capabilities, firstMatch: [{}] } };
     const response = await this.request("POST", "/session", body);
     const sessionId = readSessionId(response);
     return { sessionId, value: response };

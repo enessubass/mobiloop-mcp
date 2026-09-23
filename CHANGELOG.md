@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## 0.1.0-alpha.10
+## 0.1.0-alpha.10 - 2026-09-23
 
 - Added secure-by-default execution: project-local config is ignored unless a host explicitly selects trusted mode, approvals and redaction are mandatory in secure mode, and Appium endpoints are host-controlled.
 - Closed symbolic-link workspace escapes and introduced structured JSON artifact redaction that preserves valid report files.
@@ -10,6 +10,9 @@
 - Hardened Docker and Compose defaults with a non-root runtime, read-only security service, dropped capabilities, no-new-privileges, and an isolated trusted-worktree profile.
 - Pinned release workflow actions, reduced OIDC to the registry publishing job, made Trivy blocking for HIGH/CRITICAL findings, and verified the MCP publisher archive by SHA-256.
 - Updated locked dependencies to remove all current npm audit findings and added an indexable GitHub Pages documentation site with sitemap, robots, metadata, and real Appium evidence.
+- Fixed read-only Docker security scans so artifacts write to a dedicated host-controlled tmpfs mount without requiring a project-local `.mobiloop` directory.
+- Fixed direct W3C `alwaysMatch` and `firstMatch` Appium capabilities, verified against an installed MiniTakip app on a Genymotion Galaxy S24 with Appium 3 and UiAutomator2.
+- Added a static-site validation command, GitHub Pages deployment workflow, release documentation, and current metadata for the public documentation site.
 
 ## 0.1.0-alpha.9
 

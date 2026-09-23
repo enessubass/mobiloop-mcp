@@ -101,6 +101,14 @@ export ANDROID_SDK_ROOT=/absolute/path/to/android/sdk
 export PATH="$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"
 ```
 
+For an already-running Genymotion device, add its Android SDK platform tools to `PATH`, then
+verify the device before starting a flow:
+
+```bash
+export PATH="$HOME/Library/Android/sdk/platform-tools:$PATH"
+adb devices -l
+```
+
 ## Install From Source
 
 ```bash
@@ -342,6 +350,41 @@ Approval payloads use this shape:
 6. Install the app, create an Appium session, and verify one small user flow.
 7. Collect evidence; if a bug is confirmed, patch, rerun, and compare the security scan.
 8. Apply `security.release_gate` before calling a fix ready for release.
+
+## Live Appium Proof
+
+`v0.1.0-alpha.10` was validated against an installed MiniTakip Android application on a
+Genymotion Galaxy S24 running Android 15. The non-mutating proof used MobiLoop to discover the
+ADB target, create an Appium 3 UiAutomator2 session, capture a screenshot and page-source XML,
+read the accessibility tree, then close the session. It did not enter form data, create records,
+or delete application data.
+
+Direct W3C capabilities are accepted by `appium.create_session` as shown below. MobiLoop wraps
+them in the WebDriver `capabilities` envelope before sending them to Appium:
+
+```json
+{
+  "capabilities": {
+    "alwaysMatch": {
+      "platformName": "Android",
+      "appium:automationName": "UiAutomator2",
+      "appium:udid": "127.0.0.1:6555",
+      "appium:appPackage": "com.example.app",
+      "appium:appActivity": ".MainActivity",
+      "appium:noReset": true
+    }
+  },
+  "approval": {
+    "approved": true,
+    "approvedBy": "human-or-ci",
+    "reason": "Open an Appium session for a bounded validation run"
+  }
+}
+```
+
+After creating a session, use `appium.observe_screen` and `appium.get_accessibility_tree` for
+evidence, then always call `appium.delete_session`. A successful session only proves the selected
+screen and assertions; it does not claim that an entire product journey has passed.
 
 For a Flutter Android app, the rough tool sequence is:
 
@@ -887,6 +930,7 @@ npm run format:check
 npm run lint
 npm run typecheck
 npm test
+npm run site:check
 npm run pack:check
 ```
 
@@ -918,7 +962,9 @@ The Dockerfile also runs the test suite during image build.
 - [docs/releases/v0.1.0-alpha.2.md](docs/releases/v0.1.0-alpha.2.md)
 - [docs/releases/v0.1.0-alpha.3.md](docs/releases/v0.1.0-alpha.3.md)
 - [docs/releases/v0.1.0-alpha.4.md](docs/releases/v0.1.0-alpha.4.md)
+- [docs/releases/v0.1.0-alpha.10.md](docs/releases/v0.1.0-alpha.10.md)
 - [.github/workflows/android-fixture-e2e.yml](.github/workflows/android-fixture-e2e.yml)
+- [.github/workflows/deploy-pages.yml](.github/workflows/deploy-pages.yml)
 - [examples/android-validation-loop.json](examples/android-validation-loop.json)
 - [examples/flutter-ios-validation-loop.json](examples/flutter-ios-validation-loop.json)
 - [examples/flow-memory-replay.json](examples/flow-memory-replay.json)

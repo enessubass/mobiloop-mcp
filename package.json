@@ -1,7 +1,7 @@
 {
   "name": "mobiloop-mcp",
   "version": "0.1.0-alpha.10",
-  "description": "A guarded MCP server for build, device, Appium, verification, and agentic mobile development loops.",
+  "description": "Guarded MCP tools for AI-assisted mobile build, Appium testing, security scanning, verification, and fix-retest loops.",
   "mcpName": "io.github.enessubass/mobiloop-mcp",
   "type": "module",
   "repository": {
@@ -70,6 +70,7 @@
     "lint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "site:check": "node scripts/validate-site.mjs",
     "test": "npm run build && node --test \"dist/test/**/*.test.js\"",
     "pack:check": "npm_config_cache=/tmp/mobiloop-npm-cache npm pack --dry-run",
     "prepack": "npm run build",
@@ -87,7 +88,11 @@
     "automation",
     "emulator",
     "agentic",
-    "qa"
+    "qa",
+    "model-context-protocol",
+    "mobile-testing",
+    "security-testing",
+    "react-native"
   ],
   "license": "MIT",
   "dependencies": {

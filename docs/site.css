@@ -116,6 +116,12 @@ h3 {
   color: var(--muted);
   font-size: 20px;
 }
+
+.release-note {
+  max-width: 620px;
+  color: var(--muted);
+  font-size: 15px;
+}
 .hero-actions {
   display: flex;
   flex-wrap: wrap;

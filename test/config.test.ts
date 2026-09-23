@@ -53,6 +53,26 @@ test("loadConfig rejects artifactsDir outside workspaceRoot", async () => {
   }
 });
 
+test("loadConfig permits a host-controlled external artifacts directory", async () => {
+  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "mobiloop-workspace-"));
+  const artifacts = await fs.mkdtemp(path.join(os.tmpdir(), "mobiloop-artifacts-"));
+  const originalCwd = process.cwd();
+  const originalArtifacts = process.env.MOBILOOP_ARTIFACTS_DIR;
+  const originalRoot = process.env.MOBILOOP_WORKSPACE_ROOT;
+  process.env.MOBILOOP_ARTIFACTS_DIR = artifacts;
+  process.env.MOBILOOP_WORKSPACE_ROOT = workspace;
+  process.chdir(workspace);
+  try {
+    const config = await loadConfig();
+    assert.equal(config.workspaceRoot, workspace);
+    assert.equal(config.artifactsDir, artifacts);
+  } finally {
+    process.chdir(originalCwd);
+    restoreEnv("MOBILOOP_ARTIFACTS_DIR", originalArtifacts);
+    restoreEnv("MOBILOOP_WORKSPACE_ROOT", originalRoot);
+  }
+});
+
 test("loadConfig supports legacy agentic-mobile env vars as fallback", async () => {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "mobiloop-legacy-config-"));
   const originalCwd = process.cwd();
@@ -147,7 +167,11 @@ test("loadConfig supports approval and redaction env overrides", async () => {
   const originalRedactArtifacts = process.env.MOBILOOP_REDACT_ARTIFACTS;
   const originalRunId = process.env.MOBILOOP_RUN_ID;
   const configPath = path.join(dir, "mobiloop.config.json");
-  await fs.writeFile(configPath, JSON.stringify({ workspaceRoot: dir }), "utf8");
+  await fs.writeFile(
+    configPath,
+    JSON.stringify({ workspaceRoot: dir, securityMode: "trusted" }),
+    "utf8"
+  );
   process.env.MOBILOOP_CONFIG = configPath;
   process.env.MOBILOOP_REQUIRE_APPROVAL = "true";
   process.env.MOBILOOP_REDACT_ARTIFACTS = "false";
@@ -166,6 +190,47 @@ test("loadConfig supports approval and redaction env overrides", async () => {
     restoreEnv("MOBILOOP_REQUIRE_APPROVAL", originalRequireApproval);
     restoreEnv("MOBILOOP_REDACT_ARTIFACTS", originalRedactArtifacts);
     restoreEnv("MOBILOOP_RUN_ID", originalRunId);
+  }
+});
+
+test("loadConfig secure mode ignores a project-local config unless trusted mode is explicit", async () => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "mobiloop-secure-config-"));
+  const originalCwd = process.cwd();
+  const originalConfig = process.env.MOBILOOP_CONFIG;
+  const originalMode = process.env.MOBILOOP_SECURITY_MODE;
+  const originalApproval = process.env.MOBILOOP_REQUIRE_APPROVAL;
+  await fs.writeFile(
+    path.join(dir, "mobiloop.config.json"),
+    JSON.stringify({ requireApproval: false, adbPath: "/tmp/not-adb" }),
+    "utf8"
+  );
+  delete process.env.MOBILOOP_CONFIG;
+  delete process.env.MOBILOOP_SECURITY_MODE;
+  delete process.env.MOBILOOP_REQUIRE_APPROVAL;
+  process.chdir(dir);
+  try {
+    const config = await loadConfig();
+    assert.equal(config.securityMode, "secure");
+    assert.equal(config.requireApproval, true);
+    assert.equal(config.adbPath, "adb");
+  } finally {
+    process.chdir(originalCwd);
+    restoreEnv("MOBILOOP_CONFIG", originalConfig);
+    restoreEnv("MOBILOOP_SECURITY_MODE", originalMode);
+    restoreEnv("MOBILOOP_REQUIRE_APPROVAL", originalApproval);
+  }
+});
+
+test("loadConfig rejects an unrestricted API allowlist in secure mode", async () => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "mobiloop-api-config-"));
+  const originalConfig = process.env.MOBILOOP_CONFIG;
+  const configPath = path.join(dir, "mobiloop.config.json");
+  await fs.writeFile(configPath, JSON.stringify({ workspaceRoot: dir, apiAllowlist: [] }), "utf8");
+  process.env.MOBILOOP_CONFIG = configPath;
+  try {
+    await assert.rejects(() => loadConfig(), /secure mode requires a non-empty apiAllowlist/);
+  } finally {
+    restoreEnv("MOBILOOP_CONFIG", originalConfig);
   }
 });
 

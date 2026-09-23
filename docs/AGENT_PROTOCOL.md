@@ -4,20 +4,16 @@ This is the expected behavior for AI agents using MobiLoop.
 
 ## Default Flow
 
-1. Run `env.preflight`.
-2. Run `build.detect_project`.
-3. Run `flow.analyze_from_code`.
-4. Generate scenarios with `flow.generate_test_scenarios`.
-5. Pick one small scenario and convert it to `flow.run_script`.
-6. Run lint and unit tests when available.
-7. Build a debug app.
-8. Install on emulator, simulator, or device.
-9. Create an Appium session.
-10. Run the flow script.
-11. Collect evidence.
-12. Classify failure.
-13. Patch only when the failure is an app bug or automation bug.
-14. Stop after bounded attempts and produce a report.
+1. Run `security.scan_source` and save its report path.
+2. Run `security.generate_test_plan` and include relevant checks in the scenario.
+3. Run `env.preflight` and `build.detect_project`.
+4. Run `flow.analyze_from_code`, then generate scenarios with `flow.generate_test_scenarios`.
+5. Run approved lint, unit-test, build, device, Appium, and verification actions.
+6. Collect evidence and classify failure.
+7. Patch only when the failure is an app bug or automation bug and approval permits it.
+8. Rerun the failed scenario and relevant security plan checks.
+9. Run `security.compare_scans` and `security.release_gate` before reporting a fix as ready.
+10. Stop after bounded attempts and produce a report with unresolved findings.
 
 ## Fix Decision Table
 
@@ -51,7 +47,7 @@ Ask before tools whose policy has `requiresApproval: true`. Typical examples:
 - commits and PRs
 - orchestrator loops that mutate device state
 
-When server-side enforcement is enabled, include:
+Secure mode enforces approval server-side. Include:
 
 ```json
 {

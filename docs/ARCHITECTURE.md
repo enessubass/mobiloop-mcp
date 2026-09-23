@@ -16,6 +16,7 @@ AI orchestrator
   |-- mobiloop-loop-mcp
   |-- mobiloop-ci-mcp
   |-- mobiloop-orchestrator-mcp
+  |-- mobiloop-security-mcp
 ```
 
 The package also exposes `mobiloop-mcp`, an all-in-one server for local development and simpler MCP clients.
@@ -26,6 +27,7 @@ The expected loop is evidence-first:
 
 ```text
 goal
+  -> source security scan and test plan
   -> guarded code change
   -> lint/unit test/build
   -> install on device
@@ -36,6 +38,7 @@ goal
   -> evidence collection
   -> iteration record
   -> fix and retry
+  -> security scan comparison and release gate
   -> report
 ```
 
@@ -64,11 +67,14 @@ The MCP server does not claim success by itself. Success must be represented by 
 - Loop MCP owns iteration JSONL and final reports.
 - CI MCP owns artifact manifests, GitHub step summaries, and PR comments.
 - Orchestrator MCP owns a bounded Android validation pass across build, install, optional flow replay, Appium, verification, evidence, and loop record tools.
+- Security MCP owns deterministic static mobile security signals, test-plan generation, scan comparisons, and release gates. It does not execute target application code.
 
 ## Safety Defaults
 
 - paths must stay inside `workspaceRoot`
+- existing symbolic links must resolve inside `workspaceRoot`
 - secret-like paths are blocked
+- secure mode ignores project-local configuration, requires approvals, and fixes Appium to host-controlled loopback endpoints
 - commits are allowed only on branches matching `feature/ai-*`
 - artifacts are written under `.mobiloop`
 - when `runId` is set, artifacts are isolated under `.mobiloop/runs/<runId>`

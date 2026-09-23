@@ -34,6 +34,7 @@ test("env.preflight accepts a reachable Appium server without requiring a global
 
 function config(root: string, appiumServerUrl: string): ServerConfig {
   return {
+    securityMode: "trusted",
     workspaceRoot: root,
     artifactsDir: path.join(root, ".mobiloop"),
     runId: undefined,
@@ -50,6 +51,7 @@ function config(root: string, appiumServerUrl: string): ServerConfig {
     xcodebuildPath: "xcodebuild",
     sqlitePath: "sqlite3",
     apiAllowlist: ["http://127.0.0.1:*", "http://localhost:*"],
+    appiumAllowlist: ["http://127.0.0.1:*", "http://localhost:*"],
     forbiddenPathGlobs: [".env", ".env.*"],
     toolPolicies: {},
     requireApproval: false,

@@ -5,6 +5,7 @@ import { loadConfig } from "./config.js";
 import { McpTool, errorResponse } from "./types.js";
 import { enforceToolApproval, stripApproval } from "./utils/approval.js";
 import { redactToolResponse } from "./utils/redaction.js";
+import { enforceToolSecurityPolicy } from "./utils/security-policy.js";
 import { attachToolPolicies, describeToolWithPolicy } from "./utils/tool-policy.js";
 
 export async function runMcpServer(name: string, tools: McpTool[]): Promise<void> {
@@ -15,7 +16,7 @@ export async function runMcpServer(name: string, tools: McpTool[]): Promise<void
   const server = new Server(
     {
       name,
-      version: "0.1.0"
+      version: "0.1.0-alpha.10"
     },
     {
       capabilities: {
@@ -39,6 +40,7 @@ export async function runMcpServer(name: string, tools: McpTool[]): Promise<void
     }
     try {
       const input = request.params.arguments ?? {};
+      enforceToolSecurityPolicy(tool, input, config);
       enforceToolApproval(tool, input, config);
       return redactToolResponse(
         await tool.handler(stripApproval(input), { config }),

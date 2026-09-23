@@ -46,24 +46,36 @@ The image is built from this repository and is intended to run the MCP server on
 
 ## Run As MCP Server
 
-For stdio MCP clients, the container must run with an interactive stdin:
+For static security review, use the read-only security server. It has no host Appium route and runs in secure mode:
 
 ```bash
 docker run --rm -i \
+  --read-only \
+  --tmpfs /tmp:rw,noexec,nosuid,size=256m \
+  --tmpfs /artifacts:rw,noexec,nosuid,size=256m,uid=10001,gid=10001,mode=0770 \
+  --cap-drop ALL \
+  --security-opt no-new-privileges \
   -e MOBILOOP_WORKSPACE_ROOT=/workspace \
-  -e APPIUM_SERVER_URL=http://host.docker.internal:4723 \
-  -v /absolute/path/to/mobile/app:/workspace \
-  ghcr.io/enessubass/mobiloop-mcp:latest
+  -e MOBILOOP_ARTIFACTS_DIR=/artifacts \
+  -e MOBILOOP_SECURITY_MODE=secure \
+  -v /absolute/path/to/mobile/app:/workspace:ro \
+  --entrypoint node \
+  ghcr.io/enessubass/mobiloop-mcp:latest /app/dist/src/servers/security.js
 ```
 
-On Linux, add host gateway mapping if needed:
+For build, patch, or device testing, use a dedicated worktree with a non-root UID and explicit trusted mode. This is intentionally separate from the read-only security path:
 
 ```bash
 docker run --rm -i \
+  --cap-drop ALL \
+  --security-opt no-new-privileges \
+  --user "$(id -u):$(id -g)" \
   --add-host=host.docker.internal:host-gateway \
   -e MOBILOOP_WORKSPACE_ROOT=/workspace \
+  -e MOBILOOP_SECURITY_MODE=trusted \
+  -e MOBILOOP_REQUIRE_APPROVAL=true \
   -e APPIUM_SERVER_URL=http://host.docker.internal:4723 \
-  -v /absolute/path/to/mobile/app:/workspace \
+  -v /absolute/path/to/isolated/mobile/worktree:/workspace \
   ghcr.io/enessubass/mobiloop-mcp:latest
 ```
 
@@ -78,14 +90,23 @@ docker run --rm -i \
         "run",
         "--rm",
         "-i",
-        "--add-host=host.docker.internal:host-gateway",
+        "--read-only",
+        "--tmpfs",
+        "/artifacts:rw,noexec,nosuid,size=256m,uid=10001,gid=10001,mode=0770",
+        "--cap-drop=ALL",
+        "--security-opt=no-new-privileges",
         "-e",
         "MOBILOOP_WORKSPACE_ROOT=/workspace",
         "-e",
-        "APPIUM_SERVER_URL=http://host.docker.internal:4723",
+        "MOBILOOP_ARTIFACTS_DIR=/artifacts",
+        "-e",
+        "MOBILOOP_SECURITY_MODE=secure",
         "-v",
-        "/absolute/path/to/mobile/app:/workspace",
-        "ghcr.io/enessubass/mobiloop-mcp:latest"
+        "/absolute/path/to/mobile/app:/workspace:ro",
+        "--entrypoint",
+        "node",
+        "ghcr.io/enessubass/mobiloop-mcp:latest",
+        "/app/dist/src/servers/security.js"
       ]
     }
   }
@@ -106,7 +127,7 @@ Compose is less useful for stdio MCP clients because MCP clients usually spawn a
 
 Two supported patterns:
 
-1. Recommended: run Android SDK, emulator/device, and Appium on the host or self-hosted runner. Run MCP in Docker and point `APPIUM_SERVER_URL` at the host Appium.
+1. Recommended: run Android SDK, emulator/device, and Appium on the host or self-hosted runner. Use the separate trusted-worktree container only when the host explicitly grants Appium reachability and a writable isolated worktree.
 2. Advanced Linux-only: build a custom runner image with Android SDK and Appium, run with KVM/device privileges, and expose adb/Appium inside the container. This is environment-specific and not provided as the default image.
 
 ## iOS

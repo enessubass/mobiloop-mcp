@@ -1,7 +1,7 @@
 {
   "name": "mobiloop-mcp",
-  "version": "0.1.0-alpha.9",
-  "description": "A guarded MCP server for build, device, Appium, verification, and agentic mobile development loops.",
+  "version": "0.1.0-alpha.10",
+  "description": "Guarded MCP tools for AI-assisted mobile build, Appium testing, security scanning, verification, and fix-retest loops.",
   "mcpName": "io.github.enessubass/mobiloop-mcp",
   "type": "module",
   "repository": {
@@ -11,7 +11,7 @@
   "bugs": {
     "url": "https://github.com/enessubass/mobiloop-mcp/issues"
   },
-  "homepage": "https://github.com/enessubass/mobiloop-mcp#readme",
+  "homepage": "https://enessubass.github.io/mobiloop-mcp/",
   "bin": {
     "mobiloop": "dist/src/cli.js",
     "mobiloop-mcp": "dist/src/index.js",
@@ -25,11 +25,13 @@
     "mobiloop-flow-mcp": "dist/src/servers/flow.js",
     "mobiloop-loop-mcp": "dist/src/servers/loop.js",
     "mobiloop-ci-mcp": "dist/src/servers/ci.js",
-    "mobiloop-orchestrator-mcp": "dist/src/servers/orchestrator.js"
+    "mobiloop-orchestrator-mcp": "dist/src/servers/orchestrator.js",
+    "mobiloop-security-mcp": "dist/src/servers/security.js"
   },
   "files": [
     "dist/src",
     "README.md",
+    "SECURITY.md",
     "LICENSE",
     "CHANGELOG.md",
     "CONTRIBUTING.md",
@@ -68,6 +70,7 @@
     "lint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "site:check": "node scripts/validate-site.mjs",
     "test": "npm run build && node --test \"dist/test/**/*.test.js\"",
     "pack:check": "npm_config_cache=/tmp/mobiloop-npm-cache npm pack --dry-run",
     "prepack": "npm run build",
@@ -85,7 +88,11 @@
     "automation",
     "emulator",
     "agentic",
-    "qa"
+    "qa",
+    "model-context-protocol",
+    "mobile-testing",
+    "security-testing",
+    "react-native"
   ],
   "license": "MIT",
   "dependencies": {

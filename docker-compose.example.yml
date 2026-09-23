@@ -1,24 +1,50 @@
 services:
-  mobiloop-mcp:
+  mobiloop-security:
     build:
       context: .
     image: mobiloop-mcp:local
     stdin_open: true
     tty: false
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=256m
+      - /artifacts:rw,noexec,nosuid,size=256m,uid=10001,gid=10001,mode=0770
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 256
+    mem_limit: 1g
+    cpus: 1
+    entrypoint: ["node", "/app/dist/src/servers/security.js"]
     environment:
       MOBILOOP_WORKSPACE_ROOT: /workspace
-      APPIUM_SERVER_URL: http://host.docker.internal:4723
+      MOBILOOP_ARTIFACTS_DIR: /artifacts
+      MOBILOOP_SECURITY_MODE: secure
     volumes:
-      - /absolute/path/to/mobile/app:/workspace
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - /absolute/path/to/mobile/app:/workspace:ro
 
-  mobiloop-env:
+  mobiloop-mcp:
+    profiles: ["trusted-workspace"]
+    build:
+      context: .
     image: mobiloop-mcp:local
     stdin_open: true
     tty: false
-    entrypoint: ["node", "/app/dist/src/servers/env.js"]
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 256
+    mem_limit: 2g
+    cpus: 2
+    user: "${MOBILOOP_UID:-10001}:${MOBILOOP_GID:-10001}"
     environment:
       MOBILOOP_WORKSPACE_ROOT: /workspace
+      MOBILOOP_SECURITY_MODE: trusted
+      MOBILOOP_REQUIRE_APPROVAL: "true"
+      APPIUM_SERVER_URL: http://host.docker.internal:4723
     volumes:
-      - /absolute/path/to/mobile/app:/workspace
+      - /absolute/path/to/isolated/mobile/worktree:/workspace
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

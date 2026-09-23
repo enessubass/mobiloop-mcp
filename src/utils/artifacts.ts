@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { ServerConfig } from "../types.js";
-import { redactText } from "./redaction.js";
+import { redactJsonValue, redactText } from "./redaction.js";
 
 export async function ensureArtifactsDir(config: ServerConfig, group?: string): Promise<string> {
   const root = artifactRoot(config);
@@ -20,6 +20,19 @@ export async function writeArtifactText(
   const filePath = artifactPath(config, group, prefix, extension);
   await fs.mkdir(path.dirname(filePath), { recursive: true });
   await fs.writeFile(filePath, config.redactArtifacts ? redactText(text) : text, "utf8");
+  return filePath;
+}
+
+export async function writeArtifactJson(
+  config: ServerConfig,
+  group: string,
+  prefix: string,
+  value: unknown
+): Promise<string> {
+  const filePath = artifactPath(config, group, prefix, "json");
+  await fs.mkdir(path.dirname(filePath), { recursive: true });
+  const safeValue = config.redactArtifacts ? redactJsonValue(value) : value;
+  await fs.writeFile(filePath, `${JSON.stringify(safeValue, null, 2)}\n`, "utf8");
   return filePath;
 }
 

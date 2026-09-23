@@ -15,6 +15,7 @@ export interface McpTool {
 }
 
 export type ToolRiskLevel = "read" | "write" | "device" | "network" | "git" | "dangerous";
+export type SecurityMode = "secure" | "trusted";
 
 export interface ToolPolicy {
   riskLevel: ToolRiskLevel;
@@ -40,6 +41,7 @@ export interface ApprovalPayload {
 }
 
 export interface ServerConfig {
+  securityMode: SecurityMode;
   workspaceRoot: string;
   artifactsDir: string;
   runId?: string;
@@ -56,6 +58,7 @@ export interface ServerConfig {
   xcodebuildPath: string;
   sqlitePath: string;
   apiAllowlist: string[];
+  appiumAllowlist: string[];
   forbiddenPathGlobs: string[];
   toolPolicies: Record<string, Partial<ToolPolicy>>;
   requireApproval: boolean;

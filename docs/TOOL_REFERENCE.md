@@ -24,7 +24,7 @@ Each tool includes a `policy` block with risk metadata:
 
 MCP clients should use this metadata to decide when to ask for human approval. MobiLoop still enforces path, branch, timeout, output, and API allowlist controls internally.
 
-When `requireApproval` or `MOBILOOP_REQUIRE_APPROVAL=true` is enabled, the server also enforces this metadata before calling high-impact handlers.
+Secure mode enforces this metadata before calling high-impact handlers. Trusted mode can also enforce it with `requireApproval` or `MOBILOOP_REQUIRE_APPROVAL=true`.
 
 ## Code Tools
 
@@ -48,19 +48,19 @@ Failure cases include path escape, forbidden path match, invalid branch pattern,
 | `env.compatibility_matrix` | Explain host/tool requirements per workflow.                                 | `read`    | No                |
 | `env.ensure_appium`        | Check, install driver, or start Appium when requested.                       | `network` | Context dependent |
 
-`env.ensure_appium` can install Appium drivers and start a long-running process. Use approval before `installDriver` or `startServer` in interactive environments.
+`env.ensure_appium` can install Appium drivers and start a long-running process, so it requires approval. Secure mode accepts only host-configured loopback server settings and the `uiautomator2` or `xcuitest` driver names.
 
 ## Build Tools
 
-| Tool                            | Purpose                                                        | Main Risk   | Approval                      |
-| ------------------------------- | -------------------------------------------------------------- | ----------- | ----------------------------- |
-| `build.detect_project`          | Detect Flutter, React Native, Android Gradle, or iOS projects. | `read`      | No                            |
-| `build.install_dependencies`    | Run package/dependency install for the detected project.       | `network`   | Yes                           |
-| `build.run_lint`                | Run framework lint/analyze command.                            | `read`      | Usually no                    |
-| `build.run_unit_tests`          | Run unit tests.                                                | `read`      | Usually no                    |
-| `build.build_debug_apk`         | Build Android debug APK.                                       | `write`     | Usually no in CI, ask locally |
-| `build.build_release_candidate` | Build release-candidate artifacts.                             | `dangerous` | Yes                           |
-| `build.collect_build_logs`      | Read build logs from the current artifact root.                | `read`      | No                            |
+| Tool                            | Purpose                                                        | Main Risk   | Approval |
+| ------------------------------- | -------------------------------------------------------------- | ----------- | -------- |
+| `build.detect_project`          | Detect Flutter, React Native, Android Gradle, or iOS projects. | `read`      | No       |
+| `build.install_dependencies`    | Run package/dependency install for the detected project.       | `network`   | Yes      |
+| `build.run_lint`                | Run framework lint/analyze command.                            | `network`   | Yes      |
+| `build.run_unit_tests`          | Run unit tests.                                                | `network`   | Yes      |
+| `build.build_debug_apk`         | Build Android debug APK.                                       | `dangerous` | Yes      |
+| `build.build_release_candidate` | Build release-candidate artifacts.                             | `dangerous` | Yes      |
+| `build.collect_build_logs`      | Read build logs from the current artifact root.                | `read`      | No       |
 
 ## Device And iOS Tools
 
@@ -72,6 +72,8 @@ Device tools mutate emulator, simulator, or physical device state. Use approval 
 | iOS simulator  | `ios.list_simulators`, `ios.capture_screenshot`, `ios.collect_logs`    | `ios.boot_simulator`, `ios.shutdown_simulator`, `ios.build_app`, `ios.install_app`, `ios.launch_app`                                               |
 
 ## Appium Tools
+
+All Appium tools require approval because they contact a device automation endpoint and may expose or mutate application state. Secure mode rejects `serverUrl` overrides; configure `APPIUM_SERVER_URL` in the host environment.
 
 | Tool                                                                            | Purpose                                                  | Notes                                                                     |
 | ------------------------------------------------------------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------- |
@@ -85,6 +87,15 @@ Device tools mutate emulator, simulator, or physical device state. Use approval 
 | `appium.type_text`                                                              | Type text with `sendKeys`, `setValue`, or `adbKeyboard`. | Flutter defaults should prefer `sendKeys`.                                |
 | `appium.swipe`, `appium.go_back`                                                | Navigate the app.                                        | Device state mutation.                                                    |
 | `appium.wait_for_visible`, `appium.assert_visible`, `appium.assert_not_visible` | Visibility checks.                                       | Evidence-friendly assertions.                                             |
+
+## Security Tools
+
+| Tool                          | Purpose                                                                   | Main Risk | Approval |
+| ----------------------------- | ------------------------------------------------------------------------- | --------- | -------- |
+| `security.scan_source`        | Deterministically scan source, Android manifests, and iOS plist settings. | `read`    | No       |
+| `security.generate_test_plan` | Produce security validation work from a saved scan report.                | `read`    | No       |
+| `security.compare_scans`      | Re-scan after a fix and compare with a baseline report.                   | `read`    | No       |
+| `security.release_gate`       | Evaluate a scan report at the selected severity threshold.                | `read`    | No       |
 
 ## Verification Tools
 

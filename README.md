@@ -1,6 +1,8 @@
 # MobiLoop MCP
 
-Guarded MCP servers for agentic mobile development loops.
+Guarded MCP servers for agentic mobile build-test-fix loops.
+
+[Documentation site](https://enessubass.github.io/mobiloop-mcp/) | [Security model](docs/SECURITY.md) | [Tool reference](docs/TOOL_REFERENCE.md)
 
 ```text
 code change -> build -> install on device -> Appium test -> evidence -> classify -> report
@@ -23,7 +25,8 @@ Today, MobiLoop provides guarded build-test-verify loops and evidence-based fail
 - **Scenario generation and flow DSL**: scan source for candidate E2E scenarios, then run high-level JSON flows with wait/tap/type/assert/evidence steps.
 - **Source-flow analysis**: scan Flutter, React Native, Android, and iOS source for screen, route, transition, and visible-text candidates.
 - **Root-cause classification**: classify logcat evidence into app bugs, automation errors, missing environment, remote rules, and test-data issues.
-- **Server-side approval gate**: optionally block high-impact tools unless input includes a valid approval payload.
+- **Server-side approval gate**: secure mode requires valid approval payloads for high-impact tools.
+- **Built-in mobile security loop**: scan source and platform settings, generate a test plan, compare fixes, and gate release decisions without another scanner package.
 - **Redaction by default**: redact common secrets, bearer tokens, API keys, emails, and phone numbers from text artifacts, command output, and MCP/CLI text responses.
 - **Guarded code tools**: workspace-only reads/searches/patches, forbidden secret paths, guarded branches, commits, and PR creation.
 - **Docker-ready MCP runtime**: package the Node MCP server in Docker while keeping mobile SDKs, emulators, devices, and Appium on the host or runner.
@@ -50,6 +53,7 @@ MobiLoop MCP
   |-- loop/report tools
   |-- CI publication tools
   |-- Android/iOS orchestrators
+  |-- security scan and release gate tools
   |
   v
 mobile repo + emulator/device + Appium + build toolchain
@@ -95,6 +99,14 @@ For Android, make sure the Appium process can see:
 export ANDROID_HOME=/absolute/path/to/android/sdk
 export ANDROID_SDK_ROOT=/absolute/path/to/android/sdk
 export PATH="$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"
+```
+
+For an already-running Genymotion device, add its Android SDK platform tools to `PATH`, then
+verify the device before starting a flow:
+
+```bash
+export PATH="$HOME/Library/Android/sdk/platform-tools:$PATH"
+adb devices -l
 ```
 
 ## Install From Source
@@ -249,10 +261,18 @@ All binaries are listed below.
 | `mobiloop-loop-mcp`         | Iteration records and reports                                          |
 | `mobiloop-ci-mcp`           | Artifact manifests, GitHub summaries, PR comments                      |
 | `mobiloop-orchestrator-mcp` | Android and iOS build-install-test-verify loops                        |
+| `mobiloop-security-mcp`     | Static mobile security scan, test plan, scan comparison, release gate  |
 
 ## Configuration
 
-Copy the example if you want file-based config:
+Secure mode does not read configuration from the project directory. Set workspace and Appium values in the host environment:
+
+```bash
+export MOBILOOP_WORKSPACE_ROOT=/absolute/path/to/mobile/app
+export APPIUM_SERVER_URL=http://127.0.0.1:4723
+```
+
+For a host-controlled file configuration, copy the example and point to it explicitly:
 
 ```bash
 cp mobiloop.config.example.json mobiloop.config.json
@@ -268,28 +288,32 @@ export MOBILOOP_CONFIG=/absolute/path/to/mobiloop.config.json
 
 Common fields:
 
-| Field                  | Default                         | Purpose                                                               |
-| ---------------------- | ------------------------------- | --------------------------------------------------------------------- |
-| `workspaceRoot`        | current working directory       | Mobile app workspace the MCP server may access                        |
-| `artifactsDir`         | `.mobiloop`                     | Evidence, logs, screenshots, reports, flow memory                     |
-| `runId`                | unset                           | Optional run identifier; writes artifacts under `.mobiloop/runs/<id>` |
-| `maxCommandMs`         | `120000`                        | Default command timeout                                               |
-| `maxOutputBytes`       | `1048576`                       | Output cap for command tools                                          |
-| `maxFixAttempts`       | `3`                             | Suggested fix-loop limit                                              |
-| `maxTestIterations`    | `5`                             | Orchestrator loop limit                                               |
-| `maxRuntimeMinutes`    | `30`                            | Suggested total runtime limit                                         |
-| `allowedBranchPattern` | `^feature/ai-[A-Za-z0-9._/-]+$` | Branches where commit tools are allowed                               |
-| `appiumServerUrl`      | `http://127.0.0.1:4723`         | Appium server endpoint                                                |
-| `adbPath`              | `adb`                           | Android Debug Bridge path                                             |
-| `emulatorPath`         | `emulator`                      | Android emulator CLI path                                             |
-| `xcrunPath`            | `xcrun`                         | iOS simulator CLI path                                                |
-| `xcodebuildPath`       | `xcodebuild`                    | Xcode build CLI path                                                  |
-| `sqlitePath`           | `sqlite3`                       | SQLite CLI path for read-only assertions                              |
-| `apiAllowlist`         | localhost only                  | URLs allowed for API verification                                     |
-| `forbiddenPathGlobs`   | secret-like defaults            | Files blocked from read/write operations                              |
-| `toolPolicies`         | built-in defaults               | Per-tool risk and approval metadata overrides                         |
-| `requireApproval`      | `false`                         | Require approval payloads for high-impact tools                       |
-| `redactArtifacts`      | `true`                          | Redact common secrets and PII from text artifacts and text responses  |
+| Field                  | Default                         | Purpose                                                                 |
+| ---------------------- | ------------------------------- | ----------------------------------------------------------------------- |
+| `securityMode`         | `secure`                        | Secure ignores project-local config; trusted enables explicit overrides |
+| `workspaceRoot`        | current working directory       | Mobile app workspace the MCP server may access                          |
+| `artifactsDir`         | `.mobiloop`                     | Evidence, logs, screenshots, reports, flow memory                       |
+| `runId`                | unset                           | Optional run identifier; writes artifacts under `.mobiloop/runs/<id>`   |
+| `maxCommandMs`         | `120000`                        | Default command timeout                                                 |
+| `maxOutputBytes`       | `1048576`                       | Output cap for command tools                                            |
+| `maxFixAttempts`       | `3`                             | Suggested fix-loop limit                                                |
+| `maxTestIterations`    | `5`                             | Orchestrator loop limit                                                 |
+| `maxRuntimeMinutes`    | `30`                            | Suggested total runtime limit                                           |
+| `allowedBranchPattern` | `^feature/ai-[A-Za-z0-9._/-]+$` | Branches where commit tools are allowed                                 |
+| `appiumServerUrl`      | `http://127.0.0.1:4723`         | Trusted-mode Appium endpoint; secure mode uses host environment         |
+| `adbPath`              | `adb`                           | Android Debug Bridge path                                               |
+| `emulatorPath`         | `emulator`                      | Android emulator CLI path                                               |
+| `xcrunPath`            | `xcrun`                         | iOS simulator CLI path                                                  |
+| `xcodebuildPath`       | `xcodebuild`                    | Xcode build CLI path                                                    |
+| `sqlitePath`           | `sqlite3`                       | SQLite CLI path for read-only assertions                                |
+| `apiAllowlist`         | localhost only                  | URLs allowed for API verification                                       |
+| `appiumAllowlist`      | localhost only                  | Trusted-mode Appium origin allowlist                                    |
+| `forbiddenPathGlobs`   | secret-like defaults            | Files blocked from read/write operations                                |
+| `toolPolicies`         | built-in defaults               | Trusted-mode per-tool risk and approval metadata overrides              |
+| `requireApproval`      | `true` in secure mode           | Require approval payloads for high-impact tools                         |
+| `redactArtifacts`      | `true`                          | Redact common secrets and PII from text artifacts and text responses    |
+
+`MOBILOOP_ARTIFACTS_DIR` may point to a dedicated host-controlled evidence mount, such as `/artifacts` in the read-only Docker security server.
 
 Environment variables override selected fields:
 
@@ -298,6 +322,7 @@ export MOBILOOP_WORKSPACE_ROOT=/absolute/path/to/mobile/app
 export APPIUM_SERVER_URL=http://127.0.0.1:4723
 export MOBILOOP_RUN_ID=local-login-smoke
 export MOBILOOP_REQUIRE_APPROVAL=true
+export MOBILOOP_SECURITY_MODE=secure
 ```
 
 The config schema is available at [schema/mobiloop.config.schema.json](schema/mobiloop.config.schema.json). See [docs/CONFIGURATION.md](docs/CONFIGURATION.md).
@@ -317,21 +342,56 @@ Approval payloads use this shape:
 
 ## Recommended First Run
 
-1. Start an emulator or connect a device.
-2. Start Appium.
-3. Point `MOBILOOP_WORKSPACE_ROOT` at your mobile app.
-4. Run `env.preflight`.
-5. Run `flow.analyze_from_code`.
-6. Run build/lint/unit tests.
-7. Install the app on the device.
-8. Create an Appium session.
-9. Drive and verify one small user flow.
-10. Collect evidence and generate a report.
+1. Point `MOBILOOP_WORKSPACE_ROOT` at your mobile app.
+2. Run `security.scan_source` and `security.generate_test_plan`.
+3. Start an emulator or connect a device, then start Appium.
+4. Run `env.preflight` and `flow.analyze_from_code`.
+5. Run approved build/lint/unit-test actions.
+6. Install the app, create an Appium session, and verify one small user flow.
+7. Collect evidence; if a bug is confirmed, patch, rerun, and compare the security scan.
+8. Apply `security.release_gate` before calling a fix ready for release.
+
+## Live Appium Proof
+
+`v0.1.0-alpha.10` was validated against an installed MiniTakip Android application on a
+Genymotion Galaxy S24 running Android 15. The non-mutating proof used MobiLoop to discover the
+ADB target, create an Appium 3 UiAutomator2 session, capture a screenshot and page-source XML,
+read the accessibility tree, then close the session. It did not enter form data, create records,
+or delete application data.
+
+Direct W3C capabilities are accepted by `appium.create_session` as shown below. MobiLoop wraps
+them in the WebDriver `capabilities` envelope before sending them to Appium:
+
+```json
+{
+  "capabilities": {
+    "alwaysMatch": {
+      "platformName": "Android",
+      "appium:automationName": "UiAutomator2",
+      "appium:udid": "127.0.0.1:6555",
+      "appium:appPackage": "com.example.app",
+      "appium:appActivity": ".MainActivity",
+      "appium:noReset": true
+    }
+  },
+  "approval": {
+    "approved": true,
+    "approvedBy": "human-or-ci",
+    "reason": "Open an Appium session for a bounded validation run"
+  }
+}
+```
+
+After creating a session, use `appium.observe_screen` and `appium.get_accessibility_tree` for
+evidence, then always call `appium.delete_session`. A successful session only proves the selected
+screen and assertions; it does not claim that an entire product journey has passed.
 
 For a Flutter Android app, the rough tool sequence is:
 
 ```text
 env.preflight { "target": "flutter" }
+security.scan_source
+security.generate_test_plan
 flow.analyze_from_code
 build.detect_project
 build.install_dependencies
@@ -600,15 +660,11 @@ The recommended Docker model is:
 
 ```text
 Docker container
-  - Node runtime
-  - compiled MCP server
-  - git/ripgrep/sqlite helpers
+  - read-only Security MCP for static project review
 
-Host or self-hosted runner
-  - Android SDK
-  - emulator or physical device
-  - Appium server and drivers
-  - Flutter / Gradle / React Native toolchain
+Trusted isolated worktree or self-hosted runner
+  - approved build, device, Appium, and patch actions
+  - Android SDK/emulator/device, Appium, Flutter/Gradle/React Native
   - Xcode and iOS Simulator on macOS
 ```
 
@@ -628,16 +684,14 @@ Run as an MCP stdio server:
 
 ```bash
 docker run --rm -i \
+  --read-only --cap-drop ALL --security-opt no-new-privileges \
+  --tmpfs /artifacts:rw,noexec,nosuid,size=256m,uid=10001,gid=10001,mode=0770 \
   -e MOBILOOP_WORKSPACE_ROOT=/workspace \
-  -e APPIUM_SERVER_URL=http://host.docker.internal:4723 \
-  -v /absolute/path/to/mobile/app:/workspace \
-  ghcr.io/enessubass/mobiloop-mcp:latest
-```
-
-On Linux, add:
-
-```bash
---add-host=host.docker.internal:host-gateway
+  -e MOBILOOP_ARTIFACTS_DIR=/artifacts \
+  -e MOBILOOP_SECURITY_MODE=secure \
+  -v /absolute/path/to/mobile/app:/workspace:ro \
+  --entrypoint node \
+  ghcr.io/enessubass/mobiloop-mcp:latest /app/dist/src/servers/security.js
 ```
 
 See [docs/DOCKER.md](docs/DOCKER.md).
@@ -646,12 +700,13 @@ See [docs/DOCKER.md](docs/DOCKER.md).
 
 Defaults are intentionally conservative.
 
-- File access is restricted to `workspaceRoot`.
+- File access is restricted to `workspaceRoot` after symbolic-link resolution.
+- Secure mode ignores project-local config, requires approval, and uses host-controlled loopback Appium.
 - Secret-like paths are blocked.
 - Commit tools only work on branches matching `feature/ai-*` by default.
 - There is no generic shell execution tool.
 - API checks are restricted by `apiAllowlist`.
-- Evidence is written under `.mobiloop`.
+- Evidence is written under `.mobiloop`, unless the host deliberately provides a dedicated `MOBILOOP_ARTIFACTS_DIR` mount.
 - Runtime and output limits are enforced.
 
 Default blocked paths include:
@@ -663,7 +718,7 @@ Default blocked paths include:
 - `google-services.json`
 - paths containing `secret` or `credential`
 
-MCP clients should still apply human approval for high-impact operations such as dependency installation, emulator launch, app install, commits, pushes, and PR creation.
+Secure mode enforces approval for high-impact operations such as dependency installation, lint/test/build commands, device interaction, patches, commits, pushes, and PR creation.
 MobiLoop exposes machine-readable policy metadata through `mobiloop list-tools --json`; see [docs/TOOL_REFERENCE.md](docs/TOOL_REFERENCE.md).
 
 See [docs/SECURITY.md](docs/SECURITY.md).
@@ -695,6 +750,7 @@ Typical contents:
 | `loop/`        | JSONL iteration records                                 |
 | `reports/`     | Markdown final reports                                  |
 | `ci/`          | CI manifests, summaries, annotations                    |
+| `security/`    | source scans, generated plans, comparisons              |
 
 ## Tool Groups
 
@@ -723,6 +779,13 @@ Typical contents:
 - `build.build_debug_apk`
 - `build.build_release_candidate`
 - `build.collect_build_logs`
+
+### Security
+
+- `security.scan_source`
+- `security.generate_test_plan`
+- `security.compare_scans`
+- `security.release_gate`
 
 ### Android Device
 
@@ -867,6 +930,7 @@ npm run format:check
 npm run lint
 npm run typecheck
 npm test
+npm run site:check
 npm run pack:check
 ```
 
@@ -898,7 +962,9 @@ The Dockerfile also runs the test suite during image build.
 - [docs/releases/v0.1.0-alpha.2.md](docs/releases/v0.1.0-alpha.2.md)
 - [docs/releases/v0.1.0-alpha.3.md](docs/releases/v0.1.0-alpha.3.md)
 - [docs/releases/v0.1.0-alpha.4.md](docs/releases/v0.1.0-alpha.4.md)
+- [docs/releases/v0.1.0-alpha.10.md](docs/releases/v0.1.0-alpha.10.md)
 - [.github/workflows/android-fixture-e2e.yml](.github/workflows/android-fixture-e2e.yml)
+- [.github/workflows/deploy-pages.yml](.github/workflows/deploy-pages.yml)
 - [examples/android-validation-loop.json](examples/android-validation-loop.json)
 - [examples/flutter-ios-validation-loop.json](examples/flutter-ios-validation-loop.json)
 - [examples/flow-memory-replay.json](examples/flow-memory-replay.json)

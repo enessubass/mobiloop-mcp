@@ -2,7 +2,8 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Ajv2020 } from "ajv/dist/2020.js";
-import { ServerConfig, ToolPolicy } from "./types.js";
+import { SecurityMode, ServerConfig, ToolPolicy } from "./types.js";
+import { assertApiAllowed } from "./utils/api-allowlist.js";
 import {
   asOptionalBoolean,
   asOptionalNumber,
@@ -26,27 +27,69 @@ const DEFAULT_FORBIDDEN_PATH_GLOBS = [
   "**/*credential*"
 ];
 
+const DEFAULT_LOCAL_ALLOWLIST = ["http://127.0.0.1:*", "http://localhost:*"];
+
 export async function loadConfig(): Promise<ServerConfig> {
   const cwd = process.cwd();
   const configPathFromEnv = process.env.MOBILOOP_CONFIG ?? process.env.AGENTIC_MOBILE_MCP_CONFIG;
+  const modeFromEnv = securityModeFromEnv();
   const configPath = configPathFromEnv
     ? path.resolve(configPathFromEnv)
     : await defaultConfigPath(cwd);
-
-  const rawConfig = await readJsonIfExists(configPath);
+  const shouldLoadLocalConfig = Boolean(configPathFromEnv) || modeFromEnv === "trusted";
+  const rawConfig = shouldLoadLocalConfig ? await readJsonIfExists(configPath) : {};
   await validateConfigSchema(rawConfig, configPath);
+  const securityMode = parseSecurityMode(
+    modeFromEnv ?? asOptionalString(rawConfig, "securityMode") ?? "secure"
+  );
   const workspaceRootFromEnv =
     process.env.MOBILOOP_WORKSPACE_ROOT ?? process.env.AGENTIC_MOBILE_WORKSPACE_ROOT;
   const workspaceRootValue =
     workspaceRootFromEnv ?? asOptionalString(rawConfig, "workspaceRoot") ?? cwd;
   const workspaceRoot = path.resolve(cwd, workspaceRootValue);
 
-  const artifactsValue = asOptionalString(rawConfig, "artifactsDir") ?? ".mobiloop";
+  const artifactsValue =
+    process.env.MOBILOOP_ARTIFACTS_DIR ??
+    asOptionalString(rawConfig, "artifactsDir") ??
+    ".mobiloop";
   const artifactsDir = path.resolve(workspaceRoot, artifactsValue);
-  assertInside(workspaceRoot, artifactsDir, "artifactsDir");
+  if (process.env.MOBILOOP_ARTIFACTS_DIR === undefined) {
+    assertInside(workspaceRoot, artifactsDir, "artifactsDir");
+  }
   const runId = process.env.MOBILOOP_RUN_ID ?? asOptionalString(rawConfig, "runId");
+  const appiumAllowlist =
+    securityMode === "secure"
+      ? DEFAULT_LOCAL_ALLOWLIST
+      : (asOptionalStringArray(rawConfig, "appiumAllowlist") ?? DEFAULT_LOCAL_ALLOWLIST);
+  const apiAllowlist = asOptionalStringArray(rawConfig, "apiAllowlist") ?? DEFAULT_LOCAL_ALLOWLIST;
+  const appiumServerUrl =
+    process.env.APPIUM_SERVER_URL ??
+    (securityMode === "trusted" ? asOptionalString(rawConfig, "appiumServerUrl") : undefined) ??
+    "http://127.0.0.1:4723";
+  if (securityMode === "secure" && appiumAllowlist.length === 0) {
+    throw new Error("secure mode requires a non-empty appiumAllowlist");
+  }
+  if (securityMode === "secure" && apiAllowlist.length === 0) {
+    throw new Error("secure mode requires a non-empty apiAllowlist");
+  }
+  assertApiAllowed(appiumServerUrl, appiumAllowlist);
+  const requireApproval =
+    envBoolean("MOBILOOP_REQUIRE_APPROVAL") ??
+    asOptionalBoolean(rawConfig, "requireApproval") ??
+    securityMode === "secure";
+  const redactArtifacts =
+    envBoolean("MOBILOOP_REDACT_ARTIFACTS") ??
+    asOptionalBoolean(rawConfig, "redactArtifacts") ??
+    true;
+  if (securityMode === "secure" && !requireApproval) {
+    throw new Error("secure mode requires approval enforcement; use trusted mode to disable it");
+  }
+  if (securityMode === "secure" && !redactArtifacts) {
+    throw new Error("secure mode requires artifact redaction; use trusted mode to disable it");
+  }
 
   return {
+    securityMode,
     workspaceRoot,
     artifactsDir,
     runId,
@@ -56,31 +99,33 @@ export async function loadConfig(): Promise<ServerConfig> {
     maxTestIterations: asOptionalNumber(rawConfig, "maxTestIterations") ?? 5,
     maxRuntimeMinutes: asOptionalNumber(rawConfig, "maxRuntimeMinutes") ?? 30,
     allowedBranchPattern:
-      asOptionalString(rawConfig, "allowedBranchPattern") ?? "^feature/ai-[A-Za-z0-9._/-]+$",
-    appiumServerUrl:
-      process.env.APPIUM_SERVER_URL ??
-      asOptionalString(rawConfig, "appiumServerUrl") ??
-      "http://127.0.0.1:4723",
-    adbPath: asOptionalString(rawConfig, "adbPath") ?? "adb",
-    emulatorPath: asOptionalString(rawConfig, "emulatorPath") ?? "emulator",
-    xcrunPath: asOptionalString(rawConfig, "xcrunPath") ?? "xcrun",
-    xcodebuildPath: asOptionalString(rawConfig, "xcodebuildPath") ?? "xcodebuild",
-    sqlitePath: asOptionalString(rawConfig, "sqlitePath") ?? "sqlite3",
-    apiAllowlist: asOptionalStringArray(rawConfig, "apiAllowlist") ?? [
-      "http://127.0.0.1:*",
-      "http://localhost:*"
-    ],
+      (securityMode === "trusted"
+        ? asOptionalString(rawConfig, "allowedBranchPattern")
+        : undefined) ?? "^feature/ai-[A-Za-z0-9._/-]+$",
+    appiumServerUrl,
+    adbPath:
+      (securityMode === "trusted" ? asOptionalString(rawConfig, "adbPath") : undefined) ?? "adb",
+    emulatorPath:
+      (securityMode === "trusted" ? asOptionalString(rawConfig, "emulatorPath") : undefined) ??
+      "emulator",
+    xcrunPath:
+      (securityMode === "trusted" ? asOptionalString(rawConfig, "xcrunPath") : undefined) ??
+      "xcrun",
+    xcodebuildPath:
+      (securityMode === "trusted" ? asOptionalString(rawConfig, "xcodebuildPath") : undefined) ??
+      "xcodebuild",
+    sqlitePath:
+      (securityMode === "trusted" ? asOptionalString(rawConfig, "sqlitePath") : undefined) ??
+      "sqlite3",
+    apiAllowlist,
+    appiumAllowlist,
     forbiddenPathGlobs:
-      asOptionalStringArray(rawConfig, "forbiddenPathGlobs") ?? DEFAULT_FORBIDDEN_PATH_GLOBS,
-    toolPolicies: parseToolPolicies(rawConfig),
-    requireApproval:
-      envBoolean("MOBILOOP_REQUIRE_APPROVAL") ??
-      asOptionalBoolean(rawConfig, "requireApproval") ??
-      false,
-    redactArtifacts:
-      envBoolean("MOBILOOP_REDACT_ARTIFACTS") ??
-      asOptionalBoolean(rawConfig, "redactArtifacts") ??
-      true
+      (securityMode === "trusted"
+        ? asOptionalStringArray(rawConfig, "forbiddenPathGlobs")
+        : undefined) ?? DEFAULT_FORBIDDEN_PATH_GLOBS,
+    toolPolicies: securityMode === "trusted" ? parseToolPolicies(rawConfig) : {},
+    requireApproval,
+    redactArtifacts
   };
 }
 
@@ -126,6 +171,16 @@ function envBoolean(name: string): boolean | undefined {
   if (["1", "true", "yes", "on"].includes(value.toLowerCase())) return true;
   if (["0", "false", "no", "off"].includes(value.toLowerCase())) return false;
   throw new Error(`${name} must be true or false`);
+}
+
+function securityModeFromEnv(): SecurityMode | undefined {
+  const value = process.env.MOBILOOP_SECURITY_MODE;
+  return value === undefined ? undefined : parseSecurityMode(value);
+}
+
+function parseSecurityMode(value: string): SecurityMode {
+  if (value === "secure" || value === "trusted") return value;
+  throw new Error("securityMode must be secure or trusted");
 }
 
 function parseToolPolicies(

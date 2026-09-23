@@ -1,5 +1,6 @@
 {
   "$schema": "schema/mobiloop.config.schema.json",
+  "securityMode": "trusted",
   "workspaceRoot": ".",
   "artifactsDir": ".mobiloop",
   "runId": "local-login-smoke",
@@ -16,7 +17,8 @@
   "xcodebuildPath": "xcodebuild",
   "sqlitePath": "sqlite3",
   "apiAllowlist": ["http://127.0.0.1:*", "http://localhost:*", "https://staging.example.com"],
-  "requireApproval": false,
+  "appiumAllowlist": ["http://127.0.0.1:*", "http://localhost:*"],
+  "requireApproval": true,
   "redactArtifacts": true,
   "forbiddenPathGlobs": [
     ".env",

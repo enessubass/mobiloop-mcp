@@ -7,6 +7,7 @@ import { enforceToolApproval, stripApproval } from "./utils/approval.js";
 import { redactToolResponse } from "./utils/redaction.js";
 import { enforceToolSecurityPolicy } from "./utils/security-policy.js";
 import { attachToolPolicies, describeToolWithPolicy } from "./utils/tool-policy.js";
+import { PACKAGE_VERSION } from "./version.js";
 
 export async function runMcpServer(name: string, tools: McpTool[]): Promise<void> {
   const config = await loadConfig();
@@ -16,7 +17,7 @@ export async function runMcpServer(name: string, tools: McpTool[]): Promise<void
   const server = new Server(
     {
       name,
-      version: "0.1.0-alpha.10"
+      version: PACKAGE_VERSION
     },
     {
       capabilities: {

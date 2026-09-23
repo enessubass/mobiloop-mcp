@@ -15,6 +15,7 @@ export interface MockAppium {
 export async function createTestConfig(options: Partial<ServerConfig> = {}): Promise<ServerConfig> {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "mobiloop-test-"));
   return {
+    securityMode: "trusted",
     workspaceRoot: root,
     artifactsDir: path.join(root, ".mobiloop"),
     runId: undefined,
@@ -31,6 +32,7 @@ export async function createTestConfig(options: Partial<ServerConfig> = {}): Pro
     xcodebuildPath: "xcodebuild",
     sqlitePath: "sqlite3",
     apiAllowlist: ["http://127.0.0.1:*", "http://localhost:*"],
+    appiumAllowlist: ["http://127.0.0.1:*", "http://localhost:*"],
     forbiddenPathGlobs: [".env", ".env.*", "**/*secret*"],
     toolPolicies: {},
     requireApproval: false,

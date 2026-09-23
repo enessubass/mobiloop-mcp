@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 0.1.0-alpha.10
+
+- Added secure-by-default execution: project-local config is ignored unless a host explicitly selects trusted mode, approvals and redaction are mandatory in secure mode, and Appium endpoints are host-controlled.
+- Closed symbolic-link workspace escapes and introduced structured JSON artifact redaction that preserves valid report files.
+- Added the dependency-free `security.*` MCP server for deterministic mobile source/configuration signals, generated security test plans, post-fix scan comparison, and release gates.
+- Hardened Docker and Compose defaults with a non-root runtime, read-only security service, dropped capabilities, no-new-privileges, and an isolated trusted-worktree profile.
+- Pinned release workflow actions, reduced OIDC to the registry publishing job, made Trivy blocking for HIGH/CRITICAL findings, and verified the MCP publisher archive by SHA-256.
+- Updated locked dependencies to remove all current npm audit findings and added an indexable GitHub Pages documentation site with sitemap, robots, metadata, and real Appium evidence.
+
 ## 0.1.0-alpha.9
 
 - Added `buildSettings` and `xcodebuildArgs` pass-through support for `ios.build_app` and `orchestrator.run_ios_validation_loop`.

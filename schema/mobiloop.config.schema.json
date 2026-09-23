@@ -5,6 +5,11 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
+    "securityMode": {
+      "type": "string",
+      "enum": ["secure", "trusted"],
+      "description": "Secure mode keeps execution controls in host environment variables. Trusted mode permits explicit configuration-file overrides."
+    },
     "$schema": {
       "type": "string"
     },
@@ -69,6 +74,13 @@
         "type": "string"
       },
       "description": "Allowed API origins. Keep this narrow in production and prefer localhost or staging hosts."
+    },
+    "appiumAllowlist": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Allowed Appium origins in trusted mode. Secure mode only permits loopback Appium endpoints."
     },
     "forbiddenPathGlobs": {
       "type": "array",

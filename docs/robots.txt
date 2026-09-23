@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://enessubass.github.io/mobiloop-mcp/sitemap.xml

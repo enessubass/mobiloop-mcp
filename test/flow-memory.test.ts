@@ -199,6 +199,7 @@ function checkpoint(
 
 function config(root: string): ServerConfig {
   return {
+    securityMode: "trusted",
     workspaceRoot: root,
     artifactsDir: path.join(root, ".mobiloop"),
     runId: undefined,
@@ -215,6 +216,7 @@ function config(root: string): ServerConfig {
     xcodebuildPath: "xcodebuild",
     sqlitePath: "sqlite3",
     apiAllowlist: ["http://127.0.0.1:*", "http://localhost:*"],
+    appiumAllowlist: ["http://127.0.0.1:*", "http://localhost:*"],
     forbiddenPathGlobs: [".env", ".env.*"],
     toolPolicies: {},
     requireApproval: false,

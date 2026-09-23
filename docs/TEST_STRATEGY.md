@@ -7,6 +7,7 @@ MobiLoop has three test levels.
 Current unit tests cover:
 
 - config loading and workspace path constraints
+- symbolic-link containment and secure-mode configuration behavior
 - API allowlist matching
 - forbidden path handling
 - patch path extraction
@@ -15,6 +16,7 @@ Current unit tests cover:
 - logcat classification
 - run-scoped artifact pathing
 - tool registration
+- deterministic mobile security scan, fix comparison, and release gate behavior
 
 ## Integration
 
@@ -42,6 +44,12 @@ test/e2e/
 ```
 
 Hosted GitHub Linux runners are good for package correctness. They are not enough to prove emulator/Appium behavior for every host.
+
+## Security Validation
+
+Run `security.scan_source` before a build-test-fix loop and save the emitted JSON report. After an approved fix, use `security.compare_scans` with that report path and apply `security.release_gate` at `high` or stricter before release.
+
+The built-in scan is static and does not execute the target project. It complements, but does not replace, dependency audit, CodeQL, container scanning, platform penetration testing, or host network controls.
 
 The self-hosted proof workflow is:
 

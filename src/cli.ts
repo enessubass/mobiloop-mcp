@@ -3,6 +3,7 @@ import { loadConfig } from "./config.js";
 import { allTools } from "./tools/index.js";
 import { enforceToolApproval, stripApproval } from "./utils/approval.js";
 import { redactToolResponse } from "./utils/redaction.js";
+import { enforceToolSecurityPolicy } from "./utils/security-policy.js";
 import { describeToolWithPolicy } from "./utils/tool-policy.js";
 
 async function main(): Promise<void> {
@@ -42,6 +43,7 @@ async function main(): Promise<void> {
     const tool = allTools(config.toolPolicies).find((entry) => entry.name === toolName);
     if (!tool) throw new Error(`Unknown tool: ${toolName}`);
     const input = JSON.parse(rawJson);
+    enforceToolSecurityPolicy(tool, input, config);
     enforceToolApproval(tool, input, config);
     const response = redactToolResponse(
       await tool.handler(stripApproval(input), { config }),
@@ -91,6 +93,7 @@ Usage:
 Environment:
   MOBILOOP_WORKSPACE_ROOT=/absolute/path/to/mobile/app
   MOBILOOP_CONFIG=/absolute/path/to/mobiloop.config.json
+  MOBILOOP_SECURITY_MODE=secure|trusted
   APPIUM_SERVER_URL=http://127.0.0.1:4723
 `);
 }

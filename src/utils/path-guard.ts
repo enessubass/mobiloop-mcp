@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import path from "node:path";
 import { ServerConfig } from "../types.js";
 
@@ -20,28 +21,45 @@ export function resolveWorkspacePathAllowArtifacts(config: ServerConfig, userPat
 
 export function assertInsideWorkspace(config: ServerConfig, resolvedPath: string): void {
   const relative = path.relative(config.workspaceRoot, resolvedPath);
-  if (relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative))) {
-    return;
+  if (relative !== "" && (relative.startsWith("..") || path.isAbsolute(relative))) {
+    throw new Error(`Path escapes workspaceRoot: ${resolvedPath}`);
   }
-  throw new Error(`Path escapes workspaceRoot: ${resolvedPath}`);
+
+  const canonicalRoot = resolveExistingPath(config.workspaceRoot);
+  const canonicalPath = resolveExistingPath(resolvedPath);
+  const canonicalRelative = path.relative(canonicalRoot, canonicalPath);
+  if (
+    canonicalRelative !== "" &&
+    (canonicalRelative.startsWith("..") || path.isAbsolute(canonicalRelative))
+  ) {
+    throw new Error(`Path escapes workspaceRoot through a symbolic link: ${resolvedPath}`);
+  }
 }
 
 export function assertNotForbidden(config: ServerConfig, resolvedPath: string): void {
-  const relative = toPosix(path.relative(config.workspaceRoot, resolvedPath));
-  const basename = path.basename(resolvedPath);
-  for (const pattern of config.forbiddenPathGlobs) {
-    if (
-      matchesGlob(relative, pattern) ||
-      (!pattern.includes("/") && matchesGlob(basename, pattern))
-    ) {
-      throw new Error(`Path is blocked by forbiddenPathGlobs (${pattern}): ${relative}`);
+  const canonicalRoot = resolveExistingPath(config.workspaceRoot);
+  const candidates = [
+    toPosix(path.relative(config.workspaceRoot, resolvedPath)),
+    toPosix(path.relative(canonicalRoot, resolveExistingPath(resolvedPath)))
+  ];
+  for (const relative of new Set(candidates)) {
+    const basename = path.posix.basename(relative);
+    for (const pattern of config.forbiddenPathGlobs) {
+      if (
+        matchesGlob(relative, pattern) ||
+        (!pattern.includes("/") && matchesGlob(basename, pattern))
+      ) {
+        throw new Error(`Path is blocked by forbiddenPathGlobs (${pattern}): ${relative}`);
+      }
     }
   }
 }
 
 export function toWorkspaceRelative(config: ServerConfig, resolvedPath: string): string {
   assertInsideWorkspace(config, resolvedPath);
-  return toPosix(path.relative(config.workspaceRoot, resolvedPath));
+  return toPosix(
+    path.relative(resolveExistingPath(config.workspaceRoot), resolveExistingPath(resolvedPath))
+  );
 }
 
 export function matchesGlob(value: string, pattern: string): boolean {
@@ -81,4 +99,20 @@ function escapeRegex(char: string): string {
 
 function toPosix(value: string): string {
   return value.split(path.sep).join("/");
+}
+
+function resolveExistingPath(candidate: string): string {
+  let current = path.resolve(candidate);
+  const missingSegments: string[] = [];
+  while (true) {
+    try {
+      return path.join(fs.realpathSync.native(current), ...missingSegments);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+      const parent = path.dirname(current);
+      if (parent === current) return path.join(current, ...missingSegments);
+      missingSegments.unshift(path.basename(current));
+      current = parent;
+    }
+  }
 }

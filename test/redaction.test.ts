@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import test from "node:test";
 import { textResponse } from "../src/types.js";
-import { writeArtifactText } from "../src/utils/artifacts.js";
+import { writeArtifactJson, writeArtifactText } from "../src/utils/artifacts.js";
 import { redactText, redactToolResponse } from "../src/utils/redaction.js";
 import { createTestConfig } from "./helpers.js";
 
@@ -32,6 +32,17 @@ test("writeArtifactText redacts text artifacts by default", async () => {
   const content = await fs.readFile(artifactPath, "utf8");
   assert.match(content, /token: \[REDACTED_SECRET\]/);
   assert.match(content, /\[REDACTED_EMAIL\]/);
+});
+
+test("writeArtifactJson redacts values without corrupting the JSON artifact", async () => {
+  const config = await createTestConfig();
+  const artifactPath = await writeArtifactJson(config, "logs", "redaction", {
+    apiKey: "AIza12345678901234567890123456789012345",
+    email: "root@example.com"
+  });
+  const content = JSON.parse(await fs.readFile(artifactPath, "utf8"));
+  assert.equal(content.apiKey, "[REDACTED_GOOGLE_API_KEY]");
+  assert.equal(content.email, "[REDACTED_EMAIL]");
 });
 
 test("redactToolResponse redacts MCP text response content", () => {

@@ -46,7 +46,8 @@ function policyForPrefix(toolName: string): ToolPolicy {
   if (toolName.startsWith("build.")) return writePolicy("network", true);
   if (toolName.startsWith("device.")) return devicePolicy(false);
   if (toolName.startsWith("ios.")) return devicePolicy(false);
-  if (toolName.startsWith("appium.")) return devicePolicy(false);
+  if (toolName.startsWith("appium.")) return devicePolicy(true);
+  if (toolName.startsWith("security.")) return artifactPolicy("read");
   if (toolName.startsWith("verify.")) return artifactPolicy("read");
   if (toolName.startsWith("flow.")) return artifactPolicy("read");
   if (toolName.startsWith("loop.")) return artifactPolicy("read");
@@ -62,8 +63,6 @@ function explicitPolicy(toolName: string): PolicyOverride {
     case "code.git_diff":
     case "build.detect_project":
     case "build.collect_build_logs":
-    case "build.run_lint":
-    case "build.run_unit_tests":
     case "env.preflight":
     case "env.compatibility_matrix":
     case "device.list_devices":
@@ -129,11 +128,13 @@ function explicitPolicy(toolName: string): PolicyOverride {
       };
     case "build.build_release_candidate":
       return { ...approval("Creates release candidate artifacts."), writesWorkspace: true };
+    case "build.run_lint":
+    case "build.run_unit_tests":
     case "build.build_debug_apk":
       return {
-        ...artifactPolicy("write"),
+        ...approval("Executes project-controlled build or test scripts."),
         writesWorkspace: true,
-        approvalReason: undefined
+        producesArtifacts: true
       };
     case "device.install_app":
     case "device.uninstall_app":

@@ -441,7 +441,7 @@ function normalizeHeaders(value: unknown): Record<string, string> {
 function accessibilityFindings(source: string): string[] {
   const findings: string[] = [];
   const nodeRegex =
-    /<[^!?][^>]*(?:clickable="true"|enabled="true"|type="XCUIElementType(?:Button|TextField|SecureTextField)"|class="[^"]*(?:Button|EditText|TextInput)[^"]*")[^>]*>/g;
+    /<[^!?][^>]*(?:clickable="true"|checkable="true"|type="XCUIElementType(?:Button|TextField|SecureTextField)"|class="[^"]*(?:Button|EditText|TextInput)[^"]*")[^>]*>/g;
   const nameRegex = /\b(?:text|label|name|content-desc|resource-id)="([^"]+)"/g;
   const matches = source.match(nodeRegex) ?? [];
   for (const node of matches) {

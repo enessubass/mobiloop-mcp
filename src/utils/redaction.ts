@@ -60,8 +60,18 @@ export function redactToolResponse(response: ToolResponse, redact: boolean): Too
     ...response,
     content: response.content.map((entry) =>
       "text" in entry && typeof entry.text === "string"
-        ? { ...entry, text: redactText(entry.text) }
+        ? { ...entry, text: redactResponseText(entry.text) }
         : entry
     )
   };
+}
+
+function redactResponseText(text: string): string {
+  try {
+    // Tool handlers serialize structured results as JSON text. Redact the parsed values so
+    // patterns inside XML, source, or log strings cannot invalidate the enclosing JSON.
+    return JSON.stringify(redactJsonValue(JSON.parse(text)), null, 2);
+  } catch {
+    return redactText(text);
+  }
 }

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.1.0-alpha.14 - 2026-09-23
+
+- Kept structured MCP JSON responses valid while redacting nested XML, source, and log values.
+- Limited accessibility-label findings to interactive or input-like nodes, excluding enabled layout containers that caused false positives.
+- Revalidated the MCP stdio workflow against a live Genymotion Android device and installed MiniTakip application without entering data, creating records, clearing data, or retaining an Appium session.
+
 ## 0.1.0-alpha.13 - 2026-09-23
 
 - Replaced the generic hero phone screenshot with a custom MobiLoop validation-console visual built around the included MiniTask fixture.

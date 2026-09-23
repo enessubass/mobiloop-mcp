@@ -12,6 +12,7 @@ const errors = [];
 for (const snippet of [
   `<link rel="canonical" href="${canonical}" />`,
   '<meta name="robots" content="index,follow" />',
+  '<meta name="google-site-verification" content="-kPXRyq-yXkauco2OAZTJJC-h0NQyPbk_E23D2VzMlc" />',
   "application/ld+json",
   'property="og:image"',
   'name="twitter:card"'

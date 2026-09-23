@@ -2,18 +2,18 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.enessubass/mobiloop-mcp",
   "title": "MobiLoop",
-  "description": "Guarded MCP tools for AI-assisted mobile build, Appium testing, security scanning, verification, and fix-retest loops.",
+  "description": "Guarded AI mobile Appium testing, security scanning, verification, and fix-retest MCP tools.",
   "repository": {
     "url": "https://github.com/enessubass/mobiloop-mcp",
     "source": "github",
     "id": "1234717726"
   },
   "websiteUrl": "https://enessubass.github.io/mobiloop-mcp/",
-  "version": "0.1.0-alpha.10",
+  "version": "0.1.0-alpha.11",
   "packages": [
     {
       "registryType": "oci",
-      "identifier": "ghcr.io/enessubass/mobiloop-mcp:0.1.0-alpha.10",
+      "identifier": "ghcr.io/enessubass/mobiloop-mcp:0.1.0-alpha.11",
       "runtimeHint": "docker",
       "transport": {
         "type": "stdio"

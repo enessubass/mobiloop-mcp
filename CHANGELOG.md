@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.1.0-alpha.11 - 2026-09-23
+
+- Shortened the MCP Registry description to satisfy its 100-character validation limit after the otherwise successful alpha.10 GHCR publication.
+- Published the registry-compatible immutable follow-up release without rewriting the alpha.10 tag.
+
 ## 0.1.0-alpha.10 - 2026-09-23
 
 - Added secure-by-default execution: project-local config is ignored unless a host explicitly selects trusted mode, approvals and redaction are mandatory in secure mode, and Appium endpoints are host-controlled.

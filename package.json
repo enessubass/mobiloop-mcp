@@ -1,7 +1,7 @@
 {
   "name": "mobiloop-mcp",
-  "version": "0.1.0-alpha.10",
-  "description": "Guarded MCP tools for AI-assisted mobile build, Appium testing, security scanning, verification, and fix-retest loops.",
+  "version": "0.1.0-alpha.11",
+  "description": "Guarded AI mobile Appium testing, security scanning, verification, and fix-retest MCP tools.",
   "mcpName": "io.github.enessubass/mobiloop-mcp",
   "type": "module",
   "repository": {

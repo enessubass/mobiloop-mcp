@@ -305,6 +305,8 @@ Common fields:
 | `requireApproval`      | `true` in secure mode           | Require approval payloads for high-impact tools                         |
 | `redactArtifacts`      | `true`                          | Redact common secrets and PII from text artifacts and text responses    |
 
+`MOBILOOP_ARTIFACTS_DIR` may point to a dedicated host-controlled evidence mount, such as `/artifacts` in the read-only Docker security server.
+
 Environment variables override selected fields:
 
 ```bash
@@ -640,8 +642,9 @@ Run as an MCP stdio server:
 ```bash
 docker run --rm -i \
   --read-only --cap-drop ALL --security-opt no-new-privileges \
-  --tmpfs /workspace/.mobiloop:rw,noexec,nosuid,size=256m,uid=10001,gid=10001,mode=0770 \
+  --tmpfs /artifacts:rw,noexec,nosuid,size=256m,uid=10001,gid=10001,mode=0770 \
   -e MOBILOOP_WORKSPACE_ROOT=/workspace \
+  -e MOBILOOP_ARTIFACTS_DIR=/artifacts \
   -e MOBILOOP_SECURITY_MODE=secure \
   -v /absolute/path/to/mobile/app:/workspace:ro \
   --entrypoint node \
@@ -660,7 +663,7 @@ Defaults are intentionally conservative.
 - Commit tools only work on branches matching `feature/ai-*` by default.
 - There is no generic shell execution tool.
 - API checks are restricted by `apiAllowlist`.
-- Evidence is written under `.mobiloop`.
+- Evidence is written under `.mobiloop`, unless the host deliberately provides a dedicated `MOBILOOP_ARTIFACTS_DIR` mount.
 - Runtime and output limits are enforced.
 
 Default blocked paths include:

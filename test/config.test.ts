@@ -53,6 +53,26 @@ test("loadConfig rejects artifactsDir outside workspaceRoot", async () => {
   }
 });
 
+test("loadConfig permits a host-controlled external artifacts directory", async () => {
+  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "mobiloop-workspace-"));
+  const artifacts = await fs.mkdtemp(path.join(os.tmpdir(), "mobiloop-artifacts-"));
+  const originalCwd = process.cwd();
+  const originalArtifacts = process.env.MOBILOOP_ARTIFACTS_DIR;
+  const originalRoot = process.env.MOBILOOP_WORKSPACE_ROOT;
+  process.env.MOBILOOP_ARTIFACTS_DIR = artifacts;
+  process.env.MOBILOOP_WORKSPACE_ROOT = workspace;
+  process.chdir(workspace);
+  try {
+    const config = await loadConfig();
+    assert.equal(config.workspaceRoot, workspace);
+    assert.equal(config.artifactsDir, artifacts);
+  } finally {
+    process.chdir(originalCwd);
+    restoreEnv("MOBILOOP_ARTIFACTS_DIR", originalArtifacts);
+    restoreEnv("MOBILOOP_WORKSPACE_ROOT", originalRoot);
+  }
+});
+
 test("loadConfig supports legacy agentic-mobile env vars as fallback", async () => {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "mobiloop-legacy-config-"));
   const originalCwd = process.cwd();

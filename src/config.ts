@@ -48,9 +48,14 @@ export async function loadConfig(): Promise<ServerConfig> {
     workspaceRootFromEnv ?? asOptionalString(rawConfig, "workspaceRoot") ?? cwd;
   const workspaceRoot = path.resolve(cwd, workspaceRootValue);
 
-  const artifactsValue = asOptionalString(rawConfig, "artifactsDir") ?? ".mobiloop";
+  const artifactsValue =
+    process.env.MOBILOOP_ARTIFACTS_DIR ??
+    asOptionalString(rawConfig, "artifactsDir") ??
+    ".mobiloop";
   const artifactsDir = path.resolve(workspaceRoot, artifactsValue);
-  assertInside(workspaceRoot, artifactsDir, "artifactsDir");
+  if (process.env.MOBILOOP_ARTIFACTS_DIR === undefined) {
+    assertInside(workspaceRoot, artifactsDir, "artifactsDir");
+  }
   const runId = process.env.MOBILOOP_RUN_ID ?? asOptionalString(rawConfig, "runId");
   const appiumAllowlist =
     securityMode === "secure"

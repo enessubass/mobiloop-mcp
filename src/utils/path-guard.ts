@@ -15,8 +15,10 @@ export function resolveWorkspacePathAllowArtifacts(config: ServerConfig, userPat
   const resolved = path.isAbsolute(userPath)
     ? path.resolve(userPath)
     : path.resolve(config.workspaceRoot, userPath);
-  assertInsideWorkspace(config, resolved);
-  return resolved;
+  if (isInsideRoot(config.workspaceRoot, resolved) || isInsideRoot(config.artifactsDir, resolved)) {
+    return resolved;
+  }
+  throw new Error(`Path escapes workspaceRoot and artifactsDir: ${resolved}`);
 }
 
 export function assertInsideWorkspace(config: ServerConfig, resolvedPath: string): void {
@@ -34,6 +36,21 @@ export function assertInsideWorkspace(config: ServerConfig, resolvedPath: string
   ) {
     throw new Error(`Path escapes workspaceRoot through a symbolic link: ${resolvedPath}`);
   }
+}
+
+function isInsideRoot(root: string, resolvedPath: string): boolean {
+  const relative = path.relative(root, resolvedPath);
+  if (relative !== "" && (relative.startsWith("..") || path.isAbsolute(relative))) {
+    return false;
+  }
+
+  const canonicalRoot = resolveExistingPath(root);
+  const canonicalPath = resolveExistingPath(resolvedPath);
+  const canonicalRelative = path.relative(canonicalRoot, canonicalPath);
+  return !(
+    canonicalRelative !== "" &&
+    (canonicalRelative.startsWith("..") || path.isAbsolute(canonicalRelative))
+  );
 }
 
 export function assertNotForbidden(config: ServerConfig, resolvedPath: string): void {

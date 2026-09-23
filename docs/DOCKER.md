@@ -52,10 +52,11 @@ For static security review, use the read-only security server. It has no host Ap
 docker run --rm -i \
   --read-only \
   --tmpfs /tmp:rw,noexec,nosuid,size=256m \
-  --tmpfs /workspace/.mobiloop:rw,noexec,nosuid,size=256m,uid=10001,gid=10001,mode=0770 \
+  --tmpfs /artifacts:rw,noexec,nosuid,size=256m,uid=10001,gid=10001,mode=0770 \
   --cap-drop ALL \
   --security-opt no-new-privileges \
   -e MOBILOOP_WORKSPACE_ROOT=/workspace \
+  -e MOBILOOP_ARTIFACTS_DIR=/artifacts \
   -e MOBILOOP_SECURITY_MODE=secure \
   -v /absolute/path/to/mobile/app:/workspace:ro \
   --entrypoint node \
@@ -91,11 +92,13 @@ docker run --rm -i \
         "-i",
         "--read-only",
         "--tmpfs",
-        "/workspace/.mobiloop:rw,noexec,nosuid,size=256m,uid=10001,gid=10001,mode=0770",
+        "/artifacts:rw,noexec,nosuid,size=256m,uid=10001,gid=10001,mode=0770",
         "--cap-drop=ALL",
         "--security-opt=no-new-privileges",
         "-e",
         "MOBILOOP_WORKSPACE_ROOT=/workspace",
+        "-e",
+        "MOBILOOP_ARTIFACTS_DIR=/artifacts",
         "-e",
         "MOBILOOP_SECURITY_MODE=secure",
         "-v",

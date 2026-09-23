@@ -3,7 +3,10 @@ import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { resolveWorkspacePath } from "../src/utils/path-guard.js";
+import {
+  resolveWorkspacePath,
+  resolveWorkspacePathAllowArtifacts
+} from "../src/utils/path-guard.js";
 import { ServerConfig } from "../src/types.js";
 
 const config: ServerConfig = {
@@ -72,5 +75,24 @@ test("resolveWorkspacePath blocks symbolic links that resolve outside the worksp
   assert.throws(
     () => resolveWorkspacePath(isolatedConfig, "outside-link"),
     /escapes workspaceRoot through a symbolic link/
+  );
+});
+
+test("resolveWorkspacePathAllowArtifacts permits only the workspace or artifact root", async () => {
+  const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "mobiloop-workspace-"));
+  const artifacts = await fs.mkdtemp(path.join(os.tmpdir(), "mobiloop-artifacts-"));
+  const outside = await fs.mkdtemp(path.join(os.tmpdir(), "mobiloop-outside-"));
+  const isolatedConfig = { ...config, workspaceRoot: workspace, artifactsDir: artifacts };
+
+  assert.equal(
+    resolveWorkspacePathAllowArtifacts(
+      isolatedConfig,
+      path.join(artifacts, "security", "report.json")
+    ),
+    path.join(artifacts, "security", "report.json")
+  );
+  assert.throws(
+    () => resolveWorkspacePathAllowArtifacts(isolatedConfig, path.join(outside, "report.json")),
+    /escapes workspaceRoot and artifactsDir/
   );
 });

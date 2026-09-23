@@ -23,8 +23,8 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends git ripgrep ca-certificates sqlite3 \
   && groupadd --gid 10001 mobiloop \
   && useradd --uid 10001 --gid mobiloop --create-home --shell /usr/sbin/nologin mobiloop \
-  && mkdir /workspace \
-  && chown mobiloop:mobiloop /workspace \
+  && mkdir /workspace /artifacts \
+  && chown mobiloop:mobiloop /workspace /artifacts \
   && rm -rf /var/lib/apt/lists/*
 
 COPY --chown=mobiloop:mobiloop --from=build /app/node_modules ./node_modules

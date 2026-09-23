@@ -13,7 +13,7 @@ For an explicitly selected host configuration, use:
 MOBILOOP_CONFIG=/absolute/path/to/mobiloop.config.json
 ```
 
-`MOBILOOP_WORKSPACE_ROOT`, `APPIUM_SERVER_URL`, `MOBILOOP_RUN_ID`, `MOBILOOP_REQUIRE_APPROVAL`, and `MOBILOOP_REDACT_ARTIFACTS` override their matching config values.
+`MOBILOOP_WORKSPACE_ROOT`, `MOBILOOP_ARTIFACTS_DIR`, `APPIUM_SERVER_URL`, `MOBILOOP_RUN_ID`, `MOBILOOP_REQUIRE_APPROVAL`, and `MOBILOOP_REDACT_ARTIFACTS` override their matching config values. `MOBILOOP_ARTIFACTS_DIR` is the one host-controlled exception to the normal in-workspace artifact rule. Use it only for a dedicated writable evidence mount, such as `/artifacts` in the read-only Docker security server.
 
 Set `MOBILOOP_SECURITY_MODE=trusted` only when the configuration file and workspace are controlled by the same trusted runner. Trusted mode permits file-based executable paths, custom Appium allowlists, and tool policy overrides.
 
@@ -50,6 +50,8 @@ Use it in config files:
 | `toolPolicies`         | Override risk metadata for local policy engines or MCP clients.               |
 | `requireApproval`      | Required in secure mode; set true in trusted mode unless CI owns the gate.    |
 | `redactArtifacts`      | Keep true unless another artifact/response sanitizer runs after MobiLoop.     |
+
+Only the host-controlled `MOBILOOP_ARTIFACTS_DIR` may use a dedicated external evidence mount.
 
 MobiLoop validates `mobiloop.config.json` against the JSON schema at startup. Invalid fields fail early with a path-specific error.
 

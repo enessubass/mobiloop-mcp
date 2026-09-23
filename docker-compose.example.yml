@@ -8,7 +8,7 @@ services:
     read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=256m
-      - /workspace/.mobiloop:rw,noexec,nosuid,size=256m,uid=10001,gid=10001,mode=0770
+      - /artifacts:rw,noexec,nosuid,size=256m,uid=10001,gid=10001,mode=0770
     cap_drop:
       - ALL
     security_opt:
@@ -19,6 +19,7 @@ services:
     entrypoint: ["node", "/app/dist/src/servers/security.js"]
     environment:
       MOBILOOP_WORKSPACE_ROOT: /workspace
+      MOBILOOP_ARTIFACTS_DIR: /artifacts
       MOBILOOP_SECURITY_MODE: secure
     volumes:
       - /absolute/path/to/mobile/app:/workspace:ro

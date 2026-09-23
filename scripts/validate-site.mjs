@@ -39,8 +39,16 @@ if (!sitemap.includes(`<loc>${canonical}</loc>`)) {
 if (!robots.includes(`Sitemap: ${canonical}sitemap.xml`)) {
   errors.push("docs/robots.txt does not reference the sitemap");
 }
-if (!fs.existsSync(path.join(docs, "assets", "mobiloop-appium-evidence.png"))) {
-  errors.push("docs/assets/mobiloop-appium-evidence.png is missing");
+for (const asset of ["mobiloop-run-console.png", "mobiloop-mark.svg"]) {
+  if (!fs.existsSync(path.join(docs, "assets", asset))) {
+    errors.push(`docs/assets/${asset} is missing`);
+  }
+}
+if (!html.includes('src="assets/mobiloop-run-console.png"')) {
+  errors.push("docs/index.html does not reference the MobiLoop run console image");
+}
+if (!html.includes('href="assets/mobiloop-mark.svg"')) {
+  errors.push("docs/index.html does not reference the MobiLoop logo asset");
 }
 if (serverJson.version !== packageJson.version) {
   errors.push("server.json version does not match package.json");

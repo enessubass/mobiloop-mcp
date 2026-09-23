@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">MobiLoop mark</title>
+  <rect width="64" height="64" rx="14" fill="#f3f5f1" />
+  <path
+    d="M12 34c0-8.3 5.7-14 13.1-14 11.8 0 13.1 24 24.8 24 7.4 0 12.1-5.7 12.1-14s-5.3-14-12.1-14c-11.7 0-13 24-24.8 24C17.7 40 12 34.3 12 26"
+    fill="none"
+    stroke="#121414"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="6"
+  />
+  <circle cx="47" cy="17" r="7" fill="#d5f26d" />
+  <path d="m43.8 17.1 2.1 2.1 4.3-4.4" fill="none" stroke="#121414" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" />
+</svg>

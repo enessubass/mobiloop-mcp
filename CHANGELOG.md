@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.1.0-alpha.13 - 2026-09-23
+
+- Replaced the generic hero phone screenshot with a custom MobiLoop validation-console visual built around the included MiniTask fixture.
+- Added a reusable MobiLoop loop-and-verification logo mark for the site header and browser icon.
+- Extended static-site validation so the branded visual and logo must remain present in a release.
+
 ## 0.1.0-alpha.12 - 2026-09-23
 
 - Rebuilt the public documentation site around a real device validation run, release command, security boundaries, and operating reference.

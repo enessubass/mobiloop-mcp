@@ -76,14 +76,10 @@ footer {
 }
 
 .brand-mark {
-  width: 30px;
-  height: 30px;
-  display: inline-grid;
-  place-items: center;
-  background: var(--signal);
-  color: var(--black);
-  font-size: 14px;
-  font-weight: 900;
+  width: 36px;
+  height: 36px;
+  display: block;
+  flex: 0 0 36px;
 }
 
 nav {
@@ -347,7 +343,7 @@ h1 span {
 }
 
 .device-proof {
-  width: 194px;
+  width: 234px;
   bottom: 0;
   left: 37px;
   margin: 0;
@@ -363,7 +359,8 @@ h1 span {
 }
 
 .phone-shell {
-  height: 421px;
+  height: auto;
+  aspect-ratio: 9 / 16;
   padding: 7px;
   overflow: hidden;
   background: var(--black);
@@ -800,7 +797,7 @@ footer a {
   }
 
   .device-proof {
-    width: 151px;
+    width: 162px;
     left: 16px;
   }
 
@@ -811,10 +808,6 @@ footer a {
   .device-label span:last-child {
     display: block;
     margin-top: 2px;
-  }
-
-  .phone-shell {
-    height: 347px;
   }
 
   .run-log {

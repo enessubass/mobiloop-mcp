@@ -20,7 +20,7 @@
     />
     <meta
       property="og:image"
-      content="https://enessubass.github.io/mobiloop-mcp/assets/mobiloop-appium-evidence.png"
+      content="https://enessubass.github.io/mobiloop-mcp/assets/mobiloop-run-console.png"
     />
     <meta property="og:url" content="https://enessubass.github.io/mobiloop-mcp/" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -31,8 +31,9 @@
     />
     <meta
       name="twitter:image"
-      content="https://enessubass.github.io/mobiloop-mcp/assets/mobiloop-appium-evidence.png"
+      content="https://enessubass.github.io/mobiloop-mcp/assets/mobiloop-run-console.png"
     />
+    <link rel="icon" href="assets/mobiloop-mark.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="site.css" />
     <script type="application/ld+json">
       {
@@ -43,12 +44,12 @@
             "name": "MobiLoop MCP",
             "applicationCategory": "DeveloperApplication",
             "operatingSystem": "macOS, Linux, Windows",
-            "softwareVersion": "0.1.0-alpha.12",
+            "softwareVersion": "0.1.0-alpha.13",
             "description": "Guarded MCP tools for AI-assisted mobile build, device testing, Appium automation, verification, security analysis, and retesting.",
             "codeRepository": "https://github.com/enessubass/mobiloop-mcp",
             "license": "https://opensource.org/licenses/MIT",
             "isAccessibleForFree": true,
-            "image": "https://enessubass.github.io/mobiloop-mcp/assets/mobiloop-appium-evidence.png"
+            "image": "https://enessubass.github.io/mobiloop-mcp/assets/mobiloop-run-console.png"
           },
           {
             "@type": "SoftwareSourceCode",
@@ -56,7 +57,7 @@
             "codeRepository": "https://github.com/enessubass/mobiloop-mcp",
             "programmingLanguage": "TypeScript",
             "runtimePlatform": "Node.js",
-            "softwareVersion": "0.1.0-alpha.12",
+            "softwareVersion": "0.1.0-alpha.13",
             "license": "https://opensource.org/licenses/MIT",
             "keywords": "Model Context Protocol, Appium, mobile testing, Android, iOS, Flutter, React Native, security testing"
           },
@@ -75,7 +76,7 @@
     <div class="site-shell">
       <header class="site-header">
         <a class="brand" href="#top" aria-label="MobiLoop MCP home">
-          <span class="brand-mark" aria-hidden="true">M</span>
+          <img class="brand-mark" src="assets/mobiloop-mark.svg" alt="" width="36" height="36" />
           <span>MobiLoop <b>MCP</b></span>
         </a>
         <nav aria-label="Primary navigation">
@@ -91,7 +92,7 @@
         <section class="hero" aria-labelledby="page-title">
           <div class="hero-copy">
             <p class="kicker">
-              <span class="live-dot" aria-hidden="true"></span> Release alpha.12 is live
+              <span class="live-dot" aria-hidden="true"></span> Release alpha.13 is live
             </p>
             <h1 id="page-title">MobiLoop <span>MCP</span></h1>
             <p class="hero-lead">
@@ -128,22 +129,24 @@
             </div>
             <div class="stage-title">
               <p>LIVE MOBILE VALIDATION</p>
-              <strong>Flutter login fixture</strong>
+              <strong>MiniTask validation fixture</strong>
             </div>
             <figure class="device-proof">
-              <div class="device-label"><span>Captured screen</span><span>Android 15</span></div>
+              <div class="device-label">
+                <span>MobiLoop run console</span><span>Pixel 9 / Android 16</span>
+              </div>
               <div class="phone-shell">
                 <img
-                  src="assets/mobiloop-appium-evidence.png"
-                  alt="Captured Android application screen from a MobiLoop Appium validation run"
-                  width="1080"
-                  height="2340"
+                  src="assets/mobiloop-run-console.png"
+                  alt="MobiLoop mobile validation console showing a completed MiniTask test run"
+                  width="941"
+                  height="1672"
                 />
               </div>
-              <figcaption>Evidence from the included Appium fixture.</figcaption>
+              <figcaption>Run console for the included MiniTask fixture.</figcaption>
             </figure>
             <div class="run-log" aria-label="Validation steps">
-              <div><span>01</span><b>Device attached</b><em>Galaxy S24 / ready</em></div>
+              <div><span>01</span><b>Device attached</b><em>Pixel 9 / ready</em></div>
               <div><span>02</span><b>Session created</b><em>UiAutomator2 / healthy</em></div>
               <div><span>03</span><b>Evidence captured</b><em>screen + XML + logs</em></div>
               <div><span>04</span><b>Release gate</b><em>approved</em></div>
@@ -242,7 +245,7 @@
             </div>
             <pre><code>docker run --rm -i --read-only \
   --tmpfs /tmp:uid=10001,gid=10001,mode=1777 \
-  ghcr.io/enessubass/mobiloop-mcp:0.1.0-alpha.12</code></pre>
+  ghcr.io/enessubass/mobiloop-mcp:0.1.0-alpha.13</code></pre>
           </div>
           <p class="install-note">
             The image starts as a non-root process with a guarded workspace contract.

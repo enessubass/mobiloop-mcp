@@ -4,6 +4,42 @@ import { flowTools } from "../../src/tools/flow.js";
 import { appiumTools } from "../../src/tools/appium.js";
 import { createTestConfig, startMockAppium } from "../helpers.js";
 
+for (const entrypoint of ["appium.hide_keyboard", "flow.run_script"]) {
+  test(`${entrypoint} verifies the keyboard state through the shared client`, async () => {
+    let hidden = false;
+    const mock = await startMockAppium({
+      respond: (request) => {
+        if (request.path.endsWith("/is_keyboard_shown"))
+          return new Response(JSON.stringify({ value: !hidden }));
+        if (request.path.endsWith("/hide_keyboard")) {
+          hidden = true;
+          return new Response(JSON.stringify({ value: null }));
+        }
+        return undefined;
+      }
+    });
+    try {
+      const config = await createTestConfig({ appiumServerUrl: mock.serverUrl });
+      const tool = [...appiumTools(), ...flowTools()].find((entry) => entry.name === entrypoint)!;
+      const result = await tool.handler(
+        {
+          sessionId: "s1",
+          delayMs: 0,
+          ...(entrypoint === "flow.run_script" ? { steps: [{ action: "hideKeyboard" }] } : {})
+        },
+        { config }
+      );
+      const payload = JSON.parse(
+        result.content.map((entry) => ("text" in entry ? entry.text : "")).join("\n")
+      );
+      assert.equal(hidden, true);
+      assert.notEqual(payload.passed, false);
+    } finally {
+      await mock.close();
+    }
+  });
+}
+
 for (const entrypoint of ["appium.type_text", "flow.run_script"]) {
   test(`${entrypoint} reacquires a text field replaced by clearing it`, async () => {
     let cleared = false;

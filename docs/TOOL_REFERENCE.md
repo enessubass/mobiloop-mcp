@@ -75,18 +75,19 @@ Device tools mutate emulator, simulator, or physical device state. Use approval 
 
 All Appium tools require approval because they contact a device automation endpoint and may expose or mutate application state. Secure mode rejects `serverUrl` overrides; configure `APPIUM_SERVER_URL` in the host environment.
 
-| Tool                                                                            | Purpose                                                  | Notes                                                                     |
-| ------------------------------------------------------------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `appium.create_session`                                                         | Create a WebDriver session.                              | Requires Appium server and platform driver.                               |
-| `appium.delete_session`                                                         | End a session.                                           | Safe cleanup.                                                             |
-| `appium.observe_screen`                                                         | Capture screenshot/source and optional wait conditions.  | Supports `waitForAnyText`, `waitForPackageIdle`, and stable source waits. |
-| `appium.tap_by_text`                                                            | Tap exact-first text match.                              | Returns the selected target.                                              |
-| `appium.tap_by_accessibility_id`                                                | Tap by accessibility id.                                 | Preferred locator.                                                        |
-| `appium.tap_by_resource_id`                                                     | Tap by Android resource id.                              | Preferred locator.                                                        |
-| `appium.tap_coordinates`                                                        | Tap coordinates.                                         | Last resort; approval recommended.                                        |
-| `appium.type_text`                                                              | Type text with `sendKeys`, `setValue`, or `adbKeyboard`. | Flutter defaults should prefer `sendKeys`.                                |
-| `appium.swipe`, `appium.go_back`                                                | Navigate the app.                                        | Device state mutation.                                                    |
-| `appium.wait_for_visible`, `appium.assert_visible`, `appium.assert_not_visible` | Visibility checks.                                       | Evidence-friendly assertions.                                             |
+| Tool                                                                            | Purpose                                                      | Notes                                                                                                                                     |
+| ------------------------------------------------------------------------------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `appium.create_session`                                                         | Create a WebDriver session.                                  | Requires Appium server and platform driver.                                                                                               |
+| `appium.delete_session`                                                         | End a session.                                               | Safe cleanup.                                                                                                                             |
+| `appium.observe_screen`                                                         | Capture screenshot/source and optional wait conditions.      | Supports `waitForAnyText`, `waitForPackageIdle`, and stable source waits.                                                                 |
+| `appium.tap_by_text`                                                            | Tap exact-first text match.                                  | Returns the selected target.                                                                                                              |
+| `appium.tap_by_accessibility_id`                                                | Tap by accessibility id.                                     | Preferred locator.                                                                                                                        |
+| `appium.tap_by_resource_id`                                                     | Tap by Android resource id.                                  | Preferred locator.                                                                                                                        |
+| `appium.tap_coordinates`                                                        | Tap coordinates.                                             | Last resort; approval recommended.                                                                                                        |
+| `appium.type_text`                                                              | Type text with `sendKeys`, `setValue`, or `adbKeyboard`.     | Flutter defaults should prefer `sendKeys`.                                                                                                |
+| `appium.hide_keyboard`                                                          | Dismiss a visible software keyboard and verify it is hidden. | Approval required; fails on unsupported drivers or a keyboard that remains visible. Never substitutes back or retries an application tap. |
+| `appium.swipe`, `appium.go_back`                                                | Navigate the app.                                            | Device state mutation.                                                                                                                    |
+| `appium.wait_for_visible`, `appium.assert_visible`, `appium.assert_not_visible` | Visibility checks.                                           | Evidence-friendly assertions.                                                                                                             |
 
 ## Security Tools
 
@@ -199,7 +200,9 @@ Output:
 }
 ```
 
-Failure cases: unsupported action, missing locator/text, visibility timeout, assertion failure, evidence collection failure.
+The `hideKeyboard` action uses `appium.hide_keyboard` semantics. Follow it with `observe` and `waitForPackageIdle: true` when a keyboard transition changes the layout before a tap. Unsupported keyboard commands are failures, not silent fallbacks.
+
+Failure cases: unsupported action, missing locator/text, visibility timeout, assertion failure, keyboard dismissal failure, evidence collection failure.
 
 ### `verify.collect_evidence`
 

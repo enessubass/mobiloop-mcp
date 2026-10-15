@@ -271,6 +271,22 @@ export class AppiumClient {
     return this.request("POST", `/session/${sessionId}/back`, {});
   }
 
+  async hideKeyboard(sessionId: string): Promise<{ hidden: true; changed: boolean }> {
+    const endpoint = `/session/${sessionId}/appium/device`;
+    const shown = await this.request("GET", `${endpoint}/is_keyboard_shown`);
+    if (typeof shown !== "boolean") throw new Error("Invalid keyboard visibility response");
+    if (!shown) return { hidden: true, changed: false };
+    await this.request("POST", `${endpoint}/hide_keyboard`, {});
+    const deadline = Date.now() + 3000;
+    do {
+      const visible = await this.request("GET", `${endpoint}/is_keyboard_shown`);
+      if (visible === false) return { hidden: true, changed: true };
+      if (visible !== true) throw new Error("Invalid keyboard visibility response");
+      await sleep(200);
+    } while (Date.now() < deadline);
+    throw new Error("Keyboard remains visible after hide request");
+  }
+
   async pointerTap(sessionId: string, x: number, y: number): Promise<unknown> {
     return this.pointerAction(sessionId, [
       { type: "pointerMove", duration: 0, x, y },

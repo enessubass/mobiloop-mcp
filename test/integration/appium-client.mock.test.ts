@@ -3,6 +3,55 @@ import test from "node:test";
 import { AppiumClient } from "../../src/utils/appium-client.js";
 import { startMockAppium } from "../helpers.js";
 
+for (const state of ["hidden", "visible", "unsupported", "invalid", "stuck"]) {
+  test(`keyboard dismissal handles ${state} without blind taps or back actions`, async () => {
+    let hides = 0;
+    const mock = await startMockAppium({
+      respond: (request) => {
+        if (request.path.endsWith("/is_keyboard_shown")) {
+          if (state === "unsupported") {
+            return new Response(
+              JSON.stringify({ value: { error: "unknown command", message: "Unsupported" } }),
+              { status: 404 }
+            );
+          }
+          const value =
+            state === "invalid" ? null : state === "stuck" || (state === "visible" && hides === 0);
+          return new Response(JSON.stringify({ value }));
+        }
+        if (request.path.endsWith("/hide_keyboard")) {
+          hides += 1;
+          return new Response(JSON.stringify({ value: null }));
+        }
+        return undefined;
+      }
+    });
+    try {
+      const result = new AppiumClient({ serverUrl: mock.serverUrl }).hideKeyboard("s1");
+      if (state === "hidden" || state === "visible") {
+        assert.deepEqual(await result, { hidden: true, changed: state === "visible" });
+      } else {
+        await assert.rejects(
+          result,
+          state === "stuck"
+            ? /remains visible/
+            : state === "invalid"
+              ? /Invalid keyboard/
+              : /unknown command/
+        );
+      }
+      assert.equal(hides, state === "visible" || state === "stuck" ? 1 : 0);
+      assert.ok(
+        mock.requests.every(
+          (request) => !request.path.endsWith("/back") && !request.path.endsWith("/click")
+        )
+      );
+    } finally {
+      await mock.close();
+    }
+  });
+}
+
 test("session health uses the active source endpoint instead of deprecated session metadata", async () => {
   const mock = await startMockAppium();
   try {

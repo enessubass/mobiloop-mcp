@@ -107,7 +107,7 @@ export function flowTools(): McpTool[] {
     {
       name: "flow.run_script",
       description:
-        "Run a high-level JSON flow DSL over an Appium session: waitText, tapText, type, assertText, observe, collectEvidence, back, swipe, checkpoint.",
+        "Run a high-level JSON flow DSL over an Appium session: waitText, tapText, type, hideKeyboard, assertText, observe, collectEvidence, back, swipe, checkpoint.",
       inputSchema: objectSchema(
         {
           sessionId: stringSchema,
@@ -605,6 +605,8 @@ async function executeScriptStep(
       if (!source.includes(text)) throw new Error(`Expected text not found: ${text}`);
       return { action: "assertText", text, passed: true };
     }
+    case "hideKeyboard":
+      return { action: "hideKeyboard", ...(await client.hideKeyboard(sessionId)) };
     case "observe":
     case "collectEvidence": {
       const label =

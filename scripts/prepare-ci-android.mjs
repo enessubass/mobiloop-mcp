@@ -7,6 +7,9 @@ if (process.env.CI !== "true") throw new Error("Use only on disposable CI VMs");
 const repo = fileURLToPath(new URL("../", import.meta.url));
 const sdk = process.env.ANDROID_HOME ?? process.env.ANDROID_SDK_ROOT;
 if (!sdk) throw new Error("Android SDK is required");
+const avdHome = path.join(repo, ".mobiloop", "ci-avd");
+await fs.mkdir(avdHome, { recursive: true });
+process.env.ANDROID_AVD_HOME = avdHome;
 const directories = await fs.readdir(path.join(sdk, "cmdline-tools"));
 const version = directories.includes("latest")
   ? "latest"
@@ -23,13 +26,21 @@ function run(command, args, options = {}) {
   if (result.error) throw result.error;
   if (result.status !== 0) throw new Error(`${command} exited ${result.status}`);
 }
-run(sdkTool("sdkmanager"), [
+// Reuse the hosted runner's emulator rather than downloading an unrelated newer revision.
+const packages = [
   "platform-tools",
-  "emulator",
   "platforms;android-35",
   "build-tools;35.0.0",
   "system-images;android-35;google_apis;x86_64"
-]);
+];
+try {
+  await fs.access(
+    path.join(sdk, "emulator", `emulator${process.platform === "win32" ? ".exe" : ""}`)
+  );
+} catch {
+  packages.push("emulator");
+}
+run(sdkTool("sdkmanager"), packages);
 run(
   sdkTool("avdmanager"),
   [
@@ -42,6 +53,7 @@ run(
   ],
   { stdio: ["pipe", "inherit", "inherit"], input: "no\n" }
 );
+await fs.access(path.join(avdHome, "Mobiloop_CI.ini"));
 run(
   process.execPath,
   [

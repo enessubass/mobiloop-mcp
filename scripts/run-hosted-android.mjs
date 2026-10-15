@@ -18,6 +18,7 @@ const logs = path.join(repo, ".mobiloop", "hosted-android");
 await fs.mkdir(logs, { recursive: true });
 const env = {
   ...process.env,
+  ANDROID_AVD_HOME: path.join(repo, ".mobiloop", "ci-avd"),
   PATH: [path.join(sdk, "platform-tools"), path.join(sdk, "emulator"), process.env.PATH].join(
     path.delimiter
   ),

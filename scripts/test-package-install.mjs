@@ -66,7 +66,7 @@ try {
   );
   await client.connect(new StdioClientTransport({ ...mobiloop, cwd: app, stderr: "pipe" }));
   const tools = await client.listTools();
-  assert.equal(tools.tools.length, 82);
+  assert.equal(tools.tools.length, 83);
   const response = await client.callTool({ name: "security.scan_source", arguments: {} });
   assert.notEqual(response.isError, true);
   const denied = await client.callTool({

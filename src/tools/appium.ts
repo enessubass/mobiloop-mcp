@@ -252,6 +252,21 @@ export function appiumTools(): McpTool[] {
       }
     },
     {
+      name: "appium.hide_keyboard",
+      description:
+        "Hide a visible software keyboard and verify it is hidden; never sends a generic back action.",
+      inputSchema: objectSchema({ sessionId: stringSchema, serverUrl: stringSchema }, [
+        "sessionId"
+      ]),
+      async handler(input, { config }) {
+        const args = asObject(input);
+        const serverUrl = optionalString(args, "serverUrl") ?? config.appiumServerUrl;
+        const sessionId = requireString(args, "sessionId");
+        const result = await new AppiumClient({ serverUrl }).hideKeyboard(sessionId);
+        return jsonResponse({ serverUrl, sessionId, ...result });
+      }
+    },
+    {
       name: "appium.type_text",
       description:
         "Type text into an element located by accessibility id, id, xpath, text, or native selector.",

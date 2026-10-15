@@ -7,7 +7,7 @@ const { selectAndroidRuntime } = await import(
 
 test("Windows uses hardware acceleration when its probe succeeds", () => {
   assert.deepEqual(selectAndroidRuntime("win32", 0), {
-    systemImage: "system-images;android-35;google_apis;x86_64",
+    systemImage: "system-images;android-30;google_apis;x86_64",
     acceleration: "on"
   });
 });

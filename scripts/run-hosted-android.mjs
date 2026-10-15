@@ -77,6 +77,31 @@ async function waitUntil(child, check, timeout, label) {
   }
   throw new Error(`${label} readiness timed out; inspect ${logs}`);
 }
+function packageReadiness() {
+  let successes = 0;
+  return async () => {
+    try {
+      const packages = run(
+        adb,
+        [
+          "-s",
+          env.MOBILOOP_TEST_DEVICE,
+          "shell",
+          "cmd",
+          "package",
+          "list",
+          "packages",
+          "--show-versioncode"
+        ],
+        20_000
+      );
+      successes = /^package:android\s/m.test(packages) ? successes + 1 : 0;
+    } catch {
+      successes = 0;
+    }
+    return successes >= 3;
+  };
+}
 try {
   const vm = start(
     emulator,
@@ -122,6 +147,8 @@ try {
   );
   run(adb, ["-s", env.MOBILOOP_TEST_DEVICE, "shell", "input", "keyevent", "82"]);
   console.log(`Android emulator ready on ${process.platform}`);
+  await waitUntil(vm, packageReadiness(), 180_000, "Android package manager before driver startup");
+  console.log("Android package manager stable before driver startup");
   const appium = start(
     process.execPath,
     [
@@ -174,6 +201,8 @@ try {
       })
     ])
   );
+  await waitUntil(vm, packageReadiness(), 180_000, "Android package manager after fixture install");
+  console.log("Android package manager stable after fixture install");
   const tests = spawn(process.execPath, ["scripts/test-mobile-qa-device.mjs"], {
     cwd: repo,
     env,

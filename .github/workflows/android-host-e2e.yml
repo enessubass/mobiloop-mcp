@@ -64,5 +64,6 @@ jobs:
           name: android-host-${{ matrix.os }}
           path: |
             .mobiloop/runs
+            .mobiloop/build
             .mobiloop/hosted-android
           if-no-files-found: warn

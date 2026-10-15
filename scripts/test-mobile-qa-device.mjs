@@ -11,6 +11,7 @@ const serial = process.env.MOBILOOP_TEST_DEVICE;
 if (!serial)
   throw new Error("Set MOBILOOP_TEST_DEVICE to the intended Android test device serial.");
 const serverUrl = process.env.APPIUM_SERVER_URL ?? "http://127.0.0.1:4723";
+const dismissKeyboard = process.env.MOBILOOP_TEST_DISMISS_KEYBOARD === "1";
 const runId = `mobile-qa-device-${new Date().toISOString().replace(/[:.]/g, "-")}`;
 const artifacts = path.join(repo, ".mobiloop");
 const summaryPath = path.join(artifacts, "runs", runId, "summary.json");
@@ -92,6 +93,7 @@ try {
         devices.devices.some((device) => device.serial === serial && device.state === "device")
       );
       const preflight = await call(client, "env.preflight", { target: "android" });
+      assert.equal(preflight.passed, true, JSON.stringify(preflight.requiredFailures));
       const scan = await call(client, "security.scan_source");
       const plan = await call(client, "security.generate_test_plan", {
         reportPath: scan.reportPath
@@ -151,6 +153,7 @@ try {
                 text: scenario.password,
                 mode: "sendKeys"
               },
+              ...(dismissKeyboard ? [{ action: "hideKeyboard" }] : []),
               { action: "observe", waitForPackageIdle: true, stableMs: 750, minWaitMs: 500 },
               { action: "tapText", text: "Giriş Yap", matchMode: "exact" },
               { action: "waitText", text: scenario.expected, timeoutMs: 10000 },

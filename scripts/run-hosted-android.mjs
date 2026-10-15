@@ -24,6 +24,7 @@ const env = {
   ),
   MOBILOOP_TEST_DEVICE: "emulator-5554",
   MOBILOOP_TEST_FIXTURES: "android-kotlin-login-demo",
+  MOBILOOP_TEST_DISMISS_KEYBOARD: "1",
   APPIUM_SERVER_URL: "http://127.0.0.1:4725",
   MOBILOOP_WORKSPACE_ROOT: path.join(
     repo,

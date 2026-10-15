@@ -46,6 +46,8 @@ CI runs package tests and actual clean-install/first-use checks on Linux, Window
 
 The opt-in `Android Host E2E` workflow builds the native fixture from the reviewed revision, creates a disposable Android emulator, and executes three UI scenarios plus a negative control on Ubuntu and Windows. It runs manually or on PRs labeled `android-host-e2e`. Windows uses software emulation and may be slower or fail host readiness; such a run is blocked/failed, never a claimed pass. Artifacts are fixture-only screenshots, source, logs, and reports. No physical devices are selected.
 
+The fixture runner requires successful Android preflight. Hosted emulators opt into `MOBILOOP_TEST_DISMISS_KEYBOARD=1` because the standard visible keyboard can obscure the submit button on the default small display. This adds explicit verified keyboard dismissal before stable-layout observation and a single tap. Genymotion's non-visual IME does not require that flag; unsupported dismissal must fail, not silently send navigation or retry a submit action.
+
 ## Security Validation
 
 Run `security.scan_source` before a build-test-fix loop and save the emitted JSON report. After an approved fix, use `security.compare_scans` with that report path and apply `security.release_gate` at `high` or stricter before release.

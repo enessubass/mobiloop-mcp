@@ -67,3 +67,97 @@ test("security tools scan mobile configuration, plan validation, compare fixes, 
 function json(response: { content: Array<{ type: string; text?: string }> }): any {
   return JSON.parse(response.content.map((entry) => entry.text ?? "").join("\n"));
 }
+
+test("transport scan ignores XML license comments, tools namespaces, and properties documentation but retains actual URLs", async () => {
+  const config = await createTestConfig();
+  await fs.writeFile(
+    path.join(config.workspaceRoot, "AndroidManifest.xml"),
+    `<!-- license: http://www.apache.org/licenses/LICENSE-2.0 -->\n<manifest xmlns:tools="http://schemas.android.com/tools"><application endpoint="http://api.example.test"/></manifest>`
+  );
+  await fs.writeFile(
+    path.join(config.workspaceRoot, "gradle.properties"),
+    `# See http://docs.gradle.org\n! See http://docs.example.test\nendpoint=http://api.example.test/#fragment\n`
+  );
+  const tool = securityTools().find((entry) => entry.name === "security.scan_source")!;
+  const result = json(await tool.handler({}, { config }));
+  assert.equal(result.findings.length, 2);
+  assert.ok(
+    result.findings.every(
+      (finding: { id: string }) => finding.id === "MOBILOOP-CLEARTEXT-TRANSPORT"
+    )
+  );
+  assert.equal(
+    result.findings.find((finding: { path: string }) => finding.path === "gradle.properties").line,
+    3
+  );
+  assert.equal(
+    result.findings.find((finding: { path: string }) => finding.path === "AndroidManifest.xml")
+      .line,
+    2
+  );
+});
+
+test("security scan excludes standard plist DTD and Android namespaces from transport findings", async () => {
+  const config = await createTestConfig();
+  await fs.writeFile(
+    path.join(config.workspaceRoot, "Info.plist"),
+    `<?xml version="1.0"?>\n<!DOCTYPE plist PUBLIC\n "-//Apple//DTD PLIST 1.0//EN"\n "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist><dict/></plist>`
+  );
+  await fs.writeFile(
+    path.join(config.workspaceRoot, "AndroidManifest.xml"),
+    `<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app='http://schemas.android.com/apk/res/auto'><application/></manifest>`
+  );
+  const scan = securityTools().find((tool) => tool.name === "security.scan_source")!;
+  const result = json(await scan.handler({}, { config }));
+  assert.equal(result.scannedFiles, 2);
+  assert.deepEqual(result.findings, []);
+});
+
+test("security scan still flags real XML HTTP values on declaration lines and after multiline metadata", async () => {
+  const config = await createTestConfig();
+  await fs.writeFile(
+    path.join(config.workspaceRoot, "Info.plist"),
+    `<!DOCTYPE plist PUBLIC\n "-//Apple//DTD PLIST 1.0//EN"\n "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist><dict><key>api</key><string>http://api.example.test</string></dict></plist>`
+  );
+  await fs.writeFile(
+    path.join(config.workspaceRoot, "AndroidManifest.xml"),
+    `<manifest xmlns:android="http://schemas.android.com/apk/res/android"><application endpoint="http://api.example.test" android:usesCleartextTraffic="true"/></manifest>`
+  );
+  const scan = securityTools().find((tool) => tool.name === "security.scan_source")!;
+  const result = json(await scan.handler({}, { config }));
+  const transport = result.findings.filter(
+    (finding: { id: string }) => finding.id === "MOBILOOP-CLEARTEXT-TRANSPORT"
+  );
+  assert.equal(transport.length, 2);
+  assert.equal(
+    transport.find((finding: { path: string }) => finding.path === "Info.plist").line,
+    4
+  );
+  assert.equal(
+    transport.find((finding: { path: string }) => finding.path === "AndroidManifest.xml").line,
+    1
+  );
+  assert.ok(
+    result.findings.some((finding: { id: string }) => finding.id === "MOBILOOP-ANDROID-CLEARTEXT")
+  );
+});
+
+test("security scan does not globally allowlist metadata hosts used as application URLs", async () => {
+  const config = await createTestConfig();
+  await fs.writeFile(
+    path.join(config.workspaceRoot, "Info.plist"),
+    `<plist><dict><key>api</key><string>http://www.apple.com/DTDs/PropertyList-1.0.dtd</string></dict></plist>`
+  );
+  await fs.writeFile(
+    path.join(config.workspaceRoot, "client.ts"),
+    `fetch("http://schemas.android.com/apk/res/android");`
+  );
+  const scan = securityTools().find((tool) => tool.name === "security.scan_source")!;
+  const result = json(await scan.handler({}, { config }));
+  assert.equal(result.findings.length, 2);
+  assert.ok(
+    result.findings.every(
+      (finding: { id: string }) => finding.id === "MOBILOOP-CLEARTEXT-TRANSPORT"
+    )
+  );
+});

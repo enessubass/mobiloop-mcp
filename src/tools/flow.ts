@@ -107,7 +107,7 @@ export function flowTools(): McpTool[] {
     {
       name: "flow.run_script",
       description:
-        "Run a high-level JSON flow DSL over an Appium session: waitText, tapText, type, assertText, observe, collectEvidence, back, swipe, checkpoint.",
+        "Run a high-level JSON flow DSL over an Appium session: waitText, tapText, type, hideKeyboard, assertText, observe, collectEvidence, back, swipe, checkpoint.",
       inputSchema: objectSchema(
         {
           sessionId: stringSchema,
@@ -467,15 +467,7 @@ async function executeReplayAction(
         ["sendKeys", "setValue", "adbKeyboard"] as const,
         "sendKeys"
       );
-      const element = await client.findElement(sessionId, locator);
-      if (clearFirst) await client.clearElement(sessionId, element);
-      if (mode === "setValue") {
-        await client.setElementValue(sessionId, element, text);
-      } else if (mode === "adbKeyboard") {
-        await client.adbInputText(sessionId, element, text);
-      } else {
-        await client.typeText(sessionId, element, text);
-      }
+      await client.fillText(sessionId, locator, text, { clearFirst, mode });
       return;
     }
     case "appium.swipe": {
@@ -604,15 +596,7 @@ async function executeScriptStep(
         ["sendKeys", "setValue", "adbKeyboard"] as const,
         "sendKeys"
       );
-      const element = await client.findElement(sessionId, locator);
-      if (clearFirst) await client.clearElement(sessionId, element);
-      if (mode === "setValue") {
-        await client.setElementValue(sessionId, element, text);
-      } else if (mode === "adbKeyboard") {
-        await client.adbInputText(sessionId, element, text);
-      } else {
-        await client.typeText(sessionId, element, text);
-      }
+      await client.fillText(sessionId, locator, text, { clearFirst, mode });
       return { action: "type", locator: locator as never, clearFirst, mode };
     }
     case "assertText": {
@@ -621,6 +605,8 @@ async function executeScriptStep(
       if (!source.includes(text)) throw new Error(`Expected text not found: ${text}`);
       return { action: "assertText", text, passed: true };
     }
+    case "hideKeyboard":
+      return { action: "hideKeyboard", ...(await client.hideKeyboard(sessionId)) };
     case "observe":
     case "collectEvidence": {
       const label =
@@ -635,17 +621,17 @@ async function executeScriptStep(
       const waitForAnyText = optionalStringArray(step, "waitForAnyText") ?? [];
       const readiness: Record<string, unknown> = {};
       if (waitForAnyText.length > 0) {
-        readiness.waitForAnyText = await client.waitForAnyText(
-          sessionId,
-          waitForAnyText,
-          timeoutMs
-        );
+        const result = await client.waitForAnyText(sessionId, waitForAnyText, timeoutMs);
+        readiness.waitForAnyText = result;
+        if (!result.found) throw new Error("Observation timed out waiting for expected text");
       }
       if (optionalBoolean(step, "waitForPackageIdle") ?? false) {
-        readiness.waitForPackageIdle = await client.waitForStableSource(sessionId, {
+        const result = await client.waitForStableSource(sessionId, {
           timeoutMs,
           stableMs: Math.max(500, Math.min(optionalNumber(step, "stableMs") ?? 1_000, 15_000))
         });
+        readiness.waitForPackageIdle = result;
+        if (!result.stable) throw new Error("Observation timed out waiting for a stable source");
       }
       const evidence = await client.saveObservation(options.config, sessionId, label);
       return { action: "collectEvidence", readiness, evidence: evidence as never };

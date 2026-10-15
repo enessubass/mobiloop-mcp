@@ -41,23 +41,45 @@ export async function createTestConfig(options: Partial<ServerConfig> = {}): Pro
   };
 }
 
-export async function startMockAppium(): Promise<MockAppium> {
+export async function startMockAppium(
+  options: {
+    sessionIds?: string[];
+    respond?: (request: MockAppium["requests"][number]) => Response | undefined;
+  } = {}
+): Promise<MockAppium> {
   const requests: MockAppium["requests"] = [];
   const originalFetch = globalThis.fetch;
+  let sessionIndex = 0;
+  let currentSessionId = "s1";
   globalThis.fetch = async (input, init) => {
     const rawUrl =
       typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
     const url = new URL(rawUrl);
-    const route = url.pathname;
+    let route = url.pathname;
     const method = init?.method ?? "GET";
     const body =
       typeof init?.body === "string" && init.body.length > 0
         ? (JSON.parse(init.body) as Record<string, unknown>)
         : {};
-    requests.push({ method, path: route, body });
+    const request = { method, path: route, body };
+    requests.push(request);
+    const customResponse = options.respond?.(request);
+    if (customResponse) return customResponse;
 
     if (method === "POST" && route === "/session") {
-      return response({ value: { sessionId: "s1", capabilities: { platformName: "Android" } } });
+      currentSessionId = options.sessionIds?.[sessionIndex++] ?? "s1";
+      return response({
+        value: { sessionId: currentSessionId, capabilities: { platformName: "Android" } }
+      });
+    }
+    const sessionPrefix = `/session/${currentSessionId}`;
+    if (route === sessionPrefix || route.startsWith(`${sessionPrefix}/`)) {
+      route = `/session/s1${route.slice(sessionPrefix.length)}`;
+    } else if (route.startsWith("/session/")) {
+      return response(
+        { value: { error: "invalid session id", message: "Session is not active" } },
+        404
+      );
     }
     if (method === "GET" && route === "/session/s1") {
       return response({ value: { sessionId: "s1" } });

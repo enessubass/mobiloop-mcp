@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import spawn from "cross-spawn";
 import { Buffer } from "node:buffer";
 import { ServerConfig } from "../types.js";
 import { redactText } from "./redaction.js";
@@ -50,17 +50,17 @@ export async function runCommand(
   let stdoutBytes = 0;
   let stderrBytes = 0;
 
-  child.stdout.on("data", (chunk: Buffer) => {
+  child.stdout!.on("data", (chunk: Buffer) => {
     stdoutBytes = appendTail(stdoutChunks, stdoutBytes, chunk, maxOutputBytes);
   });
-  child.stderr.on("data", (chunk: Buffer) => {
+  child.stderr!.on("data", (chunk: Buffer) => {
     stderrBytes = appendTail(stderrChunks, stderrBytes, chunk, maxOutputBytes);
   });
 
   if (options.input !== undefined) {
-    child.stdin.end(options.input);
+    child.stdin!.end(options.input);
   } else {
-    child.stdin.end();
+    child.stdin!.end();
   }
 
   const timeoutMs = options.timeoutMs ?? options.config.maxCommandMs;
@@ -70,7 +70,10 @@ export async function runCommand(
   }, timeoutMs);
 
   const result = await new Promise<CommandResult>((resolve, reject) => {
-    child.on("error", reject);
+    child.on("error", (error) => {
+      clearTimeout(timeout);
+      reject(error);
+    });
     child.on("close", (exitCode, signal) => {
       clearTimeout(timeout);
       const stdoutBuffer = Buffer.concat(stdoutChunks);

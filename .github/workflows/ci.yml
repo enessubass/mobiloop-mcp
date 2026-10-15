@@ -10,10 +10,27 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: package-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  validate:
-    name: Validate
-    runs-on: ubuntu-latest
+  package:
+    name: Package (${{ matrix.os }}, Node ${{ matrix.node }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            node: 20
+          - os: ubuntu-latest
+            node: 26
+          - os: windows-latest
+            node: 22
+          - os: macos-latest
+            node: 22
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
@@ -22,7 +39,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
-          node-version: 22
+          node-version: ${{ matrix.node }}
           cache: npm
 
       - name: Install dependencies
@@ -38,6 +55,9 @@ jobs:
         run: npm run typecheck
 
       - name: Test
+        timeout-minutes: 3
+        env:
+          MOBILOOP_TEST_TRACE: "1"
         run: npm test
 
       - name: Static documentation site check
@@ -49,5 +69,26 @@ jobs:
       - name: Package dry run
         run: npm run pack:check
 
+      - name: Clean package install and first-use smoke
+        run: npm run test:install
+
+  docker:
+    name: Docker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - name: Docker build
         run: docker build -t mobiloop-mcp:ci .
+
+  validate:
+    name: Validate
+    if: always()
+    needs: [package, docker]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require all platform checks
+        env:
+          PACKAGE_RESULT: ${{ needs.package.result }}
+          DOCKER_RESULT: ${{ needs.docker.result }}
+        run: test "$PACKAGE_RESULT" = success && test "$DOCKER_RESULT" = success

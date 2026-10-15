@@ -2,6 +2,8 @@
 
 This is the expected behavior for AI agents using MobiLoop.
 
+The portable [mobile QA skill](SKILLS.md) packages this workflow for agent clients.
+
 ## Default Flow
 
 1. Run `security.scan_source` and save its report path.
@@ -37,7 +39,7 @@ This is the expected behavior for AI agents using MobiLoop.
 
 ## Approval Rules
 
-Ask before tools whose policy has `requiresApproval: true`. Typical examples:
+Tools whose policy has `requiresApproval: true` need actual user or host/CI authorization. Reuse existing authorization for the same scope; ask only when the next action is not covered. Typical examples:
 
 - dependency install
 - app install/uninstall
@@ -70,3 +72,7 @@ Stop and report when:
 - runtime exceeds `maxRuntimeMinutes`
 - failure is classified as environment, remote rules, credentials, or missing test data
 - evidence cannot be collected reliably
+
+Count orchestrator retries toward the same run budget. Stop dependent actions on returned `passed: false` or `found: false`, even when the MCP transport call succeeds. Close sessions created for the run on both success and failure.
+
+`security.compare_scans` returns a comparison, not a source-scan report. After a fix, run a fresh `security.scan_source` with the same scan scope and pass its `reportPath` to `security.release_gate`. Report static checks separately from executed device tests.

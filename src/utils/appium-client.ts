@@ -125,8 +125,8 @@ export class AppiumClient {
     matchMode: TextMatchMode = "auto"
   ): Promise<TextTapTarget> {
     const literal = xpathLiteral(text);
-    const exactAttrs = ["content-desc", "text", "label", "name"];
-    const containsAttrs = ["content-desc", "text", "label", "name"];
+    const exactAttrs = ["content-desc", "text", "label", "name", "hint"];
+    const containsAttrs = exactAttrs;
     const candidates: Array<Omit<TextTapTarget, "elementId">> = [];
 
     if (matchMode !== "contains") {
@@ -211,6 +211,38 @@ export class AppiumClient {
     return this.request("POST", `/session/${sessionId}/element/${element}/clear`, {});
   }
 
+  async fillText(
+    sessionId: string,
+    locator: Locator,
+    text: string,
+    options: { clearFirst?: boolean; mode?: "sendKeys" | "setValue" | "adbKeyboard" } = {}
+  ): Promise<void> {
+    let element = await this.findElement(sessionId, locator);
+    await this.clickElement(sessionId, element);
+    element = await this.findElement(sessionId, locator);
+    if (options.clearFirst ?? true) {
+      await this.clearElement(sessionId, element);
+      // Clearing a Flutter field can replace its native accessibility element on iOS.
+      element = await this.findElement(sessionId, locator);
+    }
+    const enter = async (target: string): Promise<void> => {
+      if (options.mode === "setValue") {
+        await this.setElementValue(sessionId, target, text);
+      } else if (options.mode === "adbKeyboard") {
+        await this.adbInputText(sessionId, target, text);
+      } else {
+        await this.typeText(sessionId, target, text);
+      }
+    };
+    try {
+      await enter(element);
+    } catch (error) {
+      if (!(error instanceof Error) || !/stale element reference/i.test(error.message)) throw error;
+      // Focusing a secure field can replace it again; retry only the rejected entry once.
+      await enter(await this.findElement(sessionId, locator));
+    }
+  }
+
   async typeText(sessionId: string, element: string, text: string): Promise<unknown> {
     return this.request("POST", `/session/${sessionId}/element/${element}/value`, {
       text,
@@ -237,6 +269,22 @@ export class AppiumClient {
 
   async back(sessionId: string): Promise<unknown> {
     return this.request("POST", `/session/${sessionId}/back`, {});
+  }
+
+  async hideKeyboard(sessionId: string): Promise<{ hidden: true; changed: boolean }> {
+    const endpoint = `/session/${sessionId}/appium/device`;
+    const shown = await this.request("GET", `${endpoint}/is_keyboard_shown`);
+    if (typeof shown !== "boolean") throw new Error("Invalid keyboard visibility response");
+    if (!shown) return { hidden: true, changed: false };
+    await this.request("POST", `${endpoint}/hide_keyboard`, {});
+    const deadline = Date.now() + 3000;
+    do {
+      const visible = await this.request("GET", `${endpoint}/is_keyboard_shown`);
+      if (visible === false) return { hidden: true, changed: true };
+      if (visible !== true) throw new Error("Invalid keyboard visibility response");
+      await sleep(200);
+    } while (Date.now() < deadline);
+    throw new Error("Keyboard remains visible after hide request");
   }
 
   async pointerTap(sessionId: string, x: number, y: number): Promise<unknown> {
@@ -327,9 +375,8 @@ export class AppiumClient {
 
   async sessionHealth(sessionId: string): Promise<{ healthy: boolean; detail: string }> {
     try {
-      await this.request("GET", `/session/${sessionId}`);
       await this.pageSource(sessionId);
-      return { healthy: true, detail: "session and page source are reachable" };
+      return { healthy: true, detail: "session page source is reachable" };
     } catch (error) {
       return { healthy: false, detail: error instanceof Error ? error.message : String(error) };
     }
@@ -449,7 +496,7 @@ function locatorUsing(locator: Locator): { using: string; value: string } {
     const value = xpathLiteral(locator.value);
     return {
       using: "xpath",
-      value: `//*[@text=${value} or @label=${value} or @name=${value} or contains(@content-desc, ${value})]`
+      value: `//*[@text=${value} or @label=${value} or @name=${value} or @hint=${value} or contains(@content-desc, ${value})]`
     };
   }
   if (locator.strategy === "android uiautomator") {
@@ -505,6 +552,7 @@ function summarizeXml(node: unknown, depth = 0): unknown {
     "text",
     "label",
     "name",
+    "hint",
     "enabled",
     "visible",
     "clickable"

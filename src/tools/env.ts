@@ -129,8 +129,8 @@ export function envTools(): McpTool[] {
               "Android SDK",
               "adb",
               "Android Emulator or physical device",
-              "Appium 2",
-              "UiAutomator2 driver"
+              "Appium",
+              "Compatible UiAutomator2 driver"
             ]
           },
           flutter: {
@@ -154,8 +154,8 @@ export function envTools(): McpTool[] {
               "Xcode",
               "xcrun simctl",
               "iOS Simulator",
-              "Appium 2",
-              "XCUITest driver/WebDriverAgent"
+              "Appium",
+              "Compatible XCUITest driver/WebDriverAgent"
             ]
           },
           notGuaranteed: [

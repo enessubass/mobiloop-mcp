@@ -88,23 +88,25 @@ export function appiumTools(): McpTool[] {
         );
         const waitForAnyText = optionalStringArray(args, "waitForAnyText") ?? [];
         const readiness: Record<string, unknown> = {};
+        let passed = true;
         if (waitForAnyText.length > 0) {
-          readiness.waitForAnyText = await client.waitForAnyText(
-            sessionId,
-            waitForAnyText,
-            timeoutMs
-          );
+          const result = await client.waitForAnyText(sessionId, waitForAnyText, timeoutMs);
+          readiness.waitForAnyText = result;
+          passed = passed && result.found;
         }
         if (optionalBoolean(args, "waitForPackageIdle") ?? false) {
-          readiness.waitForPackageIdle = await client.waitForStableSource(sessionId, {
+          const result = await client.waitForStableSource(sessionId, {
             timeoutMs,
             stableMs: Math.max(500, Math.min(optionalNumber(args, "stableMs") ?? 1_000, 15_000))
           });
+          readiness.waitForPackageIdle = result;
+          passed = passed && result.stable;
         }
         const evidence = await client.saveObservation(config, sessionId, prefix);
         return jsonResponse({
           serverUrl,
           sessionId,
+          passed,
           screenshotPath: evidence.screenshotPath,
           sourcePath: evidence.sourcePath,
           evidence,
@@ -252,6 +254,21 @@ export function appiumTools(): McpTool[] {
       }
     },
     {
+      name: "appium.hide_keyboard",
+      description:
+        "Hide a visible software keyboard and verify it is hidden; never sends a generic back action.",
+      inputSchema: objectSchema({ sessionId: stringSchema, serverUrl: stringSchema }, [
+        "sessionId"
+      ]),
+      async handler(input, { config }) {
+        const args = asObject(input);
+        const serverUrl = optionalString(args, "serverUrl") ?? config.appiumServerUrl;
+        const sessionId = requireString(args, "sessionId");
+        const result = await new AppiumClient({ serverUrl }).hideKeyboard(sessionId);
+        return jsonResponse({ serverUrl, sessionId, ...result });
+      }
+    },
+    {
       name: "appium.type_text",
       description:
         "Type text into an element located by accessibility id, id, xpath, text, or native selector.",
@@ -280,15 +297,7 @@ export function appiumTools(): McpTool[] {
         );
         const locator = locatorFromInput(args);
         const client = new AppiumClient({ serverUrl });
-        const element = await client.findElement(sessionId, locator);
-        if (clearFirst) await client.clearElement(sessionId, element);
-        if (mode === "setValue") {
-          await client.setElementValue(sessionId, element, text);
-        } else if (mode === "adbKeyboard") {
-          await client.adbInputText(sessionId, element, text);
-        } else {
-          await client.typeText(sessionId, element, text);
-        }
+        await client.fillText(sessionId, locator, text, { clearFirst, mode });
         return jsonResponse({
           serverUrl,
           sessionId,

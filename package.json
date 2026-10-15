@@ -1,6 +1,6 @@
 {
   "name": "mobiloop-mcp",
-  "version": "0.1.0-alpha.14",
+  "version": "0.1.0-alpha.15",
   "description": "Guarded AI mobile Appium testing, security scanning, verification, and fix-retest MCP tools.",
   "mcpName": "io.github.enessubass/mobiloop-mcp",
   "type": "module",
@@ -38,6 +38,7 @@
     "server.json",
     "docs",
     "schema",
+    "skills",
     "examples/android-validation-loop.json",
     "examples/flutter-ios-validation-loop.json",
     "examples/flow-memory-replay.json",
@@ -71,8 +72,11 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "site:check": "node scripts/validate-site.mjs",
-    "test": "npm run build && node --test \"dist/test/**/*.test.js\"",
-    "pack:check": "npm_config_cache=/tmp/mobiloop-npm-cache npm pack --dry-run",
+    "test": "npm run build && node scripts/run-tests.mjs",
+    "test:device": "npm run build && node scripts/test-mobile-qa-device.mjs",
+    "test:ios": "npm run build && node scripts/test-mobile-qa-ios.mjs",
+    "test:install": "npm run build && node scripts/test-package-install.mjs",
+    "pack:check": "npm pack --dry-run",
     "prepack": "npm run build",
     "start": "node dist/src/index.js",
     "dev": "tsx src/index.ts"
@@ -96,14 +100,17 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.17.4",
+    "@modelcontextprotocol/sdk": "^1.31.0",
     "ajv": "^8.20.0",
+    "cross-spawn": "^7.0.6",
     "fast-xml-parser": "^5.8.0",
     "pixelmatch": "^7.1.0",
-    "pngjs": "^7.0.0"
+    "pngjs": "^7.0.0",
+    "smol-toml": "^1.9.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@types/cross-spawn": "^6.0.6",
     "@types/node": "^26.0.1",
     "@types/pngjs": "^6.0.5",
     "eslint": "^10.6.0",

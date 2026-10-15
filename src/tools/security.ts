@@ -310,14 +310,22 @@ function findFindings(config: ServerConfig, filePath: string, source: string): S
         "Use runtime secret injection and avoid committing credentials or session material."
       )
   );
-  forEachMatch(source, /http:\/\/(?!localhost\b|127\.0\.0\.1\b|\[::1\])/gi, (_match, line) =>
-    add(
-      "MOBILOOP-CLEARTEXT-TRANSPORT",
-      "high",
-      "Potential cleartext network transport",
-      line,
-      "Use HTTPS and pin or validate certificates where the threat model requires it."
-    )
+  const transportSource = /\.(?:plist|xml)$/i.test(filePath)
+    ? withoutStandardXmlMetadata(source)
+    : /\.properties$/i.test(filePath)
+      ? source.replace(/^[\t ]*[#!].*$/gm, (match) => " ".repeat(match.length))
+      : source;
+  forEachMatch(
+    transportSource,
+    /http:\/\/(?!localhost\b|127\.0\.0\.1\b|\[::1\])/gi,
+    (_match, line) =>
+      add(
+        "MOBILOOP-CLEARTEXT-TRANSPORT",
+        "high",
+        "Potential cleartext network transport",
+        line,
+        "Use HTTPS and pin or validate certificates where the threat model requires it."
+      )
   );
   forEachMatch(
     source,
@@ -403,6 +411,21 @@ function findFindings(config: ServerConfig, filePath: string, source: string): S
     );
   }
   return findings;
+}
+
+function withoutStandardXmlMetadata(source: string): string {
+  // Mask only standard declaration contexts, preserving evidence line numbers.
+  const mask = (match: string) => match.replace(/[^\r\n]/g, " ");
+  return source
+    .replace(/<!--[\s\S]*?-->/g, mask)
+    .replace(
+      /<!DOCTYPE\s+plist\s+PUBLIC\s+(["'])-\/\/Apple\/\/DTD PLIST 1\.0\/\/EN\1\s+(["'])http:\/\/www\.apple\.com\/DTDs\/PropertyList-1\.0\.dtd\2\s*>/g,
+      mask
+    )
+    .replace(
+      /\bxmlns(?::[A-Za-z_][\w.-]*)?\s*=\s*(["'])http:\/\/schemas\.android\.com\/(?:apk\/res\/(?:android|auto)|tools)\1/g,
+      mask
+    );
 }
 
 function createTestPlan(report: SecurityReport): Record<string, unknown> {

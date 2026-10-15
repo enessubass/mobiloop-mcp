@@ -1,6 +1,26 @@
 # Changelog
 
-## Unreleased
+## 0.1.0-alpha.15 - 2026-10-15
+
+- Added project-local `mobiloop setup` for Codex, Claude Code, Cursor, VS Code/Copilot, and generic MCP configurations, with bundled skill installation, previews, backups, conflict/symlink guards, and idempotency.
+- Added a read-only `mobiloop doctor` with actionable missing-tool diagnostics and a portable `call --file` input option.
+- Fixed Windows command-shim execution using cross-spawn, removed shell-dependent test globs and package-check environment assignments, and added cross-platform package/first-use CI.
+- Added opt-in Ubuntu/Windows hosted Android emulator E2E and React Native fixture scenario execution; physical-device validation remains outside this release scope.
+- Made login examples preserve app data and carry actual authorization context, and replaced the incomplete Flutter quickstart with a complete first-use guide.
+- Replaced the deprecated Appium session-health metadata probe with an active page-source check.
+
+- Added the MIT-licensed `mobiloop-mobile-qa` agent skill, installation guidance, and npm/Docker packaging without a marketplace dependency.
+- Made Android and iOS orchestrators reject failed Appium assertions and visibility waits instead of reporting a successful validation.
+- Preserved Android setup failures as structured iteration reports and numeric HTTP assertion failures as failed checks.
+- Honored disabled Android evidence collection on failure paths.
+- Kept Appium step arguments immutable so retries use the newly created session instead of a stale session ID.
+- Supported Android input hints in semantic text locators, tap matching, and accessibility summaries, including Flutter text fields without text/content descriptions.
+- Focused inputs and reacquired their elements after focus/clear changes so Flutter Android text entry and iOS secure-field replacements work in direct tools, scripted flows, and replay; stale entry references get at most one recovery attempt.
+- Stopped treating caught Java exceptions and runtime diagnostics as crashes, retained explicit fatal/ANR detection beyond the displayed finding limit, and selected a blocking error rather than an earlier warning as the likely cause.
+- Excluded standard plist DTD and Android namespace declarations from cleartext-transport signals without ignoring HTTP application values or changing evidence line numbers.
+- Excluded XML license comments and properties documentation lines from transport signals while retaining executable/configured HTTP values and the Android debug cleartext finding.
+- Added real MCP stdio coverage for approval enforcement, guarded patching, security retests, reporting, missing tools, and workspace/endpoint restrictions, plus Appium failure and cleanup regression tests.
+- Updated the MCP SDK minimum and locked SDK/proxy-addr versions to address newly reported dependency advisories.
 
 ## 0.1.0-alpha.14 - 2026-09-23
 

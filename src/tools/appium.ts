@@ -280,15 +280,7 @@ export function appiumTools(): McpTool[] {
         );
         const locator = locatorFromInput(args);
         const client = new AppiumClient({ serverUrl });
-        const element = await client.findElement(sessionId, locator);
-        if (clearFirst) await client.clearElement(sessionId, element);
-        if (mode === "setValue") {
-          await client.setElementValue(sessionId, element, text);
-        } else if (mode === "adbKeyboard") {
-          await client.adbInputText(sessionId, element, text);
-        } else {
-          await client.typeText(sessionId, element, text);
-        }
+        await client.fillText(sessionId, locator, text, { clearFirst, mode });
         return jsonResponse({
           serverUrl,
           sessionId,

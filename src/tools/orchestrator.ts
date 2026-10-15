@@ -241,14 +241,17 @@ export function orchestratorTools(): McpTool[] {
             } catch (error) {
               lastFailure = error instanceof Error ? error.message : String(error);
               const failureAnalysis = analyzeErrorMessage(lastFailure);
-              const evidence = await callJson(
-                byName,
-                "verify.collect_evidence",
-                { sessionId, serial, packageName, prefix: `iteration-${iteration}-failure` },
-                context
-              ).catch((e) => ({
-                evidenceCollectionError: e instanceof Error ? e.message : String(e)
-              }));
+              const evidence =
+                (optionalBoolean(args, "collectEvidence") ?? true)
+                  ? await callJson(
+                      byName,
+                      "verify.collect_evidence",
+                      { sessionId, serial, packageName, prefix: `iteration-${iteration}-failure` },
+                      context
+                    ).catch((e) => ({
+                      evidenceCollectionError: e instanceof Error ? e.message : String(e)
+                    }))
+                  : {};
               const artifacts = artifactValues(evidence);
               await callJson(
                 byName,
@@ -289,6 +292,37 @@ export function orchestratorTools(): McpTool[] {
             failure: lastFailure,
             iterations: results,
             ...summarizeIterations(results),
+            durationMs: Date.now() - started
+          });
+        } catch (error) {
+          lastFailure = errorMessage(error);
+          const failureAnalysis = analyzeErrorMessage(lastFailure);
+          const iteration = iterationOffset + 1;
+          await callJson(
+            byName,
+            "loop.record_iteration",
+            {
+              iteration,
+              goal,
+              build: apkPath ? "success" : "failed",
+              device:
+                optionalString(args, "serial") ?? optionalString(args, "avdName") ?? "default",
+              test_result: "failed",
+              failure: lastFailure,
+              root_cause: failureAnalysis.likelyRootCause,
+              fix: failureAnalysis.nextSuggestedAction,
+              retest: "pending",
+              artifacts: []
+            },
+            context
+          ).catch(() => undefined);
+          return jsonResponse({
+            passed: false,
+            goal,
+            failure: lastFailure,
+            iterations: [{ iteration, passed: false, failure: lastFailure, failureAnalysis }],
+            ...failureAnalysis,
+            setupFailure: true,
             durationMs: Date.now() - started
           });
         } finally {
@@ -668,13 +702,16 @@ async function runAppiumSteps(
     if (!tool || !tool.startsWith("appium.")) {
       throw new Error("Each appiumSteps item must have an appium.* tool");
     }
-    const rawArgs = objectValue(step.args) ?? { ...step };
+    const rawArgs = { ...(objectValue(step.args) ?? step) };
     delete rawArgs.tool;
     delete rawArgs.name;
     if (sessionId && rawArgs.sessionId === undefined) {
       rawArgs.sessionId = sessionId;
     }
-    await callJson(byName, tool, rawArgs, context);
+    const result = await callJson(byName, tool, rawArgs, context);
+    if (resultFailed(result) || result.found === false) {
+      throw new Error(`${tool} failed: ${JSON.stringify(result)}`);
+    }
   }
 }
 
@@ -845,7 +882,7 @@ function analyzeFailedChecks(failed: Array<Record<string, unknown>>): Record<str
         blockingExternalDependency: isExternalStatus(optionalString(classification, "status"))
       };
     }
-    const status = optionalString(result ?? {}, "status");
+    const status = typeof result?.status === "string" ? result.status : undefined;
     if (status) {
       return {
         status,

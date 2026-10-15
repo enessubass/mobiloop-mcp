@@ -69,8 +69,7 @@ const RULES: Array<{
     status: "app_bug",
     severity: "error",
     summary: "Application crash signature detected.",
-    pattern:
-      /FATAL EXCEPTION|AndroidRuntime|Process: .*?, PID:|java\.lang\.[A-Za-z]+Exception|Unhandled Exception|Fatal signal \d+/i
+    pattern: /FATAL EXCEPTION|Unhandled Exception|Fatal signal \d+/i
   },
   {
     category: "play_services",
@@ -116,11 +115,12 @@ export function classifyLogcat(logText: string): LogClassification {
   }
 
   const trimmed = findings.slice(0, 100);
-  const appCrashFindings = trimmed.filter((finding) =>
+  // Classify the full log: verbose warnings must not hide a later fatal event.
+  const appCrashFindings = findings.filter((finding) =>
     ["app_crash", "anr"].includes(finding.category)
   );
-  const automationFindings = trimmed.filter((finding) => finding.status === "automation_error");
-  const externalDependencyFindings = trimmed.filter((finding) =>
+  const automationFindings = findings.filter((finding) => finding.status === "automation_error");
+  const externalDependencyFindings = findings.filter((finding) =>
     [
       "environment_missing",
       "external_dependency",
@@ -128,15 +128,15 @@ export function classifyLogcat(logText: string): LogClassification {
       "test_data_missing"
     ].includes(finding.status)
   );
-  const errorFindings = trimmed.filter((finding) => finding.severity === "error");
+  const errorFindings = findings.filter((finding) => finding.severity === "error");
   const status = highestStatus(errorFindings);
   return {
     status,
-    likelyRootCause: likelyRootCause(status, status === "passed" ? [] : trimmed),
+    likelyRootCause: likelyRootCause(status, errorFindings),
     nextSuggestedAction: nextSuggestedAction(status),
-    appCrashFindings,
-    automationFindings,
-    externalDependencyFindings,
+    appCrashFindings: appCrashFindings.slice(0, 100),
+    automationFindings: automationFindings.slice(0, 100),
+    externalDependencyFindings: externalDependencyFindings.slice(0, 100),
     findings: trimmed
   };
 }

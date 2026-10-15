@@ -7,7 +7,7 @@
   "runLint": true,
   "runUnitTests": true,
   "buildDebugApk": true,
-  "clearAppData": true,
+  "clearAppData": false,
   "collectEvidence": true,
   "maxTestIterations": 3,
   "appiumCapabilities": {
@@ -16,7 +16,9 @@
     "appium:deviceName": "Android Emulator",
     "appium:appPackage": "com.example.app",
     "appium:appActivity": ".MainActivity",
-    "appium:noReset": false
+    "appium:noReset": true,
+    "appium:forceAppLaunch": true,
+    "appium:shouldTerminateApp": true
   },
   "appiumSteps": [
     {
@@ -57,11 +59,9 @@
     }
   ],
   "expectedTexts": ["Home"],
-  "apiChecks": [
-    {
-      "url": "http://127.0.0.1:3000/health",
-      "expectedStatus": 200,
-      "bodyContains": ["ok"]
-    }
-  ]
+  "approval": {
+    "approved": true,
+    "approvedBy": "project-owner",
+    "reason": "Build, install and test the selected demo using synthetic test data; preserve app data"
+  }
 }

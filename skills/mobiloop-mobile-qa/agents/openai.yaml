@@ -1,0 +1,4 @@
+interface:
+  display_name: "MobiLoop Mobile QA"
+  short_description: "Run evidence-backed mobile tests and bounded fixes"
+  default_prompt: "Use $mobiloop-mobile-qa to test this mobile app with MobiLoop, investigate failures, and fix and retest within my requested scope."

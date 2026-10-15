@@ -111,3 +111,38 @@ jobs:
             server.json > server.tmp
           mv server.tmp server.json
           ./mcp-publisher publish
+
+  release-assets:
+    name: Publish Downloadable Package And Skill
+    needs: [publish-image, publish-registry]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Verify release metadata
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          test "${GITHUB_REF#refs/tags/v}" = "$version"
+          test -f "docs/releases/v${version}.md"
+      - name: Build package and skill archive
+        run: |
+          mkdir -p dist-release
+          npm pack --pack-destination dist-release
+          cd skills
+          zip -qr ../dist-release/mobiloop-mobile-qa.zip mobiloop-mobile-qa
+          cd ../dist-release
+          sha256sum *.tgz *.zip > SHA256SUMS
+      - name: Create immutable prerelease assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          gh release create "$GITHUB_REF_NAME" dist-release/* --verify-tag --prerelease \
+            --title "MobiLoop ${version}" --notes-file "docs/releases/v${version}.md"

@@ -1,169 +1,72 @@
 # Flutter Quickstart
 
-This guide is the shortest path for using MobiLoop against your own Flutter app on Android and iOS.
+Use a local test app and synthetic accounts. Do not start with production data. MobiLoop executes guarded tools; the agent selects scenarios and fixes confirmed problems.
 
-## 1. Prepare The Host
+## 1. Prepare Only The Target Platform
 
-Install the target platform tooling:
+Run `flutter doctor -v`. Android needs Android SDK platform-tools, a compatible JDK, and an emulator visible in `adb devices -l`. An already-running Genymotion VM is supported. iOS needs macOS, full Xcode, a simulator runtime, and `xcrun simctl list devices available`.
 
-```bash
-flutter doctor -v
-```
+If macOS selects Command Line Tools instead of full Xcode, set `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer` for the setup, agent, Flutter, and Appium processes. This does not require changing global `xcode-select`. For Android Studio's bundled JDK, set `JAVA_HOME` and add its `bin` directory to `PATH`.
 
-For Android, make sure `adb` sees a device or emulator:
-
-```bash
-adb devices -l
-```
-
-For iOS, use macOS with Xcode and a bootable simulator:
-
-```bash
-xcrun simctl list devices available
-```
-
-Start Appium with the platform drivers you need:
+Use a locally installed Appium with a compatible platform driver. Install only the driver you need:
 
 ```bash
 npx appium driver install uiautomator2
-npx appium driver install xcuitest
+```
+
+On macOS for iOS, use `npx appium driver install xcuitest` instead. Then start Appium on loopback:
+
+```bash
 npx appium --address 127.0.0.1 --port 4723
 ```
 
-## 2. Point MobiLoop At Your Flutter Project
+The agent's `env.ensure_appium` tool can assist with driver installation/startup after actual authorization. It is not permission to install platform SDKs silently. `doctor` never starts or installs anything.
 
-From the MobiLoop repository:
+## 2. Configure MCP And The Skill
+
+From a stable MobiLoop source checkout:
 
 ```bash
 npm ci
 npm run build
+node dist/src/cli.js setup --workspace /absolute/path/to/flutter/app --client codex --yes
+node dist/src/cli.js doctor --workspace /absolute/path/to/flutter/app --target android
 ```
 
-Set the target app workspace and a run id:
+Choose `claude`, `cursor`, or `vscode` for those agents. For iOS, choose `--target ios`; also run `--target flutter` to check the framework. See [installation](INSTALLATION.md) for Windows/PowerShell commands, previews, backups, and existing configuration.
 
-```bash
-export MOBILOOP_WORKSPACE_ROOT=/absolute/path/to/flutter/app
-export APPIUM_SERVER_URL=http://127.0.0.1:4723
-export MOBILOOP_RUN_ID=flutter-login-local
-```
+Setup adds only project-local configuration and the bundled skill, preserving other MCP servers. Reload the agent, trust the reviewed project MCP configuration in the client, and confirm that MobiLoop tools are visible. A successful setup is not a passing device test.
 
-Run a preflight:
-
-```bash
-node dist/src/cli.js call env.preflight '{"target":"flutter"}'
-```
-
-Generate candidate flows from source:
-
-```bash
-node dist/src/cli.js call flow.generate_test_scenarios '{"goal":"login smoke, validation, and home navigation","maxScenarios":6}'
-```
-
-## 3. Android Validation Loop
-
-Start or connect an Android target, then adapt `packageName`, `serial`, activity, and visible text:
-
-```bash
-node dist/src/cli.js call orchestrator.run_android_validation_loop '{
-  "goal": "Build and verify Flutter login flow on Android.",
-  "kind": "flutter",
-  "packageName": "com.example.app",
-  "serial": "emulator-5554",
-  "runLint": true,
-  "runUnitTests": true,
-  "buildDebugApk": true,
-  "clearAppData": true,
-  "collectEvidence": true,
-  "maxTestIterations": 2,
-  "appiumCapabilities": {
-    "platformName": "Android",
-    "appium:automationName": "UiAutomator2",
-    "appium:udid": "emulator-5554",
-    "appium:appPackage": "com.example.app",
-    "appium:appActivity": ".MainActivity",
-    "appium:noReset": false
-  },
-  "appiumSteps": [
-    {
-      "tool": "appium.wait_for_visible",
-      "args": {
-        "locator": { "strategy": "text", "value": "Login" },
-        "timeoutMs": 15000
-      }
-    }
-  ],
-  "expectedTexts": ["Home"]
-}'
-```
-
-## 4. iOS Validation Loop
-
-On macOS, adapt the simulator name, bundle id, and visible text:
-
-```bash
-node dist/src/cli.js call orchestrator.run_ios_validation_loop '{
-  "goal": "Build and verify Flutter login flow on iOS simulator.",
-  "kind": "flutter",
-  "workspace": "ios/Runner.xcworkspace",
-  "scheme": "Runner",
-  "configuration": "Debug",
-  "sdk": "iphonesimulator",
-  "destination": "platform=iOS Simulator,name=iPhone 15",
-  "buildSettings": {
-    "ARCHS": "arm64",
-    "EXCLUDED_ARCHS": ""
-  },
-  "simulatorDevice": "iPhone 15",
-  "bundleId": "com.example.app",
-  "runLint": true,
-  "runUnitTests": true,
-  "buildIosApp": true,
-  "bootSimulator": true,
-  "installApp": true,
-  "launchApp": true,
-  "collectEvidence": true,
-  "maxTestIterations": 2,
-  "appiumCapabilities": {
-    "platformName": "iOS",
-    "appium:automationName": "XCUITest",
-    "appium:deviceName": "iPhone 15",
-    "appium:bundleId": "com.example.app",
-    "appium:noReset": false
-  },
-  "appiumSteps": [
-    {
-      "tool": "appium.wait_for_visible",
-      "args": {
-        "locator": { "strategy": "text", "value": "Login" },
-        "timeoutMs": 15000
-      }
-    }
-  ],
-  "expectedTexts": ["Home"]
-}'
-```
-
-The iOS loop builds the simulator app with `xcodebuild`, discovers the generated `.app`, boots the simulator, installs and launches the app, creates an Appium XCUITest session, runs semantic Appium steps, verifies expected text, captures Appium evidence, captures a simulator screenshot, collects simulator logs, and records the iteration.
-
-On Apple Silicon hosts, Flutter/CocoaPods projects sometimes carry simulator arch overrides in generated Xcode settings. Use `buildSettings` to make the simulator build explicit. If a dependency only ships a device slice for arm64 simulator, MobiLoop will surface the xcodebuild linker failure as an app/toolchain blocker rather than hiding it behind Appium.
-
-## 5. Artifacts
-
-With `MOBILOOP_RUN_ID=flutter-login-local`, outputs are written under:
+## 3. Ask The Agent To Execute A Bounded Test
 
 ```text
-.mobiloop/runs/flutter-login-local/
+Use mobiloop-mobile-qa on this Flutter test app and my selected emulator.
+Test invalid email, short password, and successful navigation using synthetic
+test data. I authorize building and installing this test app, interacting
+with it, and making focused fixes for confirmed failures. Preserve app data,
+do not publish or deploy, rerun affected checks, and return the evidence.
 ```
 
-Expect:
+The agent should read policies, preflight the platform and framework, select the explicit device, scan source, generate/refine scenarios, execute assertions, inspect failures, fix within scope, rebuild, and retest. Missing SDKs, accounts, or backend dependencies must be reported rather than marked passed.
 
-```text
-build/
-screenshots/
-sources/
-logs/
-loop/
-reports/
+## 4. Manual CLI Alternative
+
+The reusable payloads are [Android](../examples/android-validation-loop.json) and [iOS](../examples/flutter-ios-validation-loop.json). Adapt the app id, device/UDID, locators, expected text, and actual authorization before use. They are templates, not universal login scripts.
+
+Run the CLI from the mobile app directory, or set `MOBILOOP_WORKSPACE_ROOT`. A JSON file avoids platform-dependent shell quoting:
+
+```bash
+node /absolute/path/to/mobiloop-mcp/dist/src/cli.js call orchestrator.run_android_validation_loop --file /absolute/path/to/approved-android-plan.json
 ```
 
-Do not publish artifacts that may contain real user data unless your host policy has reviewed screenshots and logs.
+For iOS, use `orchestrator.run_ios_validation_loop` and the adapted iOS payload. Its build must target the same selected simulator/UDID as the Appium session. Provide the simulator's actual `appium:platformVersion` when known. Apple Silicon projects can use `buildSettings` with `ARCHS: arm64` and `EXCLUDED_ARCHS: ""` when their dependencies support that simulator architecture.
+
+The examples preserve data with `clearAppData: false` on Android and `appium:noReset: true` on both platforms. A fresh deterministic test state must come from fixture design or a separately authorized reset, not an implicit data wipe. Building/installing and entering test data still require consent.
+
+An `approval` object represents permission already given by the real user or CI owner. Never manufacture it to bypass a rejection; keep secure mode enabled.
+
+## 5. Inspect Evidence
+
+Set a fresh `MOBILOOP_RUN_ID` for each run when useful. Evidence lives under `.mobiloop/runs/<runId>/`, otherwise under `.mobiloop/`. Inspect build logs, assertions, screenshots, page source, platform logs, iteration records, and the final Markdown report.
+
+Generated scenarios and static source findings are not executed device tests. Reports must distinguish passing, failing, blocked, and unexecuted checks. Keep screenshots/logs private unless sharing is explicitly authorized; text redaction does not remove personal data from screenshots.

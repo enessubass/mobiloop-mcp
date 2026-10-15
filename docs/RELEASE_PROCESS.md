@@ -22,7 +22,7 @@ Use SemVer:
 10. Confirm CI and GitHub Pages deployment.
 11. Create a Git tag.
 12. Confirm GHCR and MCP Registry publish.
-13. Create a GitHub pre-release with the matching release notes.
+13. Confirm the pipeline's GitHub pre-release, package tarball, skill ZIP, and SHA-256 checksums.
 14. Smoke test the pulled image.
 
 ## Current Publishing
@@ -40,7 +40,7 @@ ghcr.io/enessubass/mobiloop-mcp:<version>
 ghcr.io/enessubass/mobiloop-mcp:v<version>
 ```
 
-The GHCR workflow uploads an SBOM artifact and runs a non-blocking HIGH/CRITICAL Trivy scan. Treat scan findings as release review input during the alpha phase.
+The GHCR workflow uploads an SBOM artifact and runs a blocking HIGH/CRITICAL Trivy scan for fixable vulnerabilities. MCP Registry publication depends on that image job succeeding. Do not bypass failed checks or remove main's required independent review to publish.
 
 NPM publish is not enabled yet.
 

@@ -467,15 +467,7 @@ async function executeReplayAction(
         ["sendKeys", "setValue", "adbKeyboard"] as const,
         "sendKeys"
       );
-      const element = await client.findElement(sessionId, locator);
-      if (clearFirst) await client.clearElement(sessionId, element);
-      if (mode === "setValue") {
-        await client.setElementValue(sessionId, element, text);
-      } else if (mode === "adbKeyboard") {
-        await client.adbInputText(sessionId, element, text);
-      } else {
-        await client.typeText(sessionId, element, text);
-      }
+      await client.fillText(sessionId, locator, text, { clearFirst, mode });
       return;
     }
     case "appium.swipe": {
@@ -604,15 +596,7 @@ async function executeScriptStep(
         ["sendKeys", "setValue", "adbKeyboard"] as const,
         "sendKeys"
       );
-      const element = await client.findElement(sessionId, locator);
-      if (clearFirst) await client.clearElement(sessionId, element);
-      if (mode === "setValue") {
-        await client.setElementValue(sessionId, element, text);
-      } else if (mode === "adbKeyboard") {
-        await client.adbInputText(sessionId, element, text);
-      } else {
-        await client.typeText(sessionId, element, text);
-      }
+      await client.fillText(sessionId, locator, text, { clearFirst, mode });
       return { action: "type", locator: locator as never, clearFirst, mode };
     }
     case "assertText": {

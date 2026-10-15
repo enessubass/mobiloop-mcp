@@ -5,10 +5,16 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 FROM deps AS build
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends git \
+  && rm -rf /var/lib/apt/lists/*
 COPY tsconfig.json ./
 COPY src ./src
 COPY test ./test
 COPY schema ./schema
+COPY skills ./skills
+COPY scripts/run-tests.mjs ./scripts/run-tests.mjs
+COPY examples/android-validation-loop.json examples/flutter-ios-validation-loop.json ./examples/
 RUN npm test
 RUN npm prune --omit=dev
 
@@ -33,6 +39,7 @@ COPY --chown=mobiloop:mobiloop package.json README.md SECURITY.md LICENSE CHANGE
 COPY --chown=mobiloop:mobiloop docs ./docs
 COPY --chown=mobiloop:mobiloop examples ./examples
 COPY --chown=mobiloop:mobiloop schema ./schema
+COPY --chown=mobiloop:mobiloop skills ./skills
 
 VOLUME ["/workspace"]
 ENV MOBILOOP_WORKSPACE_ROOT=/workspace

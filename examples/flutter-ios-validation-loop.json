@@ -26,7 +26,9 @@
     "appium:automationName": "XCUITest",
     "appium:deviceName": "iPhone 15",
     "appium:bundleId": "com.example.app",
-    "appium:noReset": false
+    "appium:noReset": true,
+    "appium:forceAppLaunch": true,
+    "appium:shouldTerminateApp": true
   },
   "appiumSteps": [
     {
@@ -35,7 +37,32 @@
         "locator": { "strategy": "text", "value": "Login" },
         "timeoutMs": 15000
       }
+    },
+    {
+      "tool": "appium.type_text",
+      "args": {
+        "locator": { "strategy": "accessibility id", "value": "email" },
+        "text": "fixture@example.invalid",
+        "mode": "sendKeys"
+      }
+    },
+    {
+      "tool": "appium.type_text",
+      "args": {
+        "locator": { "strategy": "accessibility id", "value": "password" },
+        "text": "synthetic123",
+        "mode": "sendKeys"
+      }
+    },
+    {
+      "tool": "appium.tap_by_text",
+      "args": { "text": "Login", "matchMode": "exact" }
     }
   ],
-  "expectedTexts": ["Home"]
+  "expectedTexts": ["Home"],
+  "approval": {
+    "approved": true,
+    "approvedBy": "project-owner",
+    "reason": "Build, install and test only the selected simulator demo with synthetic test data"
+  }
 }

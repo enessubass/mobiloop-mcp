@@ -2,7 +2,7 @@
 
 Guarded MCP servers for agentic mobile build-test-fix loops.
 
-[Documentation site](https://enessubass.github.io/mobiloop-mcp/) | [Security model](docs/SECURITY.md) | [Tool reference](docs/TOOL_REFERENCE.md)
+[Documentation site](https://enessubass.github.io/mobiloop-mcp/) | [Installation](docs/INSTALLATION.md) | [Security model](docs/SECURITY.md) | [Tool reference](docs/TOOL_REFERENCE.md)
 
 ```text
 code change -> build -> install on device -> Appium test -> evidence -> classify -> report
@@ -31,6 +31,7 @@ Today, MobiLoop provides guarded build-test-verify loops and evidence-based fail
 - **Guarded code tools**: workspace-only reads/searches/patches, forbidden secret paths, guarded branches, commits, and PR creation.
 - **Docker-ready MCP runtime**: package the Node MCP server in Docker while keeping mobile SDKs, emulators, devices, and Appium on the host or runner.
 - **Composable binaries**: run everything as one server or split each responsibility into its own MCP server.
+- **Portable mobile QA skill**: an MIT-licensed [agent skill](docs/SKILLS.md) for planning tests, collecting evidence, and running bounded fix-and-retest workflows with the existing tools.
 
 ## What This Is
 
@@ -72,14 +73,14 @@ The server does not claim that a test passed because a model says so. A pass sho
 
 Install only what your target app needs.
 
-| Workflow             | Host                  | Required tools                                                                                        |
-| -------------------- | --------------------- | ----------------------------------------------------------------------------------------------------- |
-| MCP runtime          | macOS, Linux, Windows | Node.js 20+                                                                                           |
-| Android build/test   | macOS, Linux, Windows | Android SDK, `adb`, emulator or physical device, Java/Gradle as needed, Appium 2, UiAutomator2 driver |
-| Flutter Android      | macOS, Linux, Windows | Flutter SDK, Android SDK, Appium for UI flows                                                         |
-| React Native Android | macOS, Linux, Windows | Node/npm, Android Gradle toolchain, Android SDK, Appium                                               |
-| iOS simulator        | macOS only            | Xcode, `xcrun simctl`, iOS Simulator, Appium 2, XCUITest driver                                       |
-| Docker MCP runtime   | macOS, Linux, Windows | Docker, plus host-side mobile tools when driving devices                                              |
+| Workflow             | Host                  | Required tools                                                                                                 |
+| -------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------- |
+| MCP runtime          | macOS, Linux, Windows | Node.js 20+                                                                                                    |
+| Android build/test   | macOS, Linux, Windows | Android SDK, `adb`, emulator or physical device, Java/Gradle as needed, Appium, compatible UiAutomator2 driver |
+| Flutter Android      | macOS, Linux, Windows | Flutter SDK, Android SDK, Appium for UI flows                                                                  |
+| React Native Android | macOS, Linux, Windows | Node/npm, Android Gradle toolchain, Android SDK, Appium                                                        |
+| iOS simulator        | macOS only            | Xcode, `xcrun simctl`, iOS Simulator, Appium, compatible XCUITest driver                                       |
+| Docker MCP runtime   | macOS, Linux, Windows | Docker, plus host-side mobile tools when driving devices                                                       |
 
 Start Appium before Appium or flow replay tools:
 
@@ -115,6 +116,15 @@ adb devices -l
 npm ci
 npm test
 ```
+
+Configure project-local MCP and the bundled skill, then diagnose the host:
+
+```bash
+node dist/src/cli.js setup --workspace /absolute/path/to/mobile/app --client codex --yes
+node dist/src/cli.js doctor --workspace /absolute/path/to/mobile/app --target android
+```
+
+Clients: `codex`, `claude`, `cursor`, `vscode`, `generic`. Use `--dry-run` to preview. Setup preserves other servers, backs up changed files, and does not install SDKs or modify app data. See [installation](docs/INSTALLATION.md) for Windows, upgrades, and prerequisites. NPM registry publication is not enabled; these commands use the built checkout.
 
 Run the all-in-one MCP server:
 
@@ -424,7 +434,7 @@ Minimal shape:
   "runLint": true,
   "runUnitTests": true,
   "buildDebugApk": true,
-  "clearAppData": true,
+  "clearAppData": false,
   "collectEvidence": true,
   "maxTestIterations": 3,
   "appiumCapabilities": {
@@ -434,7 +444,7 @@ Minimal shape:
     "appium:udid": "emulator-5554",
     "appium:appPackage": "com.example.app",
     "appium:appActivity": ".MainActivity",
-    "appium:noReset": false
+    "appium:noReset": true
   },
   "appiumSteps": [
     {
@@ -445,11 +455,16 @@ Minimal shape:
       }
     }
   ],
-  "expectedTexts": ["Home"]
+  "expectedTexts": ["Home"],
+  "approval": {
+    "approved": true,
+    "approvedBy": "project-owner",
+    "reason": "Build, install and test the selected test app using authorized synthetic data"
+  }
 }
 ```
 
-See [examples/android-validation-loop.json](examples/android-validation-loop.json).
+The minimal shape is not a complete login scenario. Adapt the full [Android example](examples/android-validation-loop.json) with actual locators, form actions, and outcome assertions. Approval payloads represent real permission; app resets require separate authorization.
 
 ## iOS Orchestrator
 
@@ -485,7 +500,7 @@ Minimal Flutter shape:
     "appium:automationName": "XCUITest",
     "appium:deviceName": "iPhone 15",
     "appium:bundleId": "com.example.app",
-    "appium:noReset": false
+    "appium:noReset": true
   },
   "appiumSteps": [
     {
@@ -496,7 +511,12 @@ Minimal Flutter shape:
       }
     }
   ],
-  "expectedTexts": ["Home"]
+  "expectedTexts": ["Home"],
+  "approval": {
+    "approved": true,
+    "approvedBy": "project-owner",
+    "reason": "Build, install and test only the selected simulator demo"
+  }
 }
 ```
 
@@ -965,6 +985,7 @@ The Dockerfile also runs the test suite during image build.
 - [docs/releases/v0.1.0-alpha.10.md](docs/releases/v0.1.0-alpha.10.md)
 - [docs/releases/v0.1.0-alpha.11.md](docs/releases/v0.1.0-alpha.11.md)
 - [docs/releases/v0.1.0-alpha.14.md](docs/releases/v0.1.0-alpha.14.md)
+- [docs/releases/v0.1.0-alpha.15.md](docs/releases/v0.1.0-alpha.15.md)
 - [docs/releases/v0.1.0-alpha.13.md](docs/releases/v0.1.0-alpha.13.md)
 - [docs/releases/v0.1.0-alpha.12.md](docs/releases/v0.1.0-alpha.12.md)
 - [.github/workflows/android-fixture-e2e.yml](.github/workflows/android-fixture-e2e.yml)

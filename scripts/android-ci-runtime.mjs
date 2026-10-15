@@ -6,7 +6,7 @@ export function selectAndroidRuntime(platform, acceleratorStatus) {
       platform === "linux"
         ? "system-images;android-35;google_apis;x86_64"
         : accelerated
-          ? "system-images;android-30;google_apis;x86_64"
+          ? "system-images;android-30;default;x86_64"
           : "system-images;android-28;default;x86",
     acceleration: accelerated ? "on" : "off"
   };

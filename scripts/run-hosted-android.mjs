@@ -159,7 +159,7 @@ try {
       "--port",
       "4725",
       "--log-level",
-      "warn"
+      win ? "debug" : "warn"
     ],
     "appium"
   );

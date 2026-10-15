@@ -17,9 +17,9 @@ test("guest readiness requires core packages and the unlocked system user", () =
   assert.equal(hasReadyAndroidServices(packages, unlocked.replace("0:Owner", "10:Guest")), false);
 });
 
-test("Windows uses hardware acceleration when its probe succeeds", () => {
+test("Windows uses accelerated AOSP without unrelated Google background services", () => {
   assert.deepEqual(selectAndroidRuntime("win32", 0), {
-    systemImage: "system-images;android-30;google_apis;x86_64",
+    systemImage: "system-images;android-30;default;x86_64",
     acceleration: "on"
   });
 });

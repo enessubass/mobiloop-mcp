@@ -57,7 +57,7 @@ MOBILOOP_ANDROID_AVD_NAME=Pixel_7_API_35
 
 ## Release
 
-GHCR publish is manual or tag-triggered through `.github/workflows/publish-ghcr.yml`. The image job has only package-publishing permissions, pins each action to an immutable commit, emits an SBOM artifact, and fails on fixed HIGH/CRITICAL Trivy findings. The MCP Registry job is separate, has only OIDC and read permissions, and verifies the pinned publisher archive with SHA-256 before execution.
+GHCR publish is manual or tag-triggered through `.github/workflows/publish-ghcr.yml`. The image job has only package-publishing permissions, pins each action to an immutable commit, and rejects fixable HIGH/CRITICAL Trivy findings before publishing. It pushes the scanned local candidate without rebuilding, selects the matching registry digest, and emits an SBOM artifact. The MCP Registry job is separate, has only OIDC and read permissions, and verifies the pinned publisher archive with SHA-256 before execution.
 
 ## Documentation Site
 

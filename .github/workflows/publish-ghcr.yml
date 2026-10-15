@@ -41,19 +41,49 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=sha,prefix=sha-
 
-      - name: Build and push
+      - name: Build candidate
         id: build
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
           context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          load: true
+          push: false
+          tags: mobiloop-mcp:release-candidate
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Scan candidate before publication
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: mobiloop-mcp:release-candidate
+          vuln-type: os,library
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          format: table
+          exit-code: "1"
+
+      - name: Push scanned image
+        id: publish
+        env:
+          IMAGE_TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          first_tag=""
+          while IFS= read -r tag; do
+            test -n "$tag" || continue
+            test -n "$first_tag" || first_tag="$tag"
+            docker tag mobiloop-mcp:release-candidate "$tag"
+            docker push "$tag"
+          done <<< "$IMAGE_TAGS"
+          test -n "$first_tag"
+          digest="$(docker image inspect --format '{{json .RepoDigests}}' "$first_tag" |
+            jq -er --arg repository "$IMAGE_NAME" \
+              'map(select(startswith($repository + "@sha256:"))) | first | split("@")[1]')"
+          [[ "$digest" =~ ^sha256:[a-f0-9]{64}$ ]]
+          printf 'digest=%s\n' "$digest" >> "$GITHUB_OUTPUT"
 
       - name: Generate SBOM
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
         with:
-          image: ${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
+          image: ${{ env.IMAGE_NAME }}@${{ steps.publish.outputs.digest }}
           format: spdx-json
           output-file: mobiloop-mcp.spdx.json
           upload-release-assets: false
@@ -64,16 +94,6 @@ jobs:
           name: mobiloop-mcp-sbom
           path: mobiloop-mcp.spdx.json
           if-no-files-found: error
-
-      - name: Scan image
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
-        with:
-          image-ref: ${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
-          vuln-type: os,library
-          severity: HIGH,CRITICAL
-          ignore-unfixed: true
-          format: table
-          exit-code: "1"
 
   publish-registry:
     name: Publish MCP Registry Entry

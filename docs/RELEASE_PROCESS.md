@@ -40,7 +40,7 @@ ghcr.io/enessubass/mobiloop-mcp:<version>
 ghcr.io/enessubass/mobiloop-mcp:v<version>
 ```
 
-The GHCR workflow uploads an SBOM artifact and runs a blocking HIGH/CRITICAL Trivy scan for fixable vulnerabilities. MCP Registry publication depends on that image job succeeding. Do not bypass failed checks or remove main's required independent review to publish.
+The GHCR workflow first builds and loads a local candidate, then runs a blocking HIGH/CRITICAL Trivy scan for fixable vulnerabilities before any image push. It publishes that same local image without rebuilding, selects its repository-specific digest, and uploads an SBOM artifact. MCP Registry publication depends on that image job succeeding. Do not bypass failed checks or remove main's required independent review to publish.
 
 NPM publish is not enabled yet.
 

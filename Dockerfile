@@ -1,4 +1,15 @@
-FROM node:26-bookworm-slim AS deps
+FROM node:26-bookworm-slim AS node-base
+
+# Patch the npm CLI bundled by the base image; keep npm available for mobile project tools.
+# Its published manifest retains monorepo-only dev entries, so patch the production graph only.
+RUN npm install --global npm@12.2.0 --ignore-scripts --no-audit --fund=false \
+  && npm --prefix /usr/local/lib/node_modules/npm --workspaces=false pkg delete devDependencies workspaces \
+  && npm install --prefix /usr/local/lib/node_modules/npm --no-save --ignore-scripts \
+    --omit=dev --workspaces=false --package-lock=false --no-audit --fund=false \
+    brace-expansion@5.0.11 undici@6.28.1 \
+  && npm cache clean --force
+
+FROM node-base AS deps
 
 WORKDIR /app
 COPY package.json package-lock.json ./
@@ -13,12 +24,13 @@ COPY src ./src
 COPY test ./test
 COPY schema ./schema
 COPY skills ./skills
-COPY scripts/run-tests.mjs ./scripts/run-tests.mjs
+COPY scripts/run-tests.mjs scripts/android-ci-runtime.mjs ./scripts/
+COPY .github/workflows/publish-ghcr.yml ./.github/workflows/publish-ghcr.yml
 COPY examples/android-validation-loop.json examples/flutter-ios-validation-loop.json ./examples/
 RUN npm test
 RUN npm prune --omit=dev
 
-FROM node:26-bookworm-slim AS runtime
+FROM node-base AS runtime
 
 LABEL io.modelcontextprotocol.server.name="io.github.enessubass/mobiloop-mcp"
 

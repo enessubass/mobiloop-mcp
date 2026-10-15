@@ -10,6 +10,8 @@
 - Replaced the deprecated Appium session-health metadata probe with an active page-source check.
 - Added explicit verified keyboard dismissal and made observation readiness timeouts fail instead of silently continuing dependent actions.
 - Isolated hosted AVD state, bounded individual test-file lifetimes, and fixed Windows MCP teardown order and fixture Git line endings.
+- Moved the blocking container vulnerability scan before GHCR publication and push the scanned local image without rebuilding it.
+- Pinned the container's npm CLI to 12.2.0 and patched its bundled brace-expansion/undici dependencies to compatible fixed versions while preserving mobile-project npm commands.
 - Added the MIT-licensed `mobiloop-mobile-qa` agent skill, installation guidance, and npm/Docker packaging without a marketplace dependency.
 - Made Android and iOS orchestrators reject failed Appium assertions and visibility waits instead of reporting a successful validation.
 - Preserved Android setup failures as structured iteration reports and numeric HTTP assertion failures as failed checks.

@@ -2,8 +2,10 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import spawn from "cross-spawn";
+import { selectAndroidRuntime } from "./android-ci-runtime.mjs";
 
 if (process.env.CI !== "true") throw new Error("Use only on disposable CI VMs");
+let selected = selectAndroidRuntime(process.platform, undefined);
 const repo = fileURLToPath(new URL("../", import.meta.url));
 const sdk = process.env.ANDROID_HOME ?? process.env.ANDROID_SDK_ROOT;
 if (!sdk) throw new Error("Android SDK is required");
@@ -27,12 +29,7 @@ function run(command, args, options = {}) {
   if (result.status !== 0) throw new Error(`${command} exited ${result.status}`);
 }
 // Reuse the hosted runner's emulator rather than downloading an unrelated newer revision.
-const packages = [
-  "platform-tools",
-  "platforms;android-35",
-  "build-tools;35.0.0",
-  "system-images;android-35;google_apis;x86_64"
-];
+const packages = ["platform-tools", "platforms;android-35", "build-tools;35.0.0"];
 try {
   await fs.access(
     path.join(sdk, "emulator", `emulator${process.platform === "win32" ? ".exe" : ""}`)
@@ -41,18 +38,28 @@ try {
   packages.push("emulator");
 }
 run(sdkTool("sdkmanager"), packages);
-run(
-  sdkTool("avdmanager"),
-  [
-    "create",
-    "avd",
-    "--name",
-    "Mobiloop_CI",
-    "--package",
-    "system-images;android-35;google_apis;x86_64"
-  ],
-  { stdio: ["pipe", "inherit", "inherit"], input: "no\n" }
-);
+const win = process.platform === "win32";
+const check = win
+  ? spawn.sync(path.join(sdk, "emulator", "emulator.exe"), ["-accel-check"], {
+      encoding: "utf8",
+      timeout: 10_000
+    })
+  : undefined;
+if (win) selected = selectAndroidRuntime(process.platform, check?.status);
+const { systemImage } = selected;
+const runtime = {
+  ...selected,
+  diagnostic: check
+    ? `${check.stdout ?? ""}${check.stderr ?? ""}`
+    : "Linux KVM is enabled by the next workflow step"
+};
+console.log(JSON.stringify(runtime));
+await fs.writeFile(path.join(avdHome, "runtime.json"), JSON.stringify(runtime, null, 2));
+run(sdkTool("sdkmanager"), [systemImage]);
+run(sdkTool("avdmanager"), ["create", "avd", "--name", "Mobiloop_CI", "--package", systemImage], {
+  stdio: ["pipe", "inherit", "inherit"],
+  input: "no\n"
+});
 await fs.access(path.join(avdHome, "Mobiloop_CI.ini"));
 run(
   process.execPath,

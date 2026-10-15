@@ -4,7 +4,7 @@ Candidate: `0.1.0-alpha.15`, reviewed through [PR 25](https://github.com/enessub
 
 ## Local Results
 
-- Automated suite: 116 tests, 115 passed and one Windows-only batch-command test skipped on macOS. Windows must execute that test in CI before Windows compatibility is claimed.
+- Automated suite: 122 tests, 121 passed and one Windows-only batch-command test skipped on macOS. Earlier Windows CI executed all 116 tests present at that revision; the six additional release/runtime-selection checks require the current-head CI run.
 - Clean package installation passed from a temporary directory with spaces, including the actual installed launcher, project-local setup, a second idempotent setup, doctor, 83-tool MCP discovery, and rejection of an unapproved patch.
 - Setup tests cover all five output formats, preserving other settings, TOML comments on append, exact private backups, dry runs, intentional replacement, malformed input, unsafe endpoints, and symlink/junction destinations. This is not independent behavioral evaluation of every client/model.
 - Kotlin Android, Flutter Android, React Native Android, and Flutter iOS each passed invalid-email, short-password, and successful-navigation assertions: 12/12 UI scenarios. Four intentionally wrong visibility expectations were correctly rejected. All created Appium sessions were deleted.
@@ -37,6 +37,10 @@ The native launcher retains an exported-component review signal. The generated R
 
 The root dependency audit and Docker production audit reported zero known vulnerabilities. Two small local runtime dependencies were added for structured TOML preservation and Windows command-shim escaping; no marketplace service or model backend was introduced. SDK/framework fixture dependencies have their own lifecycle and are not covered by that root-runtime audit claim.
 
+A full-image Trivy check separately found three fixable HIGH advisories in the base image's bundled npm, outside the app dependency audit. Pinning npm 12.2.0 alone retained the affected dependencies. The container now installs compatible brace-expansion 5.0.11 and undici 6.28.1 patches in npm's production graph. Three bounded brace-pattern controls no longer throw, ordinary expansion still works, and the repeat full-image fixable HIGH/CRITICAL gate returns zero findings. A real approved MobiLoop `build.install_dependencies` call ran `npm ci` successfully on an isolated zero-dependency container fixture. This is not a claim that all severities or every possible exploit were tested.
+
+The release workflow now scans before pushing and tags/pushes that same candidate without rebuilding. Its exact shell step was exercised against a disposable localhost registry: two tags and the emitted repository-specific digest all identified the scanned image. No GHCR or public release was published by that local test.
+
 ## External Validation And Publication
 
 Linux/macOS package tests and Docker initially passed their runtime tests but CI caught stale registry version metadata in the first PR commit. That is a release-blocking failure, not a green run. The hosted Android setup also exposed a retired SDK `tools` default; its configuration now selects only supported platform-tools before explicit emulator packages.
@@ -46,5 +50,7 @@ Windows diagnostics subsequently identified MCP cleanup ordering (a live server 
 [CI run 38774218711](https://github.com/enessubass/mobiloop-mcp/actions/runs/38774218711) passed at runtime commit `8e5911d`: Ubuntu Node 20/26, macOS Node 22, Windows Node 22, Docker, and aggregate Validate. This includes 116/116 tests on Windows (the Windows-specific shim test ran), applicable tests on the other hosts, and clean package installation/first use on every package matrix entry. Native hosted-emulator validation is separate and is not implied by these package checks.
 
 Hosted Linux run `38774218758` booted its emulator, built/installed the fixture, and correctly failed the invalid-input scenario: screenshots showed the small default display's visible keyboard covered the submit button. A semantic click hit the obscuring keyboard instead. The hosted harness now explicitly dismisses and verifies the visible keyboard before the single submit tap. That change requires a fresh emulator run; the earlier failure is retained as evidence, not relabeled as an app bug or a pass.
+
+[Hosted run 38775303816](https://github.com/enessubass/mobiloop-mcp/actions/runs/38775303816) subsequently passed the Ubuntu API 35 emulator: source build/install, passing preflight, all three UI assertions, crash/session checks, the rejected negative control, and session cleanup. Its proof is in `.mobiloop/ci-debug/linux-final-2b5a82e/runs/mobile-qa-device-2026-10-15T17-17-21-976Z/summary.json`. The Windows API 35 software emulator failed boot readiness after 18 minutes, before app testing. Current preparation probes Windows acceleration and uses a lighter API 28 x86 image only when acceleration is unavailable; that fallback is pending execution, not a proven Windows device pass.
 
 Final Windows/Linux package/clean-install and emulator results must be read from the current PR checks and fixture-only workflow artifacts. A workflow file alone does not prove a platform passed. Main retains required checks, strict freshness, and one independent approval; neither approval enforcement nor branch protection was disabled to publish. The tag, GHCR/Registry publish, and downloadable release assets must wait for the protected-main review and successful checks.

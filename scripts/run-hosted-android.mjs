@@ -16,6 +16,12 @@ const adb = path.join(sdk, "platform-tools", executable("adb"));
 const emulator = path.join(sdk, "emulator", executable("emulator"));
 const logs = path.join(repo, ".mobiloop", "hosted-android");
 await fs.mkdir(logs, { recursive: true });
+const runtime = JSON.parse(
+  await fs.readFile(path.join(repo, ".mobiloop", "ci-avd", "runtime.json"), "utf8")
+);
+if (!["on", "off"].includes(runtime.acceleration)) throw new Error("Invalid CI acceleration mode");
+await fs.writeFile(path.join(logs, "runtime.json"), JSON.stringify(runtime, null, 2));
+console.log(`Android CI runtime: ${runtime.systemImage}; acceleration=${runtime.acceleration}`);
 const env = {
   ...process.env,
   ANDROID_AVD_HOME: path.join(repo, ".mobiloop", "ci-avd"),
@@ -82,14 +88,16 @@ try {
       "-no-audio",
       "-no-boot-anim",
       "-no-snapshot",
+      "-feature",
+      "-Vulkan",
       "-gpu",
       "swiftshader_indirect",
       "-accel",
-      win ? "off" : "on",
+      runtime.acceleration,
       "-memory",
-      "2048",
+      runtime.acceleration === "off" ? "1536" : "2048",
       "-cores",
-      "2"
+      runtime.acceleration === "off" ? "1" : "2"
     ],
     "emulator"
   );

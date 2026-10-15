@@ -3,6 +3,7 @@ import { openSync, closeSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import spawn from "cross-spawn";
+import { hasReadyAndroidServices } from "./android-ci-runtime.mjs";
 
 if (process.env.CI !== "true")
   throw new Error("This runner is only for disposable CI VMs, never user devices");
@@ -95,7 +96,8 @@ function packageReadiness() {
         ],
         20_000
       );
-      successes = /^package:android\s/m.test(packages) ? successes + 1 : 0;
+      const users = run(adb, ["-s", env.MOBILOOP_TEST_DEVICE, "shell", "dumpsys", "user"], 20_000);
+      successes = hasReadyAndroidServices(packages, users) ? successes + 1 : 0;
     } catch {
       successes = 0;
     }
@@ -145,8 +147,7 @@ try {
     win ? 18 * 60_000 : 8 * 60_000,
     "Android emulator"
   );
-  run(adb, ["-s", env.MOBILOOP_TEST_DEVICE, "shell", "input", "keyevent", "82"]);
-  console.log(`Android emulator ready on ${process.platform}`);
+  console.log(`Android kernel boot complete on ${process.platform}`);
   await waitUntil(vm, packageReadiness(), 180_000, "Android package manager before driver startup");
   console.log("Android package manager stable before driver startup");
   const appium = start(

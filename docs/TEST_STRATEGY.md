@@ -50,7 +50,7 @@ The fixture runner requires successful Android preflight. Hosted emulators opt i
 
 Hosted Windows also sets `MOBILOOP_TEST_SLOW_HOST=1`: UiAutomator2 launch/install and ADB deadlines are 120/180/60 seconds, and MCP calls have a five-minute ceiling. Normal local/Linux budgets stay unchanged. Assertions and scenario expectations are not relaxed. Failed hosted runs retain bounded ADB/logcat/instrumentation diagnostics before stopping only their own processes.
 
-Boot completion alone does not establish package-manager readiness. Before driver startup and again after installing the fixture, the hosted runner requires three consecutive successful read-only package/version queries within a three-minute bound. A failed probe resets that sequence; it does not trigger a repeated tap or bypass a UI assertion.
+Boot completion alone does not establish guest readiness. Before driver startup and again after installing the fixture, the hosted runner requires three consecutive successful read-only package/version queries and a `RUNNING_UNLOCKED` system-user state within a three-minute bound. A failed probe resets that sequence. No raw unlock key is sent during early boot; Appium handles device unlock after readiness. Probes do not trigger repeated taps or bypass UI assertions.
 
 ## Security Validation
 

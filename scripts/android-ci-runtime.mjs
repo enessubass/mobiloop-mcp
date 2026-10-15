@@ -11,3 +11,12 @@ export function selectAndroidRuntime(platform, acceleratorStatus) {
     acceleration: accelerated ? "on" : "off"
   };
 }
+
+export function hasReadyAndroidServices(packages, users) {
+  const systemUser = users.split("UserInfo{").find((section) => section.startsWith("0:"));
+  return (
+    /^package:android\s/m.test(packages) &&
+    !!systemUser &&
+    /^\s*State:[ \t]*RUNNING_UNLOCKED[ \t]*\r?$/m.test(systemUser)
+  );
+}

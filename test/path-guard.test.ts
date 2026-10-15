@@ -58,24 +58,37 @@ test("resolveWorkspacePath blocks root files matched by double-star globs", () =
   assert.throws(() => resolveWorkspacePath(config, "my-secret.txt"), /forbiddenPathGlobs/);
 });
 
-test("resolveWorkspacePath blocks symbolic links that resolve outside the workspace", async (t) => {
-  if (process.platform === "win32") {
-    t.skip("symbolic-link permissions differ on Windows");
-    return;
-  }
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), "mobiloop-path-guard-"));
-  const outside = path.join(root, "..", "outside.txt");
-  await fs.writeFile(outside, "outside", "utf8");
-  await fs.symlink(outside, path.join(root, "outside-link"));
+test("resolveWorkspacePath blocks directory links and Windows junction escapes", async (t) => {
+  const base = await fs.mkdtemp(path.join(os.tmpdir(), "mobiloop-path-guard-"));
+  t.after(() => fs.rm(base, { recursive: true, force: true }));
+  const root = path.join(base, "workspace");
+  const outside = path.join(base, "outside");
+  await fs.mkdir(root);
+  await fs.mkdir(outside);
+  await fs.writeFile(path.join(outside, "outside.txt"), "outside", "utf8");
+  await fs.symlink(
+    outside,
+    path.join(root, "outside-link"),
+    process.platform === "win32" ? "junction" : "dir"
+  );
   const isolatedConfig = {
     ...config,
     workspaceRoot: root,
     artifactsDir: path.join(root, ".mobiloop")
   };
-  assert.throws(
-    () => resolveWorkspacePath(isolatedConfig, "outside-link"),
-    /escapes workspaceRoot through a symbolic link/
-  );
+  for (const target of ["outside-link", "outside-link/outside.txt", "outside-link/new.txt"]) {
+    assert.throws(
+      () => resolveWorkspacePath(isolatedConfig, target),
+      /escapes workspaceRoot through a symbolic link/
+    );
+  }
+  if (process.platform !== "win32") {
+    await fs.symlink(path.join(outside, "outside.txt"), path.join(root, "outside-file"));
+    assert.throws(
+      () => resolveWorkspacePath(isolatedConfig, "outside-file"),
+      /through a symbolic link/
+    );
+  }
 });
 
 test("resolveWorkspacePathAllowArtifacts permits only the workspace or artifact root", async () => {

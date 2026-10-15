@@ -31,6 +31,7 @@ const env = {
   MOBILOOP_TEST_DEVICE: "emulator-5554",
   MOBILOOP_TEST_FIXTURES: "android-kotlin-login-demo",
   MOBILOOP_TEST_DISMISS_KEYBOARD: "1",
+  MOBILOOP_TEST_SLOW_HOST: win ? "1" : "0",
   APPIUM_SERVER_URL: "http://127.0.0.1:4725",
   MOBILOOP_WORKSPACE_ROOT: path.join(
     repo,
@@ -184,6 +185,25 @@ try {
     tests.on("close", resolve);
   });
   if (code !== 0) throw new Error(`Device suite exited ${code}`);
+} catch (error) {
+  for (const [label, args] of [
+    ["device-state", ["get-state"]],
+    ["logcat-failure", ["logcat", "-d", "-t", "2000"]],
+    ["uiautomator-package", ["shell", "dumpsys", "package", "io.appium.uiautomator2.server"]]
+  ]) {
+    const diagnostic = spawnSync(adb, ["-s", env.MOBILOOP_TEST_DEVICE, ...args], {
+      cwd: repo,
+      env,
+      encoding: "utf8",
+      timeout: 15_000,
+      maxBuffer: 2 * 1024 * 1024
+    });
+    await fs.writeFile(
+      path.join(logs, `${label}.log`),
+      `${diagnostic.stdout ?? ""}\n${diagnostic.stderr ?? ""}\n${diagnostic.error?.message ?? ""}`
+    );
+  }
+  throw error;
 } finally {
   for (const child of children.reverse()) {
     if (child.exitCode !== null || !child.pid) continue;

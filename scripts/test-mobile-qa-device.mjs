@@ -12,6 +12,7 @@ if (!serial)
   throw new Error("Set MOBILOOP_TEST_DEVICE to the intended Android test device serial.");
 const serverUrl = process.env.APPIUM_SERVER_URL ?? "http://127.0.0.1:4723";
 const dismissKeyboard = process.env.MOBILOOP_TEST_DISMISS_KEYBOARD === "1";
+const slowHost = process.env.MOBILOOP_TEST_SLOW_HOST === "1";
 const runId = `mobile-qa-device-${new Date().toISOString().replace(/[:.]/g, "-")}`;
 const artifacts = path.join(repo, ".mobiloop");
 const summaryPath = path.join(artifacts, "runs", runId, "summary.json");
@@ -109,7 +110,14 @@ try {
         "appium:appActivity": ".MainActivity",
         "appium:noReset": true,
         "appium:forceAppLaunch": true,
-        "appium:shouldTerminateApp": true
+        "appium:shouldTerminateApp": true,
+        ...(slowHost
+          ? {
+              "appium:uiautomator2ServerLaunchTimeout": 120_000,
+              "appium:uiautomator2ServerInstallTimeout": 180_000,
+              "appium:adbExecTimeout": 60_000
+            }
+          : {})
       };
       const fixtureResult = {
         fixture: fixture.name,
@@ -265,7 +273,9 @@ try {
 
 async function call(client, name, args = {}) {
   const response = CallToolResultSchema.parse(
-    await client.callTool({ name, arguments: args }, undefined, { timeout: 120000 })
+    await client.callTool({ name, arguments: args }, undefined, {
+      timeout: slowHost ? 300_000 : 120_000
+    })
   );
   assert.notEqual(response.isError, true, JSON.stringify(response));
   return JSON.parse(

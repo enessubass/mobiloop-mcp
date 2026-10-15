@@ -22,6 +22,8 @@ for (const client of ["codex", "claude", "cursor", "vscode", "generic"] as const
     assert.equal(server.command, process.execPath);
     assert.equal(server.env.MOBILOOP_WORKSPACE_ROOT, root);
     assert.equal(server.env.MOBILOOP_SECURITY_MODE, "secure");
+    if (client === "codex") assert.equal(server.tool_timeout_sec, 1800);
+    else assert.equal("tool_timeout_sec" in server, false);
     assert.ok(path.isAbsolute(server.args[0]));
     assert.match(
       await fs.readFile(path.join(first.skillDir, "SKILL.md"), "utf8"),

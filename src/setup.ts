@@ -56,7 +56,8 @@ export async function setupProject(options: SetupOptions) {
   const server = {
     command: process.execPath,
     args: [fileURLToPath(new URL("./index.js", import.meta.url))],
-    env
+    env,
+    ...(options.client === "codex" ? { tool_timeout_sec: 1800 } : {})
   };
   const configRelative = {
     codex: ".codex/config.toml",

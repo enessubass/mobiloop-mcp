@@ -4,6 +4,7 @@
 
 - Added project-local `mobiloop setup` for Codex, Claude Code, Cursor, VS Code/Copilot, and generic MCP configurations, with bundled skill installation, previews, backups, conflict/symlink guards, and idempotency.
 - Added a read-only `mobiloop doctor` with actionable missing-tool diagnostics and a portable `call --file` input option.
+- Configured a bounded 30-minute Codex tool deadline for first mobile builds without changing approvals or shared run budgets; other client schemas remain unchanged.
 - Fixed Windows command-shim execution using cross-spawn, removed shell-dependent test globs and package-check environment assignments, and added cross-platform package/first-use CI.
 - Added opt-in Ubuntu/Windows hosted Android emulator E2E and React Native fixture scenario execution; physical-device validation remains outside this release scope.
 - Made login examples preserve app data and carry actual authorization context, and replaced the incomplete Flutter quickstart with a complete first-use guide.

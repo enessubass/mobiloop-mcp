@@ -43,7 +43,7 @@ For `generic`, import the fragment into your client's supported location; automa
 
 Setup keeps secure mode and captures only toolchain variables: `PATH`, `JAVA_HOME`, `ANDROID_HOME`, `ANDROID_SDK_ROOT`, `DEVELOPER_DIR`, `APPIUM_HOME`. It copies no API keys or account tokens. Review machine-specific paths before sharing configuration. Setup does not change global client settings, install SDKs/drivers, start servers, modify app source/data, or authorize future tool actions.
 
-Reload the agent and review its MCP trust prompt. Confirm `policy.list_tools` and `build.detect_project` are callable. For long builds, adjust the client's MCP tool-call timeout separately from MobiLoop command limits.
+Reload the agent and review its MCP trust prompt. Confirm `policy.list_tools` and `build.detect_project` are callable. Codex setup writes `tool_timeout_sec = 1800` so first mobile builds and driver startup are not cut off by its default 60-second tool deadline; this is a per-call ceiling, not extra consent or a reset of the skill's shared run budget. See the [official OpenAI MCP configuration](https://learn.chatgpt.com/docs/extend/mcp). Other clients retain their own timeout settings; adjust them for long builds separately from MobiLoop command limits.
 
 ## Preview, Existing Settings, And Upgrades
 

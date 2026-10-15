@@ -4,6 +4,8 @@ import { runCommand } from "../src/utils/shell.js";
 import { createTestConfig } from "./helpers.js";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 
 test("runCommand keeps the tail of long command output", async () => {
   const config = await createTestConfig({ maxOutputBytes: 8 });
@@ -24,6 +26,15 @@ test("runCommand invokes npm without a shell on the current host", async () => {
   const result = await runCommand("npm", ["--version"], { config, cwd: config.workspaceRoot });
   assert.equal(result.exitCode, 0);
   assert.match(result.stdout.trim(), /^\d+\.\d+\.\d+/);
+});
+
+test("a missing executable does not retain the command timeout and keep the CLI alive", async () => {
+  const source = `import { runCommand } from ${JSON.stringify(new URL("../src/utils/shell.js", import.meta.url).href)};
+    try { await runCommand("mobiloop-intentionally-missing-executable", [], { cwd: process.cwd(), config: { maxCommandMs: 60000, maxOutputBytes: 1024, redactArtifacts: false } }); process.exitCode = 2; }
+    catch {}`;
+  await promisify(execFile)(process.execPath, ["--input-type=module", "-e", source], {
+    timeout: 10_000
+  });
 });
 
 test(

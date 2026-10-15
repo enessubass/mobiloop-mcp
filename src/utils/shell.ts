@@ -70,7 +70,10 @@ export async function runCommand(
   }, timeoutMs);
 
   const result = await new Promise<CommandResult>((resolve, reject) => {
-    child.on("error", reject);
+    child.on("error", (error) => {
+      clearTimeout(timeout);
+      reject(error);
+    });
     child.on("close", (exitCode, signal) => {
       clearTimeout(timeout);
       const stdoutBuffer = Buffer.concat(stdoutChunks);

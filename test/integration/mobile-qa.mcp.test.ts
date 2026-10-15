@@ -11,6 +11,9 @@ import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
 import { CallToolResultSchema } from "@modelcontextprotocol/sdk/types.js";
 
 const exec = promisify(execFile);
+const trace = (label: string) => {
+  if (process.env.MOBILOOP_TEST_TRACE) process.stderr.write(`[mobile-qa] ${label}\n`);
+};
 const approval = {
   approved: true,
   approvedBy: "isolated-test-harness",
@@ -22,6 +25,7 @@ test(
   { timeout: 30_000 },
   async (t) => {
     const root = await temporaryWorkspace(t);
+    trace("create Git fixture");
     const before = '<manifest><application android:usesCleartextTraffic="true" /></manifest>\n';
     const after = '<manifest><application android:usesCleartextTraffic="false" /></manifest>\n';
     await fs.writeFile(path.join(root, "AndroidManifest.xml"), before);
@@ -44,6 +48,7 @@ test(
       { cwd: root }
     );
     const client = await connect(t, root);
+    trace("MCP connected");
     assert.ok(
       (await client.listTools()).tools.some((tool) => tool.name === "security.scan_source")
     );
@@ -69,6 +74,7 @@ test(
     assert.equal(await fs.readFile(path.join(root, "AndroidManifest.xml"), "utf8"), before);
 
     const applied = await call(client, "code.apply_patch", { patch, approval });
+    trace("approved patch applied");
     assert.equal(applied.applied, true);
     assert.equal(await fs.readFile(path.join(root, "AndroidManifest.xml"), "utf8"), after);
     const comparison = await call(client, "security.compare_scans", {
@@ -119,6 +125,7 @@ test(
       finalStatus: "passed",
       summary: "Source security retest only; device tests not run."
     });
+    trace("report generated");
     assert.match(
       await fs.readFile(report.reportPath, "utf8"),
       /Source security retest only; device tests not run/
@@ -132,7 +139,9 @@ test(
   async (t) => {
     const root = await temporaryWorkspace(t);
     const client = await connect(t, root, { PATH: path.join(root, "missing-tools") });
+    trace("missing-tool MCP connected");
     const result = await call(client, "env.preflight", { target: "android" });
+    trace("missing-tool preflight returned");
     assert.equal(result.passed, false);
     assert.ok(
       result.requiredFailures.some((check: { name: string }) => check.name === "command:adb")
@@ -164,7 +173,7 @@ async function connect(
       APPIUM_SERVER_URL: "http://127.0.0.1:1",
       ...env
     },
-    stderr: "pipe"
+    stderr: "inherit"
   });
   t.after(() => client.close());
   await client.connect(transport);

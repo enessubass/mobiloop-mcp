@@ -19,3 +19,5 @@ coverage
 examples/mobile-fixtures/*/.dart_tool
 examples/mobile-fixtures/*/build
 examples/mobile-fixtures/*/pubspec.lock
+examples/mobile-fixtures/*/.gradle
+examples/mobile-fixtures/*/app/build

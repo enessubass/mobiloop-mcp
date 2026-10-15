@@ -56,6 +56,8 @@ jobs:
 
       - name: Test
         timeout-minutes: 3
+        env:
+          MOBILOOP_TEST_TRACE: "1"
         run: npm test
 
       - name: Static documentation site check

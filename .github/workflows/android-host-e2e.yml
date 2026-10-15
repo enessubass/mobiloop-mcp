@@ -45,17 +45,11 @@ jobs:
         run: npm ci
       - name: Build MCP
         run: npm run build
-      - name: Prepare emulator packages and isolated AVD
-        shell: bash
-        run: |
-          sdkmanager "platform-tools" "emulator" "platforms;android-35" "build-tools;35.0.0" "system-images;android-35;google_apis;x86_64"
-          echo no | avdmanager create avd --name Mobiloop_CI --package "system-images;android-35;google_apis;x86_64"
+      - name: Prepare SDK, isolated AVD and source-built fixture
+        run: node scripts/prepare-ci-android.mjs
       - name: Enable Linux KVM
         if: runner.os == 'Linux'
         run: sudo chmod a+rw /dev/kvm
-      - name: Build native fixture from this revision
-        shell: bash
-        run: gradle --no-daemon --stacktrace -p examples/mobile-fixtures/android-kotlin-login-demo assembleDebug
       - name: Prepare isolated Appium
         shell: bash
         run: |

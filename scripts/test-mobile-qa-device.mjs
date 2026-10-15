@@ -151,8 +151,7 @@ try {
                 text: scenario.password,
                 mode: "sendKeys"
               },
-              { action: "hideKeyboard" },
-              { action: "observe", waitForPackageIdle: true, stableMs: 750 },
+              { action: "observe", waitForPackageIdle: true, stableMs: 750, minWaitMs: 500 },
               { action: "tapText", text: "Giriş Yap", matchMode: "exact" },
               { action: "waitText", text: scenario.expected, timeoutMs: 10000 },
               { action: "assertText", text: scenario.expected }

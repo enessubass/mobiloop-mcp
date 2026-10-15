@@ -4,6 +4,48 @@ import { flowTools } from "../../src/tools/flow.js";
 import { appiumTools } from "../../src/tools/appium.js";
 import { createTestConfig, startMockAppium } from "../helpers.js";
 
+for (const entrypoint of ["appium.observe_screen", "flow.run_script"]) {
+  for (const condition of ["text", "stable"]) {
+    test(`${entrypoint} rejects an unmet ${condition} readiness condition`, async () => {
+      const mock = await startMockAppium();
+      try {
+        const config = await createTestConfig({ appiumServerUrl: mock.serverUrl });
+        const tool = [...appiumTools(), ...flowTools()].find((entry) => entry.name === entrypoint)!;
+        const observation = {
+          timeoutMs: 500,
+          ...(condition === "text"
+            ? { waitForAnyText: ["Missing readiness marker"] }
+            : { waitForPackageIdle: true, stableMs: 1500 })
+        };
+        const input =
+          entrypoint === "flow.run_script"
+            ? {
+                sessionId: "s1",
+                delayMs: 0,
+                steps: [
+                  { action: "observe", ...observation },
+                  { action: "tapText", text: "Giriş Yap" }
+                ]
+              }
+            : { sessionId: "s1", ...observation };
+        const result = await tool.handler(input, { config });
+        const payload = JSON.parse(
+          result.content.map((entry) => ("text" in entry ? entry.text : "")).join("\n")
+        );
+        assert.equal(payload.passed, false);
+        assert.equal(
+          mock.requests.some((request) => request.path.endsWith("/click")),
+          false
+        );
+        if (entrypoint === "flow.run_script") assert.equal(payload.executed.length, 1);
+        else assert.ok(payload.evidence.sourcePath);
+      } finally {
+        await mock.close();
+      }
+    });
+  }
+}
+
 for (const entrypoint of ["appium.hide_keyboard", "flow.run_script"]) {
   test(`${entrypoint} verifies the keyboard state through the shared client`, async () => {
     let hidden = false;

@@ -8,7 +8,8 @@
 - Added opt-in Ubuntu/Windows hosted Android emulator E2E and React Native fixture scenario execution; physical-device validation remains outside this release scope.
 - Made login examples preserve app data and carry actual authorization context, and replaced the incomplete Flutter quickstart with a complete first-use guide.
 - Replaced the deprecated Appium session-health metadata probe with an active page-source check.
-
+- Added explicit verified keyboard dismissal and made observation readiness timeouts fail instead of silently continuing dependent actions.
+- Isolated hosted AVD state, bounded individual test-file lifetimes, and fixed Windows MCP teardown order and fixture Git line endings.
 - Added the MIT-licensed `mobiloop-mobile-qa` agent skill, installation guidance, and npm/Docker packaging without a marketplace dependency.
 - Made Android and iOS orchestrators reject failed Appium assertions and visibility waits instead of reporting a successful validation.
 - Preserved Android setup failures as structured iteration reports and numeric HTTP assertion failures as failed checks.

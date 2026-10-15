@@ -202,6 +202,8 @@ Output:
 
 The `hideKeyboard` action uses `appium.hide_keyboard` semantics. Follow it with `observe` and `waitForPackageIdle: true` when a keyboard transition changes the layout before a tap. Unsupported keyboard commands are failures, not silent fallbacks.
 
+Keyboard visibility and dismissal depend on the platform driver. Genymotion with Appium's non-visual IME can report a shown keyboard that UiAutomator2 cannot dismiss; this remains a reported driver failure. Use stable-source observation when no dismissal is needed, not an unverified back-action fallback. Observation timeouts return `passed: false`; flow readiness failures stop dependent actions.
+
 Failure cases: unsupported action, missing locator/text, visibility timeout, assertion failure, keyboard dismissal failure, evidence collection failure.
 
 ### `verify.collect_evidence`

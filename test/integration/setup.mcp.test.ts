@@ -13,7 +13,14 @@ const exec = promisify(execFile);
 const cli = fileURLToPath(new URL("../../src/cli.js", import.meta.url));
 test("setup CLI requires consent and its generated configuration starts a real MCP server", async (t) => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "mobiloop-first-use-"));
-  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const client = new Client({ name: "first-use-test", version: "1.0.0" });
+  t.after(async () => {
+    try {
+      await client.close();
+    } finally {
+      await fs.rm(root, { recursive: true, force: true });
+    }
+  });
   await assert.rejects(
     exec(process.execPath, [cli, "setup", "--workspace", root, "--client", "claude"]),
     /No files changed/
@@ -40,8 +47,6 @@ test("setup CLI requires consent and its generated configuration starts a real M
   );
   assert.equal(policies.tools[0].policy.requiresApproval, true);
   const { mobiloop } = JSON.parse(await fs.readFile(setup.configPath, "utf8")).mcpServers;
-  const client = new Client({ name: "first-use-test", version: "1.0.0" });
-  t.after(() => client.close());
   await client.connect(new StdioClientTransport({ ...mobiloop, cwd: root, stderr: "pipe" }));
   assert.ok((await client.listTools()).tools.some((tool) => tool.name === "security.scan_source"));
   const response = await client.callTool({

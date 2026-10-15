@@ -88,23 +88,25 @@ export function appiumTools(): McpTool[] {
         );
         const waitForAnyText = optionalStringArray(args, "waitForAnyText") ?? [];
         const readiness: Record<string, unknown> = {};
+        let passed = true;
         if (waitForAnyText.length > 0) {
-          readiness.waitForAnyText = await client.waitForAnyText(
-            sessionId,
-            waitForAnyText,
-            timeoutMs
-          );
+          const result = await client.waitForAnyText(sessionId, waitForAnyText, timeoutMs);
+          readiness.waitForAnyText = result;
+          passed = passed && result.found;
         }
         if (optionalBoolean(args, "waitForPackageIdle") ?? false) {
-          readiness.waitForPackageIdle = await client.waitForStableSource(sessionId, {
+          const result = await client.waitForStableSource(sessionId, {
             timeoutMs,
             stableMs: Math.max(500, Math.min(optionalNumber(args, "stableMs") ?? 1_000, 15_000))
           });
+          readiness.waitForPackageIdle = result;
+          passed = passed && result.stable;
         }
         const evidence = await client.saveObservation(config, sessionId, prefix);
         return jsonResponse({
           serverUrl,
           sessionId,
+          passed,
           screenshotPath: evidence.screenshotPath,
           sourcePath: evidence.sourcePath,
           evidence,

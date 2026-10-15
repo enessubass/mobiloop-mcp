@@ -621,17 +621,17 @@ async function executeScriptStep(
       const waitForAnyText = optionalStringArray(step, "waitForAnyText") ?? [];
       const readiness: Record<string, unknown> = {};
       if (waitForAnyText.length > 0) {
-        readiness.waitForAnyText = await client.waitForAnyText(
-          sessionId,
-          waitForAnyText,
-          timeoutMs
-        );
+        const result = await client.waitForAnyText(sessionId, waitForAnyText, timeoutMs);
+        readiness.waitForAnyText = result;
+        if (!result.found) throw new Error("Observation timed out waiting for expected text");
       }
       if (optionalBoolean(step, "waitForPackageIdle") ?? false) {
-        readiness.waitForPackageIdle = await client.waitForStableSource(sessionId, {
+        const result = await client.waitForStableSource(sessionId, {
           timeoutMs,
           stableMs: Math.max(500, Math.min(optionalNumber(step, "stableMs") ?? 1_000, 15_000))
         });
+        readiness.waitForPackageIdle = result;
+        if (!result.stable) throw new Error("Observation timed out waiting for a stable source");
       }
       const evidence = await client.saveObservation(options.config, sessionId, label);
       return { action: "collectEvidence", readiness, evidence: evidence as never };

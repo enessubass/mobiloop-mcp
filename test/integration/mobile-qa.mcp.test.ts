@@ -24,13 +24,14 @@ test(
   "MCP mobile QA workflow enforces approval and verifies an actual guarded security fix",
   { timeout: 30_000 },
   async (t) => {
-    const root = await temporaryWorkspace(t);
+    const { root, client } = await temporaryWorkspace(t);
     trace("create Git fixture");
     const before = '<manifest><application android:usesCleartextTraffic="true" /></manifest>\n';
     const after = '<manifest><application android:usesCleartextTraffic="false" /></manifest>\n';
     await fs.writeFile(path.join(root, "AndroidManifest.xml"), before);
     await fs.writeFile(path.join(root, "build.gradle.kts"), "// Disposable Android project\n");
     await exec("git", ["init", "-b", "feature/ai-mobile-qa"], { cwd: root });
+    await exec("git", ["config", "core.autocrlf", "false"], { cwd: root });
     await exec("git", ["add", "."], { cwd: root });
     await exec(
       "git",
@@ -47,7 +48,7 @@ test(
       ],
       { cwd: root }
     );
-    const client = await connect(t, root);
+    await connect(client, root);
     trace("MCP connected");
     assert.ok(
       (await client.listTools()).tools.some((tool) => tool.name === "security.scan_source")
@@ -137,8 +138,8 @@ test(
   "MCP preflight reports missing Android tooling instead of a passing environment",
   { timeout: 30_000 },
   async (t) => {
-    const root = await temporaryWorkspace(t);
-    const client = await connect(t, root, { PATH: path.join(root, "missing-tools") });
+    const { root, client } = await temporaryWorkspace(t);
+    await connect(client, root, { PATH: path.join(root, "missing-tools") });
     trace("missing-tool MCP connected");
     const result = await call(client, "env.preflight", { target: "android" });
     trace("missing-tool preflight returned");
@@ -150,18 +151,24 @@ test(
   }
 );
 
-async function temporaryWorkspace(t: TestContext): Promise<string> {
+async function temporaryWorkspace(t: TestContext): Promise<{ root: string; client: Client }> {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "mobiloop-qa-mcp-"));
-  t.after(() => fs.rm(root, { recursive: true, force: true }));
-  return root;
+  const client = new Client({ name: "mobiloop-qa-test", version: "1.0.0" });
+  t.after(async () => {
+    try {
+      await client.close();
+    } finally {
+      await fs.rm(root, { recursive: true, force: true });
+    }
+  });
+  return { root, client };
 }
 
 async function connect(
-  t: TestContext,
+  client: Client,
   root: string,
   env: Record<string, string> = {}
-): Promise<Client> {
-  const client = new Client({ name: "mobiloop-qa-test", version: "1.0.0" });
+): Promise<void> {
   const transport = new StdioClientTransport({
     command: process.execPath,
     args: [fileURLToPath(new URL("../../src/index.js", import.meta.url))],
@@ -175,9 +182,7 @@ async function connect(
     },
     stderr: "inherit"
   });
-  t.after(() => client.close());
   await client.connect(transport);
-  return client;
 }
 
 async function call(

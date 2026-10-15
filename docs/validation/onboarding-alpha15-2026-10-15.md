@@ -1,0 +1,36 @@
+# Alpha.15 Onboarding And Emulator Follow-Up
+
+Candidate: `0.1.0-alpha.15`, reviewed through [PR 25](https://github.com/enessubass/mobiloop-mcp/pull/25). Physical devices are explicitly excluded. This record is not a claim that the PR has merged or that the candidate is published.
+
+## Local Results
+
+- Automated suite: 104 tests, 103 passed and one Windows-only batch-command test skipped on macOS. Docker/Linux passed the same applicable tests. Windows must execute that test in CI before Windows compatibility is claimed.
+- Clean package installation passed from a temporary directory with spaces, including the actual installed launcher, project-local setup, a second idempotent setup, doctor, 82-tool MCP discovery, and rejection of an unapproved patch.
+- Setup tests cover all five output formats, preserving other settings, TOML comments on append, exact private backups, dry runs, intentional replacement, malformed input, unsafe endpoints, and symlink/junction destinations. This is not independent behavioral evaluation of every client/model.
+- Kotlin Android, Flutter Android, React Native Android, and Flutter iOS each passed invalid-email, short-password, and successful-navigation assertions: 12/12 UI scenarios. Four intentionally wrong visibility expectations were correctly rejected. All created Appium sessions were deleted.
+- React Native `0.76.5` was generated using CLI `15.1.3`, received the source fixture, passed three Jest cases, and was built through MobiLoop `build.build_debug_apk`. The resulting dedicated `com.mobiloopreactnative` APK was installed through MobiLoop and tested on Genymotion Android 15. A bundled debug APK avoids a Metro-server dependency. The scaffold fetched its required NDK `26.1.10909125`; these downloads are separate from the MobiLoop runtime.
+- iOS Flutter was rebuilt, installed, and tested on the dedicated iPhone 17 Pro / iOS 26.2 simulator with an explicit platform version. The deprecated Appium GET-session probe was replaced by active page-source health checks.
+
+Kotlin/Flutter Android runs in the combined summary exercise the installed fixture binaries. Source-to-device build follow-ups are distinct checks; do not infer them merely from a UI pass. No MiniTakip data or physical device was modified.
+
+## Evidence
+
+Paths are relative to the checkout and intentionally excluded from distribution:
+
+- Android combined summary: `.mobiloop/runs/mobile-qa-device-2026-10-15T16-34-10-168Z/summary.json`.
+- iOS source-build/UI summary: `.mobiloop/runs/mobile-qa-ios-2026-10-15T16-34-14-172Z/summary.json`.
+- Each Android fixture's run root appends `-android-kotlin-login-demo`, `-flutter-login-demo`, or `-react-native-login-demo` to the combined run ID and contains screenshots, source, logs, iterations, and its Markdown report.
+- React Native unit/build logs: `.mobiloop/fixtures/react-native-login-demo/.mobiloop/build/2026-10-15T16-15-56-999Z-unit-tests.log` and `2026-10-15T16-27-43-023Z-debug-apk.log` in that same directory.
+- Prepared candidate downloads: `.mobiloop/release/0.1.0-alpha.15/`. The package and skill ZIP contain no local run artifacts or generated native projects.
+
+## Security Scope
+
+The native launcher retains an exported-component review signal. The generated React Native debug manifest legitimately permits cleartext traffic for development; that high finding remains visible and is not hidden to obtain a UI pass. The final React Native scan has one high debug-cleartext signal and one medium exported-launcher signal. Do not call that debug scaffold production-hardened. XML license comments, tools namespaces, and properties documentation no longer create extra transport findings; actual HTTP values and cleartext flags remain detectable.
+
+The root dependency audit and Docker production audit reported zero known vulnerabilities. Two small local runtime dependencies were added for structured TOML preservation and Windows command-shim escaping; no marketplace service or model backend was introduced. SDK/framework fixture dependencies have their own lifecycle and are not covered by that root-runtime audit claim.
+
+## External Validation And Publication
+
+Linux/macOS package tests and Docker initially passed their runtime tests but CI caught stale registry version metadata in the first PR commit. That is a release-blocking failure, not a green run. The hosted Android setup also exposed a retired SDK `tools` default; its configuration now selects only supported platform-tools before explicit emulator packages.
+
+Final Windows/Linux package/clean-install and emulator results must be read from the current PR checks and fixture-only workflow artifacts. A workflow file alone does not prove a platform passed. Main retains required checks, strict freshness, and one independent approval; neither approval enforcement nor branch protection was disabled to publish. The tag, GHCR/Registry publish, and downloadable release assets must wait for the protected-main review and successful checks.

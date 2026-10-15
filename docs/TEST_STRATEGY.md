@@ -40,7 +40,7 @@ Real mobile E2E runs on a local machine or a self-hosted runner with the mobile 
 
 Hosted GitHub Linux runners are good for package correctness. They are not enough to prove emulator/Appium behavior for every host.
 
-The [2026-10-15 initial device validation](validation/mobile-qa-android-ios-2026-10-15.md) records the Android native/Flutter and iOS Flutter results. The alpha.15 onboarding follow-up also covers generated React Native Android, setup/doctor, and clean package installation. Physical devices are excluded from that follow-up.
+The [2026-10-15 initial device validation](validation/mobile-qa-android-ios-2026-10-15.md) records the Android native/Flutter and iOS Flutter results. The [alpha.15 onboarding follow-up](validation/onboarding-alpha15-2026-10-15.md) also covers generated React Native Android, setup/doctor, and clean package installation. Physical devices are excluded from that follow-up.
 
 CI runs package tests and actual clean-install/first-use checks on Linux, Windows, and macOS, including Linux Node 20/26. The required `Validate` status aggregates those jobs and Docker. Platform workflow definitions alone are not passing results: inspect each run.
 

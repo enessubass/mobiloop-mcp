@@ -10,6 +10,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: package-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   package:
     name: Package (${{ matrix.os }}, Node ${{ matrix.node }})
@@ -51,6 +55,7 @@ jobs:
         run: npm run typecheck
 
       - name: Test
+        timeout-minutes: 3
         run: npm test
 
       - name: Static documentation site check

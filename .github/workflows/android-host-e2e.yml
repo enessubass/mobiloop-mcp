@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: android-host-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   native-login:
     if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'android-host-e2e')
@@ -34,6 +38,9 @@ jobs:
         with:
           gradle-version: "8.13"
       - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
       - name: Install MCP
         run: npm ci
       - name: Build MCP
